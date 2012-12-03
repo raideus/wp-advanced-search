@@ -1,0 +1,8 @@
+.wpas-field {
+	margin: 10px 0;
+}
+
+.wpas-field > label {
+	font-weight: bold;
+	display: block;
+}
