@@ -11,7 +11,8 @@
  *
  */
 
-define('WPAS_DEBUG', true);
+define('WPAS_DEBUG', false);
+require_once('field.php');
 
 if (!class_exists('WP_Advanced_Search')) {
 	class WP_Advanced_Search {
@@ -23,10 +24,14 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $meta_keys = array();
 
 		// Form Data
+		public $selected_fields = array();
+
 		public $selected_taxonomies = array();
 		public $selected_meta_keys = array();
 		public $selected_authors = array();
 		public $selected_post_types = array();
+		public $selected_order = array();
+		public $selected_orderby = array();
 		public $selected_years = array();
 		public $selected_months = array();
 		public $selected_days = array();
@@ -130,7 +135,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 
 			// Display the filter form
-	    	echo '<form name="uber-posts-filter" class="uber-posts-filter" method="GET" action="'.$url.'">';
+	    	echo '<form name="wp-advanced-search" class="wp-advanced-search" method="GET" action="'.$url.'">';
 
 	    		// URL fix if pretty permalinks are not enabled
 		    	if ( get_option('permalink_structure') == '' ) { 
@@ -149,6 +154,12 @@ if (!class_exists('WP_Advanced_Search')) {
 							$this->date_field($field);
 						} elseif ($field['type'] == 'post_type') {
 							$this->post_type_field($field);
+						} elseif ($field['type'] == 'order') {
+							$this->order_field($field);
+						} elseif ($field['type'] == 'orderby') {
+							$this->orderby_field($field);
+						} elseif ($field['type'] == 'html') {
+							$this->html_field($field);
 						} elseif ($field['type'] == 'search' && !$has_search) {
 							$this->search_field($field);
 							$has_search = true;
@@ -163,7 +174,6 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    }
 
-
 	    /**
 		 * Generates a search field
 		 *
@@ -173,10 +183,12 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    	$defaults = array(
 	    					'title' => 'Search',
+	    					'format' => 'text',
 	    					'std' => 'Enter search terms...'
 	    				);
 
 	    	$args = wp_parse_args($args, $defaults);
+	    	$format = $args['format'];
 
 	    	if (isset($_REQUEST['search_query'])) {
 	    		$value = $_REQUEST['search_query'];
@@ -184,13 +196,10 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$value = $args['std'];
 	    	}
 
-	    	?>
-	    	<div id="wpas-search" class="wpas-field">
-	    		<label for="wpas-search-field"><?php echo esc_attr($args['title']); ?> </label>
-	    		<input id="wpas-search-field" type="text" name="search_query" value="<?php echo esc_attr($value); ?>">
-	    	</div>
-	    	<?php
+	    	$args['values'] = $value;
 
+	    	$field = new WPAS_Field('search_query', $args);
+	    	$field->build_field();
 	    }
 
 	    /**
@@ -201,11 +210,11 @@ if (!class_exists('WP_Advanced_Search')) {
 	    function submit_button( $args ) {
 	    	$defaults = array('value' => 'Search');
 	    	$args = wp_parse_args($args, $defaults);
-	    	?>
-	    	<div id="wpas-submit" class="wpas-field">
-	    		<input type="submit" value="<?php echo esc_attr($args['value']); ?>">
-	    	</div>
-	    	<?php
+	    	extract($args);
+	    	$args['values'] = $value;
+	    	$args['format'] = 'submit';
+	    	$field = new WPAS_Field('submit', $args);
+	    	$field->build_field();
 	    }
 
 	    /**
@@ -224,10 +233,9 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 	    	$value = esc_attr($value);
 	    	?>
-	    	<div id="wpas-<?php echo $id; ?>" class="wpas-field wpas-text-field">
-	    		<label for="text-<?php echo $id; ?>"><?php echo $title; ?></label>
-	    		<input type="text" value="<?php echo $value; ?>" name="<?php echo $id; ?>">
-	    	</div>
+
+	    	<input type="text" value="<?php echo $value; ?>" name="<?php echo $id; ?>">
+
 	    	<?php
 	   	}    
 
@@ -247,12 +255,11 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 	    	$value = esc_textarea($value);
 	    	?>
-	    	<div id="wpas-<?php echo $id; ?>" class="wpas-field wpas-textarea-field">
-	    		<label for="text-<?php echo $id; ?>"><?php echo $title; ?></label>
-	    		<textarea type="text" name="<?php echo $id; ?>">
-	    			<?php echo trim($value); ?>
-	    		</textarea>
-	    	</div>
+
+    		<textarea type="text" name="<?php echo $id; ?>">
+    			<?php echo trim($value); ?>
+    		</textarea>
+
 	    	<?php
 	   	}    
 
@@ -272,14 +279,13 @@ if (!class_exists('WP_Advanced_Search')) {
 	    				);
 
 	    	$args = wp_parse_args($args, $defaults);
+	    	extract(wp_parse_args($args, $defaults));
 
-	    	$taxonomy = $args['taxonomy'];
-	    	$format = $args['format'];
 	    	$terms_list = $args['terms'];
 	    	$selected_terms = array();
 
-	    	if (isset($this->selected_taxonomies[$taxonomy])) {
-	    		$selected_terms = $this->selected_taxonomies[$taxonomy];
+	    	if (isset($this->selected_fields['tax_'.$taxonomy])) {
+	    		$selected_terms = $this->selected_fields['tax_'.$taxonomy];
 	    	}
 
 	    	$the_tax = get_taxonomy( $taxonomy );
@@ -312,7 +318,11 @@ if (!class_exists('WP_Advanced_Search')) {
 				}
 			}
 
-			$this->build_field('tax_'.$tax_slug, $format, $title, $terms, $selected_terms);
+			$args['values'] = $terms;
+			$args['title'] = $title;
+
+			$field = new WPAS_Field('tax_'.$tax_slug, $args);
+			$field->build_field();
 
 	    }
 
@@ -329,23 +339,56 @@ if (!class_exists('WP_Advanced_Search')) {
 	    					'title' => '',
 	    					'meta_key' => '',
 	    					'format' => 'select',
-	    					'meta_values' => array()
+	    					'values' => array()
 	    				);
 
 	    	$args = wp_parse_args($args, $defaults);
-
-	    	$title = $args['title'];
 	    	$meta_key = $args['meta_key'];
-	    	$format = $args['format'];
-	    	$meta_values = $args['meta_values'];
-	    	$selected_values = array();
 
-	    	if (isset($this->selected_meta_keys[$meta_key])) {
-	    		$selected_values = $this->selected_meta_keys[$meta_key];
-	    	}
-
-	    	$this->build_field('meta_'.$meta_key, $format, $title, $meta_values, $selected_values);
+			$field = new WPAS_Field('meta_'.$meta_key, $args);
+			$field->build_field();	    	
 	    }
+
+
+	     /**
+		 * Generates an order field
+		 *
+		 * @since 1.0
+		 */   	    
+	    function order_field( $args ) {
+    		$defaults = array(
+				'title' => '',
+				'format' => 'select',
+				'orderby' => 'title',
+				'values' => array('ASC' => 'ASC', 'DESC' => 'DESC')
+			);
+
+			$args = wp_parse_args($args, $defaults);
+
+			$field = new WPAS_Field('order', $args);
+			$field->build_field();				
+
+	    }
+
+	     /**
+		 * Generates an orderby field
+		 *
+		 * @since 1.0
+		 */   	    
+	    function orderby_field( $args ) {
+    		$defaults = array(
+				'title' => '',
+				'format' => 'select',
+				'orderby' => 'title',
+				'values' => array('ID' => 'ID', 'author' => 'Author', 'title' => 'Title', 'date' => 'Date', 'modified' => 'Modified')
+			);
+
+			$args = wp_parse_args($args, $defaults);
+
+			$field = new WPAS_Field('orderby', $args);
+			$field->build_field();	
+	    }
+
 
 	     /**
 		 * Generates an author field
@@ -385,7 +428,10 @@ if (!class_exists('WP_Advanced_Search')) {
 				}
 			}
 
-			$this->build_field('a', $format, $title, $the_authors_list, $selected_authors);
+			$args['values'] = $the_authors_list;
+
+			$field = new WPAS_Field('a', $args);
+			$field->build_field();
 
 	    }
 
@@ -423,8 +469,11 @@ if (!class_exists('WP_Advanced_Search')) {
 				}
 			} 
 
-			$this->build_field('ptype', $format, $title, $values, $selected_values);
+			$args['values'] = $values;
 
+			$field = new WPAS_Field('ptype', $args);
+			$field->build_field();
+			
 	    }
 
 	    function date_field( $args ) {
@@ -434,7 +483,8 @@ if (!class_exists('WP_Advanced_Search')) {
 			'date_type' => 'year',
 			'values' => array() );
 
-			extract(wp_parse_args($args, $defaults));
+			$args = wp_parse_args($args, $defaults);
+			extract($args);
 
 			$selected_values = array();
 			$months = array(1 => 'January', 
@@ -461,34 +511,74 @@ if (!class_exists('WP_Advanced_Search')) {
 						$values = $this->get_years();
 					}
 					$selected_values = $this->selected_years;
-					$id = 'date_y';
+					$the_id = 'date_y';
 					break;
 				case ('month') :
 					if (count($values) < 1) {
 						$values = $months;
 					}
-					$id = 'date_m';
+					$the_id = 'date_m';
 					$selected_values = $this->selected_months;
 					break;
 				case ('day') :
 					if (count($values) < 1) {
 						$values = $days;
 					}
-					$id = 'date_d';
+					$the_id = 'date_d';
 					$selected_values = $this->selected_days;
 			}
 
-			$this->build_field($id, $format, $title, $values, $selected_values);
+			if (!isset($id)) {
+				$id = $the_id;
+				$args['id'] = $id;
+			}
+			$args['values'] = $values;
+
+			$field = new WPAS_Field($id, $args);
+			$field->build_field();
 
 	    }
 
+	     /**
+		 * Generates an HTML content field
+		 * 
+		 * This "field" is not used for data entry but rather for inserting
+		 * custom markup within the form body.
+		 *
+		 * @since 1.0
+		 */   
+	    function html_field( $args ) {
+	    	$defaults = array('value' => '');
+	    	extract(wp_parse_args($args, $defaults));
+
+	    	$args['format'] = 'html';
+	    	$args['values'] = $value;
+
+			$field = new WPAS_Field('html', $args);
+			$field->build_field();
+	    }
 
 	     /**
 		 * Generates a form field
 		 *
 		 * @since 1.0
 		 */
-		 function build_field( $id, $format = 'select', $title = '', $values = array(), $selected_values = array() ) {
+		 function _build_field( $args ) {
+
+		 	$defaults = array(	'format' => 'select',
+		 						'title' => '',
+		 						'values' => array(),
+		 						'selected_values' => array()
+		 					);
+
+		 	extract(wp_parse_args($args, $defaults));
+
+    	    echo '<div id="wpas-'.$id.'" class="wpas-'.$id.' wpas-field">';
+
+    	    if ($title) {
+				echo '<label for="'.$format.'-'.$id.'">'.$title.' </label>';
+			}
+
 		 	switch ($format) {
 		 		case ('select') :
 		 			$this->select_field($id, $title, $values, $selected_values);
@@ -510,6 +600,46 @@ if (!class_exists('WP_Advanced_Search')) {
 		 			break;
 
 		 	}
+		 	echo '</div>';
+		}
+
+		 
+	     /**
+		 * Generates a form field
+		 *
+		 * @since 1.0
+		 */
+		 function build_field( $id, $format = 'select', $title = '', $values = array(), $selected_values = array() ) {
+
+    	    echo '<div id="wpas-'.$id.'" class="wpas-'.$id.' wpas-field">';
+
+    	    if ($title) {
+				echo '<label for="'.$format.'-'.$id.'">'.$title.' </label>';
+			}
+
+		 	switch ($format) {
+		 		case ('select') :
+		 			$this->select_field($id, $title, $values, $selected_values);
+		 			break;
+		 		case ('multi-select') :
+		 			$this->select_field($id, $title, $values, $selected_values, true);
+		 			break;
+		 		case ('checkbox') :
+		 			$this->checkbox_field($id, $title, $values, $selected_values);
+		 			break;
+		 		case ('radio') :
+		 			$this->radio_field($id, $title, $values, $selected_values);
+		 			break;
+		 		case ('text') :
+		 			$this->text_field($id, $title, $selected_values);
+		 			break;
+		 		case ('textarea') :
+		 			$this->textarea_field($id, $title, $selected_values);
+		 			break;
+
+		 	}
+		 	echo '</div>';
+
 		 }
 
 		/**
@@ -531,15 +661,13 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$multiple = '';
 	    	}
 
-	    	    echo '<div id="wpas-'.$id.'" class="wpas-field">';
-				echo '<label for="select-'.$id.'">'.$title.' </label>';
 				echo '<select id="select-'.$id.'" name="'.$id;
 				if ($multi) {
 					echo '[]';
 				}
 				echo  '"'.$multiple.'>';
 				if (!$multi) {
-					echo '<option value="">- select -</option>';
+					//echo '<option value="">- select -</option>';
 				}
 
 				foreach ($values as $value => $label) {	
@@ -555,8 +683,6 @@ if (!class_exists('WP_Advanced_Search')) {
 				}
 
 				echo '</select>';
-				echo '</div>';
-
 	    }
 
 		/**
@@ -572,12 +698,13 @@ if (!class_exists('WP_Advanced_Search')) {
 		    		$selected = explode(',',$selected);
 		    	}
 
-				echo '<div id="wpas-'.$id.'" class="wpas-field"><label for="wpas-'.$id.'-checkboxes">'.$title.' </label>';
-				echo '<div class="wpas-'.$id.'-checkboxes">';
+				
+				echo '<div class="wpas-'.$id.'-checkboxes wpas-checkboxes">';
+				$ctr = 1;
 				foreach ($values as $value => $label) {
 					$value = esc_attr($value);
 					$label = esc_attr($label);
-					echo '<div class="wpas-'.$id.'-checkbox"><input type="checkbox" name="'.$id.'[]" value="'.$value.'"';
+					echo '<div class="wpas-'.$id.'-checkbox-'.$ctr.'-container wpas-'.$id.'-checkbox-container wpas-checkbox-container"><input type="checkbox" id="wpas-'.$id.'-checkbox-'.$ctr.'" class="wpas-'.$id.'-checkbox wpas-checkbox" name="'.$id.'[]" value="'.$value.'"';
 
 						if (in_array($value, $selected)) {
 							echo ' checked="checked"';
@@ -585,9 +712,10 @@ if (!class_exists('WP_Advanced_Search')) {
 
 					echo '>';
 
-					echo '<label for="wpas-'.$id.'-checkbox"> '.$label.'</label></div>';
+					echo '<label for="wpas-'.$id.'-checkbox-'.$ctr.'"> '.$label.'</label></div>';
+					$ctr++;
 				}
-				echo '</div></div>';
+				echo '</div>';
 	    }
 
 		/**
@@ -603,7 +731,6 @@ if (!class_exists('WP_Advanced_Search')) {
 		    		$selected = explode(',',$selected);
 		    	}
 
-				echo '<div id="wpas-'.$id.'" class="wpas-field"><label for="wpas-'.$id.'-radio-buttons">'.$title.' </label>';
 				echo '<div class="wpas-'.$id.'-radio-buttons">';
 				foreach ($values as $value => $label) {
 					$value = esc_attr($value);
@@ -618,9 +745,8 @@ if (!class_exists('WP_Advanced_Search')) {
 
 					echo '<label for="wpas-'.$id.'-radio-button"> '.$label.'</label></div>';
 				}
-				echo '</div></div>';
+				echo '</div>';
 	    }
-
 
 		/**
 		 * Builds the tax_query component of our WP_Query object based on form input
@@ -732,6 +858,8 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    		if ($value) {
 
+	    			$this->selected_fields[$request] = $value;
+
 		    		if (substr($request, 0, 4) == 'tax_') {
 		    			
 		    			$tax = $this->tax_from_arg($request);
@@ -764,6 +892,14 @@ if (!class_exists('WP_Advanced_Search')) {
 		    				case('ptype') :
 		    					$this->selected_post_types = $selected;
 		    					$this->wp_query_args['post_type'] = $selected;
+		    					break;
+		    				case('order') :
+		    					$this->selected_order = $selected;
+		    					$this->wp_query_args['order'] = implode(',', $selected);
+		    					break;
+		    				case('orderby') :
+		    					$this->selected_orderby = $selected;
+		    					$this->wp_query_args['orderby'] = implode(',', $selected);
 		    					break;
 		    				case('date_y') :
 		    					$this->selected_years = $selected;
@@ -851,6 +987,41 @@ if (!class_exists('WP_Advanced_Search')) {
 				echo '</div>';
 			}
 
+		}
+
+		function results_count( $args = array() ) {
+			global $wp_query;
+
+			$defaults = array(
+							'pre' => '',
+							'marker' => '-',
+							'post' => ''
+						);	
+
+			$args = wp_parse_args($args, $defaults);	
+			extract($args);
+
+			$total = $wp_query->found_posts;
+			$count = $wp_query->post_count;
+			$query = $wp_query->query;
+			$ppp = $query['posts_per_page'];
+			$page =  get_query_var('paged');
+			$range = 1;
+			$current_post = $wp_query->current_post + 1;
+
+			$range = $page;
+			if ($ppp > 1) {
+				$i = 1 + (($page - 1)*2);
+				$j = $i + ($ppp - 1);
+				$range = sprintf('%d%s%d', $i, $marker, $j);
+				if ($j > $total) {
+					$range = $i;
+				} 
+			}
+
+			$output = sprintf('<span>%s</span> <span>%s</span> of <span>%d</span> <span>%s</span>', $pre, $range, $total, $post);
+
+			return $output;
 		}
 
 		/**
