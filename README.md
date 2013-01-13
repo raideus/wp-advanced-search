@@ -1,6 +1,8 @@
 # WP Advanced Search
 **A PHP framework for building advanced search forms in WordPress**
 
+[View Documentation](https://github.com/growthspark/wp-advanced-search/wiki/Documentation)
+
 ## Installation
 
 1. Create a new directory "wp-advanced-search" within your theme folder.
@@ -11,5 +13,5 @@
 
 ## Usage
 
-See the included demo template under /demo/advanced-search-demo.php for an example of how to create your own forms.
+See the included demo template under /demo/wp-advanced-search-demo.php for an example of how to create your own forms.
 
