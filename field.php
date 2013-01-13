@@ -4,6 +4,7 @@ Class WPAS_Field {
 	
 	public $id;
 	public $title;
+	public $type;
 	public $format;
 	public $values;
 	public $selected = '';
@@ -15,11 +16,16 @@ Class WPAS_Field {
 							'values' => array()
 							);
 
-		extract(wp_parse_args($args,$defaults));
 		$this->id = $id;
+		extract(wp_parse_args($args,$defaults));
 		$this->title = $title;
 		$this->format = $format;
 		$this->values = $values;
+		$this->type = $type;
+
+		if (empty($values) && isset($value)) {
+			$this->values = $value;
+		}
 		
 		if(isset($_REQUEST[$id])) {
 			$this->selected = $_REQUEST[$id];
@@ -33,7 +39,7 @@ Class WPAS_Field {
 	}
 
 	function build_field() {
-		echo '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-field">';
+		echo '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
 		if ($this->title) {
 			echo '<label for="'.$this->id.'">'.$this->title.'</label>';
 		}
@@ -80,9 +86,6 @@ Class WPAS_Field {
 				echo '[]';
 			}
 			echo  '"'.$multiple.'>';
-			if (!$multi) {
-				echo '<option value=""></option>';
-			}
 
 			foreach ($this->values as $value => $label) {	
 				$value = esc_attr($value);
@@ -122,10 +125,12 @@ Class WPAS_Field {
 
 	function radio() {
 		echo '<div class="wpas-'.$this->id.'-radio-buttons">';
+		$ctr = 1;
 		foreach ($this->values as $value => $label) {
 			$value = esc_attr($value);
 			$label = esc_attr($label);
-			echo '<div class="wpas-'.$this->id.'-radio-button"><input type="radio" name="'.$this->id.'[]" value="'.$value.'"';
+			echo '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
+			echo '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio" name="'.$this->id.'" value="'.$value.'"';
 
 				if (in_array($value, $this->selected_r)) {
 					echo ' checked="checked"';
@@ -133,7 +138,8 @@ Class WPAS_Field {
 
 			echo '>';
 
-			echo '<label for="wpas-'.$this->id.'-radio-button"> '.$label.'</label></div>';
+			echo '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>';
+			$ctr++;
 		}
 		echo '</div>';		
 	}
@@ -144,6 +150,8 @@ Class WPAS_Field {
     			$value = $this->selected[0];
     		else
     			$value = '';
+    	} elseif (is_array($this->values)) {
+    		$value = reset($this->values);
     	} else {
     		$value = $this->values;
     	}
@@ -157,6 +165,8 @@ Class WPAS_Field {
     			$value = $this->selected[0];
     		else
     			$value = '';
+    	} elseif (is_array($this->values)) {
+    		$value = reset($this->values);
     	} else {
     		$value = $this->values;
     	}
