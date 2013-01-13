@@ -17,62 +17,62 @@ Page Attributes > Template.
 
 			<?php 
 			
-				$wpas = array();
+				$args = array();
 
-				$wpas['wp_query'] = array('post_type' => 'post',
+				$args['wp_query'] = array('post_type' => 'post',
 				                                'posts_per_page' => 5,
 				                                'tax_query' => array('relation' => 'OR'));
 
-				$wpas['fields'][] = array('type' => 'search',
+				$args['fields'][] = array('type' => 'search',
 				                                'title' => 'Search',
-				                                'std' => '');
+				                                'value' => '');
 
 
-				$wpas['fields'][] = array('type' => 'taxonomy',
+				$args['fields'][] = array('type' => 'taxonomy',
 					                                'title' => 'Category',
 					                                'taxonomy' => 'category',
 					                                'format' => 'select',
 					                                'operator' => 'AND');
 
-				$wpas['fields'][] = array('type' => 'taxonomy',
+				$args['fields'][] = array('type' => 'taxonomy',
 					                                'title' => 'Tags',
 					                                'taxonomy' => 'post_tag',
 					                                'format' => 'checkbox',
 					                                'operator' => 'IN');
 
-				$wpas['fields'][] = array('type' => 'author',
+				$args['fields'][] = array('type' => 'author',
 				                                'title' => 'Author',
 				                                'format' => 'multi-select',
 				                                'authors' => array(1));
 
-				$wpas['fields'][] = array('type' => 'date',
+				$args['fields'][] = array('type' => 'date',
 				                                'title' => 'Year',
 				                                'date_type' => 'year',
 				                                'values' => array(),
 				                                'format' => 'select');
 
-				$wpas['fields'][] = array('type' => 'date',
+				$args['fields'][] = array('type' => 'date',
 				                                'title' => 'Month',
 				                                'date_type' => 'month',
 				                                'values' => array(),
 				                                'format' => 'select');
 
-				$wpas['fields'][] = array('type' => 'date',
+				$args['fields'][] = array('type' => 'date',
 				                                'title' => 'Day',
 				                                'date_type' => 'day',
 				                                'values' => array(),
 				                                'format' => 'select');
 
-				$wpas['fields'][] = array('type' => 'submit',
+				$args['fields'][] = array('type' => 'submit',
 				                                'value' => 'Search');
 
 
-				$event_filter = new WP_Advanced_Search($wpas);
+				$my_search_object = new WP_Advanced_Search($args);
 
-				$event_filter->the_form();
+				$my_search_object->the_form();
 
 				$temp_query = $wp_query;
-				$wp_query = $event_filter->query();
+				$wp_query = $my_search_object->query();
 
 				if ( have_posts() ): 
 
@@ -85,7 +85,7 @@ Page Attributes > Template.
 					<?php
 					endwhile; 
 
-				$event_filter->pagination();
+				$my_search_object->pagination();
 				$wp_query = $temp_query;
 
 				else :
