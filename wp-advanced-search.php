@@ -4,10 +4,8 @@
  *
  * A PHP framework for building advanced search forms in WordPress
  * 
- * Built by Growth Spark
+ * Built by Sean Butze for Growth Spark
  * http://growthspark.com
- *
- * Contributors: Sean Butze
  *
  */
 
@@ -23,18 +21,9 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $taxonomy_operators = array();
 		public $meta_keys = array();
 
-		// Form Data
-		public $selected_fields = array();
-
+		// Form Input
 		public $selected_taxonomies = array();
 		public $selected_meta_keys = array();
-		public $selected_authors = array();
-		public $selected_post_types = array();
-		public $selected_order = array();
-		public $selected_orderby = array();
-		public $selected_years = array();
-		public $selected_months = array();
-		public $selected_days = array();
 
 		function __construct($args = '') {
 			if ( !empty($args) ) {
@@ -127,6 +116,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$fields = $this->fields;
 	    	$has_search = false;
 	    	$has_submit = false;
+	    	$html = 1;
 
 	    	if (isset($_REQUEST['filter_page'])) {
 	    		$page = $_REQUEST['filter_page'];
@@ -134,8 +124,10 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$page = 1;
 	    	}
 
+
+
 			// Display the filter form
-	    	echo '<form name="wp-advanced-search" class="wp-advanced-search" method="GET" action="'.$url.'">';
+	    	echo '<form id="wp-advanced-search" name="wp-advanced-search" class="wp-advanced-search" method="GET" action="'.$url.'">';
 
 	    		// URL fix if pretty permalinks are not enabled
 		    	if ( get_option('permalink_structure') == '' ) { 
@@ -159,7 +151,11 @@ if (!class_exists('WP_Advanced_Search')) {
 						} elseif ($field['type'] == 'orderby') {
 							$this->orderby_field($field);
 						} elseif ($field['type'] == 'html') {
+							$field['id'] = $html;
 							$this->html_field($field);
+							$html++;
+						} elseif ($field['type'] == 'generic') {
+							$this->generic_field($field);
 						} elseif ($field['type'] == 'search' && !$has_search) {
 							$this->search_field($field);
 							$has_search = true;
@@ -184,7 +180,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$defaults = array(
 	    					'title' => 'Search',
 	    					'format' => 'text',
-	    					'std' => 'Enter search terms...'
+	    					'value' => 'Enter search terms...'
 	    				);
 
 	    	$args = wp_parse_args($args, $defaults);
@@ -193,7 +189,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	if (isset($_REQUEST['search_query'])) {
 	    		$value = $_REQUEST['search_query'];
 	    	} else {
-	    		$value = $args['std'];
+	    		$value = $args['value'];
 	    	}
 
 	    	$args['values'] = $value;
@@ -216,52 +212,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$field = new WPAS_Field('submit', $args);
 	    	$field->build_field();
 	    }
-
-	    /**
-		 * Generates a text field
-		 *
-		 * @since 1.0
-		 */
-	    function text_field( $id, $title, $value ) {
-	    	$id = esc_attr($id);
-	    	$title = esc_attr($title);
-	    	if (is_array($value)) {
-	    		if (isset($value[0]))
-	    			$value = $value[0];
-	    		else
-	    			$value = '';
-	    	}
-	    	$value = esc_attr($value);
-	    	?>
-
-	    	<input type="text" value="<?php echo $value; ?>" name="<?php echo $id; ?>">
-
-	    	<?php
-	   	}    
-
-	    /**
-		 * Generates a textarea field
-		 *
-		 * @since 1.0
-		 */
-	    function textarea_field( $id, $title, $value ) {
-	    	$id = esc_attr($id);
-	    	$title = esc_attr($title);
-	    	if (is_array($value)) {
-	    		if (isset($value[0]))
-	    			$value = $value[0];
-	    		else
-	    			$value = '';
-	    	}
-	    	$value = esc_textarea($value);
-	    	?>
-
-    		<textarea type="text" name="<?php echo $id; ?>">
-    			<?php echo trim($value); ?>
-    		</textarea>
-
-	    	<?php
-	   	}    
 
 
 	    /**
@@ -510,7 +460,6 @@ if (!class_exists('WP_Advanced_Search')) {
 					if (count($values) < 1) {
 						$values = $this->get_years();
 					}
-					$selected_values = $this->selected_years;
 					$the_id = 'date_y';
 					break;
 				case ('month') :
@@ -518,14 +467,12 @@ if (!class_exists('WP_Advanced_Search')) {
 						$values = $months;
 					}
 					$the_id = 'date_m';
-					$selected_values = $this->selected_months;
 					break;
 				case ('day') :
 					if (count($values) < 1) {
 						$values = $days;
 					}
 					$the_id = 'date_d';
-					$selected_values = $this->selected_days;
 			}
 
 			if (!isset($id)) {
@@ -539,7 +486,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    }
 
-	     /**
+		/**
 		 * Generates an HTML content field
 		 * 
 		 * This "field" is not used for data entry but rather for inserting
@@ -548,204 +495,32 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */   
 	    function html_field( $args ) {
-	    	$defaults = array('value' => '');
+	    	$defaults = array('id'=>1, 'value' => '');
 	    	extract(wp_parse_args($args, $defaults));
 
 	    	$args['format'] = 'html';
 	    	$args['values'] = $value;
 
-			$field = new WPAS_Field('html', $args);
+			$field = new WPAS_Field('html-'.$id, $args);
 			$field->build_field();
 	    }
 
-	     /**
-		 * Generates a form field
+		/**
+		 * Generates a generic form field
+		 * 
+		 * Used for creating form fields that do not affect
+		 * the WP_Query object
 		 *
 		 * @since 1.0
-		 */
-		 function _build_field( $args ) {
+		 */   
+	    function generic_field( $args ) {
+	    	$defaults = array();
+	    	extract(wp_parse_args($args, $defaults));
 
-		 	$defaults = array(	'format' => 'select',
-		 						'title' => '',
-		 						'values' => array(),
-		 						'selected_values' => array()
-		 					);
-
-		 	extract(wp_parse_args($args, $defaults));
-
-    	    echo '<div id="wpas-'.$id.'" class="wpas-'.$id.' wpas-field">';
-
-    	    if ($title) {
-				echo '<label for="'.$format.'-'.$id.'">'.$title.' </label>';
+	    	if (isset($id) && !empty($id)) {
+				$field = new WPAS_Field($id, $args);
+				$field->build_field();
 			}
-
-		 	switch ($format) {
-		 		case ('select') :
-		 			$this->select_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('multi-select') :
-		 			$this->select_field($id, $title, $values, $selected_values, true);
-		 			break;
-		 		case ('checkbox') :
-		 			$this->checkbox_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('radio') :
-		 			$this->radio_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('text') :
-		 			$this->text_field($id, $title, $selected_values);
-		 			break;
-		 		case ('textarea') :
-		 			$this->textarea_field($id, $title, $selected_values);
-		 			break;
-
-		 	}
-		 	echo '</div>';
-		}
-
-		 
-	     /**
-		 * Generates a form field
-		 *
-		 * @since 1.0
-		 */
-		 function build_field( $id, $format = 'select', $title = '', $values = array(), $selected_values = array() ) {
-
-    	    echo '<div id="wpas-'.$id.'" class="wpas-'.$id.' wpas-field">';
-
-    	    if ($title) {
-				echo '<label for="'.$format.'-'.$id.'">'.$title.' </label>';
-			}
-
-		 	switch ($format) {
-		 		case ('select') :
-		 			$this->select_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('multi-select') :
-		 			$this->select_field($id, $title, $values, $selected_values, true);
-		 			break;
-		 		case ('checkbox') :
-		 			$this->checkbox_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('radio') :
-		 			$this->radio_field($id, $title, $values, $selected_values);
-		 			break;
-		 		case ('text') :
-		 			$this->text_field($id, $title, $selected_values);
-		 			break;
-		 		case ('textarea') :
-		 			$this->textarea_field($id, $title, $selected_values);
-		 			break;
-
-		 	}
-		 	echo '</div>';
-
-		 }
-
-		/**
-		 * Builds a select field
-		 *
-		 * @since 1.0
-		 */
-	    function select_field( $id, $title, $values = array(), $selected = array(), $multi = false ) {
-	    	$id = esc_attr($id);
-	    	$title = esc_attr($title);
-
-			if (is_string($selected)) {
-	    		$selected = explode(',',$selected);
-	    	}
-
-	    	if ($multi) {
-	    		$multiple = ' multiple="multiple"';
-	    	} else {
-	    		$multiple = '';
-	    	}
-
-				echo '<select id="select-'.$id.'" name="'.$id;
-				if ($multi) {
-					echo '[]';
-				}
-				echo  '"'.$multiple.'>';
-				if (!$multi) {
-					//echo '<option value="">- select -</option>';
-				}
-
-				foreach ($values as $value => $label) {	
-					$value = esc_attr($value);
-					$label = esc_attr($label);
-					echo '<option value="'.$value.'"';
-
-						if (in_array($value, $selected)) {
-							echo ' selected="selected"';
-						}
-
-					echo '>'.$label.'</option>';
-				}
-
-				echo '</select>';
-	    }
-
-		/**
-		 * Builds a checkbox field
-		 *
-		 * @since 1.0
-		 */
-	    function checkbox_field( $id, $title, $values = array(), $selected = array() ) {
-	    	$id = esc_attr($id);
-	    	$title = esc_attr($title);
-
-		    	if (is_string($selected)) {
-		    		$selected = explode(',',$selected);
-		    	}
-
-				
-				echo '<div class="wpas-'.$id.'-checkboxes wpas-checkboxes">';
-				$ctr = 1;
-				foreach ($values as $value => $label) {
-					$value = esc_attr($value);
-					$label = esc_attr($label);
-					echo '<div class="wpas-'.$id.'-checkbox-'.$ctr.'-container wpas-'.$id.'-checkbox-container wpas-checkbox-container"><input type="checkbox" id="wpas-'.$id.'-checkbox-'.$ctr.'" class="wpas-'.$id.'-checkbox wpas-checkbox" name="'.$id.'[]" value="'.$value.'"';
-
-						if (in_array($value, $selected)) {
-							echo ' checked="checked"';
-						}
-
-					echo '>';
-
-					echo '<label for="wpas-'.$id.'-checkbox-'.$ctr.'"> '.$label.'</label></div>';
-					$ctr++;
-				}
-				echo '</div>';
-	    }
-
-		/**
-		 * Builds a radio button field
-		 *
-		 * @since 1.0
-		 */
-	    function radio_field( $id, $title, $values = array(), $selected = array() ) {
-		    	$id = esc_attr($id);
-		    	$title = esc_attr($title);
-
-		    	if (is_string($selected)) {
-		    		$selected = explode(',',$selected);
-		    	}
-
-				echo '<div class="wpas-'.$id.'-radio-buttons">';
-				foreach ($values as $value => $label) {
-					$value = esc_attr($value);
-					$label = esc_attr($label);
-					echo '<div class="wpas-'.$id.'-radio-button"><input type="radio" name="'.$id.'[]" value="'.$value.'"';
-
-						if (in_array($value, $selected)) {
-							echo ' checked="checked"';
-						}
-
-					echo '>';
-
-					echo '<label for="wpas-'.$id.'-radio-button"> '.$label.'</label></div>';
-				}
-				echo '</div>';
 	    }
 
 		/**
@@ -989,7 +764,12 @@ if (!class_exists('WP_Advanced_Search')) {
 
 		}
 
-		function results_count( $args = array() ) {
+		/**
+		 * Displays range of results displayed on the current page.
+		 *
+		 * @since 1.0
+		 */
+		function results_range( $args = array() ) {
 			global $wp_query;
 
 			$defaults = array(
@@ -1019,7 +799,11 @@ if (!class_exists('WP_Advanced_Search')) {
 				} 
 			}
 
-			$output = sprintf('<span>%s</span> <span>%s</span> of <span>%d</span> <span>%s</span>', $pre, $range, $total, $post);
+			if ($count < 1) {
+				$range = 0;
+			}
+
+			$output = sprintf('<span>%s</span> <span>%s</span> <span>%s</span>', $pre, $range, $post);
 
 			return $output;
 		}
