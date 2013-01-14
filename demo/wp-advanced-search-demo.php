@@ -10,8 +10,6 @@ Page Attributes > Template.
 
 <?php get_header(); ?>
 
-	<?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-
 		<article>
 			<h1><?php the_title(); ?></h1>
 
@@ -26,6 +24,11 @@ Page Attributes > Template.
 				$args['fields'][] = array('type' => 'search',
 				                                'title' => 'Search',
 				                                'value' => '');
+
+				$args['fields'][] = array('type' => 'post_type',
+				                                'title' => 'Post Type',
+				                                'values' => array('post' => 'Post', 'page' => 'Page'),
+				                                'format' => 'select');				
 
 
 				$args['fields'][] = array('type' => 'taxonomy',
@@ -46,20 +49,8 @@ Page Attributes > Template.
 				                                'authors' => array(1));
 
 				$args['fields'][] = array('type' => 'date',
-				                                'title' => 'Year',
-				                                'date_type' => 'year',
-				                                'values' => array(),
-				                                'format' => 'select');
-
-				$args['fields'][] = array('type' => 'date',
 				                                'title' => 'Month',
 				                                'date_type' => 'month',
-				                                'values' => array(),
-				                                'format' => 'select');
-
-				$args['fields'][] = array('type' => 'date',
-				                                'title' => 'Day',
-				                                'date_type' => 'day',
 				                                'values' => array(),
 				                                'format' => 'select');
 
@@ -98,6 +89,5 @@ Page Attributes > Template.
 
 		</article>
 
-	<?php endwhile; endif; ?>
 
 <?php get_footer(); ?>
