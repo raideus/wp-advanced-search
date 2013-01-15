@@ -19,7 +19,8 @@ Page Attributes > Template.
 
 				$args['wp_query'] = array('post_type' => 'post',
 				                                'posts_per_page' => 5,
-				                                'tax_query' => array('relation' => 'OR'));
+				                                'order' => 'DESC',
+				                                'orderby' => 'date');
 
 				$args['fields'][] = array('type' => 'search',
 				                                'title' => 'Search',
@@ -30,11 +31,10 @@ Page Attributes > Template.
 				                                'values' => array('post' => 'Post', 'page' => 'Page'),
 				                                'format' => 'select');				
 
-
 				$args['fields'][] = array('type' => 'taxonomy',
 					                                'title' => 'Category',
 					                                'taxonomy' => 'category',
-					                                'format' => 'select',
+					                                'format' => 'multi-select',
 					                                'operator' => 'AND');
 
 				$args['fields'][] = array('type' => 'taxonomy',
@@ -43,20 +43,23 @@ Page Attributes > Template.
 					                                'format' => 'checkbox',
 					                                'operator' => 'IN');
 
-				$args['fields'][] = array('type' => 'author',
-				                                'title' => 'Author',
-				                                'format' => 'multi-select',
-				                                'authors' => array(1));
-
 				$args['fields'][] = array('type' => 'date',
 				                                'title' => 'Month',
 				                                'date_type' => 'month',
-				                                'values' => array(),
-				                                'format' => 'select');
+				                                'format' => 'multi-select');
+
+				$args['fields'][] = array('type' => 'orderby',
+                                				'title' => 'Order By',
+                                				'values' => array('' => '', 'ID' => 'ID', 'title' => 'Title', 'date' => 'Date'),
+                                				'format' => 'select');
+
+				$args['fields'][] = array('type' => 'order',
+                                				'title' => 'Order',
+                                				'values' => array('' => '', 'ASC' => 'ASC', 'DESC' => 'DESC'),
+                                				'format' => 'select');
 
 				$args['fields'][] = array('type' => 'submit',
 				                                'value' => 'Search');
-
 
 				$my_search_object = new WP_Advanced_Search($args);
 
@@ -77,13 +80,14 @@ Page Attributes > Template.
 					endwhile; 
 
 				$my_search_object->pagination();
-				$wp_query = $temp_query;
 
 				else :
 
 					echo 'Sorry, no posts matched your criteria.';
 
 				endif;
+				
+				$wp_query = $temp_query;
 
 			?>
 
