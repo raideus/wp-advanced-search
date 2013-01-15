@@ -180,7 +180,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$defaults = array(
 	    					'title' => 'Search',
 	    					'format' => 'text',
-	    					'value' => 'Enter search terms...'
+	    					'value' => ''
 	    				);
 
 	    	$args = wp_parse_args($args, $defaults);
@@ -326,12 +326,18 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */   	    
 	    function orderby_field( $args ) {
-    		$defaults = array(
-				'title' => '',
-				'format' => 'select',
-				'orderby' => 'title',
-				'values' => array('ID' => 'ID', 'author' => 'Author', 'title' => 'Title', 'date' => 'Date', 'modified' => 'Modified')
-			);
+    		$defaults = array('title' => '',
+							  'format' => 'select',
+							  'values' => array('ID' => 'ID', 
+											    'author' => 'Author', 
+											    'title' => 'Title', 
+											    'date' => 'Date', 
+											    'modified' => 'Modified',
+											    'parent' => 'Parent ID',
+											    'rand' => 'Random',
+											    'comment_count' => 'Comment Count',
+											    'menu_order' => 'Menu Order')
+						);
 
 			$args = wp_parse_args($args, $defaults);
 
@@ -429,6 +435,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    function date_field( $args ) {
 	    	$defaults = array(
 			'title' => '',
+			'id' => 'date_y',
 			'format' => 'select',
 			'date_type' => 'year',
 			'values' => array() );
@@ -455,31 +462,32 @@ if (!class_exists('WP_Advanced_Search')) {
 				$days[$i + 1] = $i + 1;
 			}
 
+			
 			switch ($date_type) {
 				case ('year') :
 					if (count($values) < 1) {
-						$values = $this->get_years();
+						$d_values = $this->get_years();
 					}
-					$the_id = 'date_y';
+					$id = 'date_y';
 					break;
 				case ('month') :
 					if (count($values) < 1) {
-						$values = $months;
+						$d_values = $months;
 					}
-					$the_id = 'date_m';
+					$id = 'date_m';
 					break;
 				case ('day') :
 					if (count($values) < 1) {
-						$values = $days;
+						$d_values = $days;
 					}
-					$the_id = 'date_d';
+					$id = 'date_d';
 			}
 
-			if (!isset($id)) {
-				$id = $the_id;
-				$args['id'] = $id;
+			if (empty($values)) {
+				$args['values'] = $d_values;
 			}
-			$args['values'] = $values;
+		
+			$args['id'] = $id;
 
 			$field = new WPAS_Field($id, $args);
 			$field->build_field();
