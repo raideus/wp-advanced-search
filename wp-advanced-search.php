@@ -731,16 +731,16 @@ if (!class_exists('WP_Advanced_Search')) {
 			}
 			$this->wp_query_args['paged'] = $paged;
 
-
-	    	if (WPAS_DEBUG) {
-	    		echo '<pre>';
-	    		print_r($this->wp_query_args);
-	    		echo '</pre>';
-	    	}
-
 	    	$this->wp_query = new WP_Query($this->wp_query_args);
 	    	$query = $this->wp_query;
 	    	$query->query_vars['post_type'] = $this->wp_query_args['post_type'];
+
+	    	if (WPAS_DEBUG) {
+	    		echo '<pre>';
+	    		print_r($query);
+	    		echo '</pre>';
+	    	}
+
 	    	return $query;
 	    }
 
