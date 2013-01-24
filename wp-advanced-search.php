@@ -740,6 +740,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    	$this->wp_query = new WP_Query($this->wp_query_args);
 	    	$query = $this->wp_query;
+	    	$query->query_vars['post_type'] = $this->wp_query_args['post_type'];
 	    	return $query;
 	    }
 
@@ -803,7 +804,7 @@ if (!class_exists('WP_Advanced_Search')) {
 				$j = $i + ($ppp - 1);
 				$range = sprintf('%d%s%d', $i, $marker, $j);
 				if ($j > $total) {
-					$range = $i;
+					$range = $total;
 				} 
 			}
 
