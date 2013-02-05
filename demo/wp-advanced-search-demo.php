@@ -88,7 +88,7 @@ Page Attributes > Template.
 				endif;
 				
 				$wp_query = $temp_query;
-
+				wp_reset_query();
 			?>
 
 		</article>
