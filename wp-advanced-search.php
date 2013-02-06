@@ -1,12 +1,13 @@
 <?php
 /**
- * WP Advanced Search - v1.0
+ * WP Advanced Search 
  *
  * A PHP framework for building advanced search forms in WordPress
- * 
- * Built by Sean Butze for Growth Spark
- * http://growthspark.com
  *
+ * @author Sean Butze
+ * @link https://github.com/growthspark/wp-advanced-search
+ * @version 1.0
+ * @license MIT
  */
 
 define('WPAS_DEBUG', false);
@@ -39,9 +40,8 @@ if (!class_exists('WP_Advanced_Search')) {
 			wp_enqueue_style( 'wp-advanced-search',  get_template_directory_uri() . '/wp-advanced-search/css/wp-advanced-search.css', array(), '1', 'all' );
 		}
 
-
 		/**
-		 * (new) Parses arguments and sets variables
+		 * Parses arguments and sets variables
 		 *
 		 * @since 1.0
 		 */
@@ -123,8 +123,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	} else {
 	    		$page = 1;
 	    	}
-
-
 
 			// Display the filter form
 	    	echo '<form id="wp-advanced-search" name="wp-advanced-search" class="wp-advanced-search" method="GET" action="'.$url.'">';
@@ -432,6 +430,11 @@ if (!class_exists('WP_Advanced_Search')) {
 			
 	    }
 
+	    /**
+		 * Generates a date field
+		 *
+		 * @since 1.0
+		 */   
 	    function date_field( $args ) {
 	    	$defaults = array(
 			'title' => '',
@@ -570,66 +573,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	 
 	    }
 
-
-	    function _build_tax_query($return_simple = false) {
-	    	$query = $this->wp_query_args;
-
-	    	$taxonomies = get_object_taxonomies($query['post_type']);
-	    	$tax_query = array();
-	    	$the_terms = array();
-
-	    	foreach ($_REQUEST as $request => $value) {
-
-	    		if (taxonomy_exists($this->tax_from_arg($request))) {
-
-	    			$taxonomy = $this->tax_from_arg($request);
-
-	    			if ($return_simple) {
-
-	    				if (is_array($value)) {
-							foreach ($value as $term) {
-									$the_terms[] =  $term;
-							}
-						} else {
-		    				$the_terms[] = $value;
-		    			}
-
-	    			} else {
-
-	    				$terms_list = array();
-
-						if (is_array($value)) {
-							foreach ($value as $term) {
-									$terms_list[] =  $term;
-							}
-						} else {
-		    				$terms_list[] = $value;
-		    			}
-
-						$tax_query[] =  array(	
-		    									'taxonomy' => $taxonomy,
-												'field' => 'id',
-												'terms' => $terms_list,
-												'operator' => $this->taxonomy_operators[$taxonomy]
-										);
-					}
-
-				}
-
-	    	}
-
-	    	echo '<pre>';
-	    	//print_r($args);
-	    	echo '</pre>';
-
-	    	if ($return_simple) {
-	    		return $the_terms;
-	    	}
-	 
-	    	return $tax_query;
-
-	    }
-
 		/**
 		 * Processes form input and modifies the query accordingly
 		 *
@@ -701,8 +644,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		    					break;	
 		    			}
 
-		    
-
+		   
 		    		}
 
 		    	} // end if ($value)
@@ -710,7 +652,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}// end foreach $_REQUEST
 
 	    }
-
 
 		/**
 		 * Initializes a WP_Query object with the given search parameters
@@ -744,6 +685,12 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	return $query;
 	    }
 
+
+		/**
+		 * Displays pagination links
+		 *
+		 * @since 1.0
+		 */
 		function pagination( $args = '' ) {
 			global $wp_query;
 			$current_page = max(1, get_query_var('paged'));
@@ -818,19 +765,6 @@ if (!class_exists('WP_Advanced_Search')) {
 		}
 
 		/**
-		 * Template for displaying posts on the results page
-		 *
-		 * @since 1.0
-		 */
-		function post_template() {
-	    	?>
-	    	<h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-			<?php the_excerpt(); ?>
-
-			<?php
-	    }
-
-		/**
 		 * Accepts a term slug & taxonomy and returns the ID of that term
 		 *
 		 * @since 1.0
@@ -872,12 +806,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		return false;
 	    	}
 
-	    }
-
-	    function _print( $array ) {
-	    	echo '<pre>';
-	    	print_r($array);
-	    	echo '</pre>';
 	    }
 
 	    /**
