@@ -10,7 +10,7 @@
  * @license MIT
  */
 
-define('WPAS_DEBUG', true);
+define('WPAS_DEBUG', false);
 require_once('wpas-field.php');
 
 if (!class_exists('WP_Advanced_Search')) {
@@ -46,35 +46,27 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */
 		function process_args( $args ) {
-
-			if (isset($args['wp_query'])) {
+			if (isset($args['wp_query'])) 
 				$this->wp_query_args = $args['wp_query'];
-			}
-
-			if (isset($args['fields'])) {
+			if (isset($args['fields']))
 				$this->fields = $args['fields'];
-			}
 
 			$fields = $this->fields;
 			foreach ($fields as $field) {
 
 				if (isset($field['type'])) {
 					switch($field['type']) {
-
 						case ('taxonomy') :
 							if (isset($field['taxonomy'])) {
 								$tax = $field['taxonomy'];
-
 								if (isset($field['operator'])) {
 									$operator = $field['operator'];
 								} else {
 									$operator = 'AND';
 								}
-
 								$this->taxonomy_operators[$tax] = $operator;
 							}
 							break;
-
 						case('meta_key') :
 							if (isset($field['meta_key'])) {
 								$meta = $field['meta_key'];
@@ -95,12 +87,9 @@ if (!class_exists('WP_Advanced_Search')) {
 								$this->meta_keys[$meta]['data_type'] = $data_type;
 							}
 							break;		
-
 					}
 				}
-
 			}
-
 		}
 
 	    /**
@@ -174,24 +163,19 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */
 	    function search_field( $args ) {
-
 	    	$defaults = array(
 	    					'title' => 'Search',
 	    					'format' => 'text',
 	    					'value' => ''
 	    				);
-
 	    	$args = wp_parse_args($args, $defaults);
 	    	$format = $args['format'];
-
 	    	if (isset($_REQUEST['search_query'])) {
 	    		$value = $_REQUEST['search_query'];
 	    	} else {
 	    		$value = $args['value'];
 	    	}
-
 	    	$args['values'] = $value;
-
 	    	$field = new WPAS_Field('search_query', $args);
 	    	$field->build_field();
 	    }
@@ -219,13 +203,11 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */
 	    function tax_field( $args ) {
-
 	    	$defaults = array( 
 	    					'taxonomy' => 'category',
 	    					'format' => 'select',
 	    					'terms' => array()
 	    				);
-
 	    	$args = wp_parse_args($args, $defaults);
 	    	extract(wp_parse_args($args, $defaults));
 
@@ -465,7 +447,6 @@ if (!class_exists('WP_Advanced_Search')) {
 				$days[$i + 1] = $i + 1;
 			}
 
-			
 			switch ($date_type) {
 				case ('year') :
 					if (count($values) < 1) {
@@ -644,7 +625,6 @@ if (!class_exists('WP_Advanced_Search')) {
 		    					break;	
 		    			}
 
-		   
 		    		}
 
 		    	} // end if ($value)

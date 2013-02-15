@@ -1,5 +1,4 @@
 <?php
-
 Class WPAS_Field {
 	
 	public $id;
@@ -110,13 +109,10 @@ Class WPAS_Field {
 			$label = esc_attr($label);
 			echo '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
 			echo '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox" name="'.$this->id.'[]" value="'.$value.'"';
-
 				if (in_array($value, $this->selected_r)) {
 					echo ' checked="checked"';
 				}
-
 			echo '>';
-
 			echo '<label for="wpas-'.$this->id.'-checkbox-'.$ctr.'"> '.$label.'</label></div>';
 			$ctr++;
 		}
@@ -131,13 +127,10 @@ Class WPAS_Field {
 			$label = esc_attr($label);
 			echo '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
 			echo '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio" name="'.$this->id.'" value="'.$value.'"';
-
 				if (in_array($value, $this->selected_r)) {
 					echo ' checked="checked"';
 				}
-
 			echo '>';
-
 			echo '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>';
 			$ctr++;
 		}
