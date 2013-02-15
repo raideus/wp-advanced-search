@@ -9,7 +9,7 @@
 
 2. Add the following to your theme's functions.php file:
 
-` require_once('wp-advanced-search/wp-advanced-search.php'); `
+` require_once('wp-advanced-search/wpas.php'); `
 
 ## Usage
 
