@@ -40,7 +40,7 @@ Class WPAS_Field {
 	function build_field() {
 		echo '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
 		if ($this->title) {
-			echo '<label for="'.$this->id.'">'.$this->title.'</label>';
+			echo '<div class="label-container"><label for="'.$this->id.'">'.$this->title.'</label></div>';
 		}
 		 	switch($this->format) {
 		 		case ('select') :
