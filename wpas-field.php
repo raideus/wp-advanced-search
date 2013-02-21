@@ -5,6 +5,7 @@ Class WPAS_Field {
 	public $title;
 	public $type;
 	public $format;
+	public $placeholder;
 	public $values;
 	public $selected = '';
 	public $selected_r = array();
@@ -12,16 +13,18 @@ Class WPAS_Field {
 	function __construct($id, $args = array()) {
 		$defaults = array(	'title' => '',
 							'format' => 'select',
+							'placeholder' => false,
 							'values' => array()
 							);
 
 		$this->id = $id;
 		extract(wp_parse_args($args,$defaults));
 		$this->title = $title;
+		$this->type = $type;
 		$this->format = $format;
 		$this->values = $values;
-		$this->type = $type;
-
+		$this->placeholder = $placeholder;
+		
 		if (empty($values) && isset($value)) {
 			$this->values = $value;
 		}
@@ -149,7 +152,10 @@ Class WPAS_Field {
     		$value = $this->values;
     	}
     	$value = esc_attr($value);
-    	echo '<input type="text" id="'.$this->id.'" value="'.$value.'" name="'.$this->id.'">';
+    	$placeholder = '';
+    	if ($this->placeholder)
+    		$placeholder = ' placeholder="'.$this->placeholder.'"';
+    	echo '<input type="text" id="'.$this->id.'" value="'.$value.'" name="'.$this->id.'"'.$placeholder.'>';
 	}
 
 	function textarea() {
@@ -164,7 +170,10 @@ Class WPAS_Field {
     		$value = $this->values;
     	}
     	$value = esc_textarea($value);
-    	echo '<textarea  id="'.$this->id.'"name="'.$this->id.'">'.$value.'</textarea>';		
+    	$placeholder = '';
+    	if ($this->placeholder)
+    		$placeholder = ' placeholder="'.$this->placeholder.'"';
+    	echo '<textarea id="'.$this->id.'" name="'.$this->id.'"'.$placeholder.'>'.$value.'</textarea>';		
 	}
 
 	function submit() {
