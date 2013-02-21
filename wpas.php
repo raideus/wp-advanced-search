@@ -381,7 +381,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$defaults = array(
 					'title' => '',
 					'format' => 'select',
-					'values' => array()
+					'values' => array('post' => 'Post', 'page' => 'Page')
 				);
 
 	    	$args = wp_parse_args($args, $defaults);
