@@ -41,38 +41,44 @@ Class WPAS_Field {
 	}
 
 	function build_field() {
-		echo '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
-		if ($this->title) {
-			echo '<div class="label-container"><label for="'.$this->id.'">'.$this->title.'</label></div>';
+		if ($this->format != 'hidden') {
+			echo '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
+			if ($this->title) {
+				echo '<div class="label-container"><label for="'.$this->id.'">'.$this->title.'</label></div>';
+			}
 		}
-		 	switch($this->format) {
-		 		case ('select') :
-		 			$this->select();
-		 			break;
-		 		case ('multi-select') :
-		 			$this->select(true);
-		 			break;
-		 		case ('checkbox') :
-		 			$this->checkbox();
-		 			break;
-		 		case ('radio') :
-		 			$this->radio();
-		 			break;
-		 		case ('text') :
-		 			$this->text();
-		 			break;
-		 		case ('textarea') :
-		 			$this->textarea();
-		 			break;
-		 		case ('html') :
-		 			$this->html();
-		 			break;
-		 		case ('submit') :
-		 			$this->submit();
-		 			break;
-		 	}
-
+	 	switch($this->format) {
+	 		case ('select') :
+	 			$this->select();
+	 			break;
+	 		case ('multi-select') :
+	 			$this->select(true);
+	 			break;
+	 		case ('checkbox') :
+	 			$this->checkbox();
+	 			break;
+	 		case ('radio') :
+	 			$this->radio();
+	 			break;
+	 		case ('text') :
+	 			$this->text();
+	 			break;
+	 		case ('textarea') :
+	 			$this->textarea();
+	 			break;
+	 		case ('html') :
+	 			$this->html();
+	 			break;
+	 		case ('hidden') :
+	 			$this->hidden();
+	 			break;
+	 		case ('submit') :
+	 			$this->submit();
+	 			break;
+	 	}
+		if ($this->format != 'hidden') {
 		 echo '</div>';
+		}
 	}
 
 	function select($multi = false) {
@@ -182,6 +188,15 @@ Class WPAS_Field {
 
 	function html() {
 		echo $this->values;
+	}
+
+	function hidden() {
+		$value = $this->values;
+		if (is_array($value)) {
+    		$value = reset($value);
+    	} 
+    	$value = esc_attr($value);
+		echo '<input type="hidden" name="'.$this->id.'" value="'.$value.'">';
 	}
 
 } // Class
