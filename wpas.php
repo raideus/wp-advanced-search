@@ -20,6 +20,8 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $wp_query_args = array();
 		public $taxonomy_operators = array();
 		public $meta_keys = array();
+		public $orderby_relevanssi = 'relevance';
+		public $relevanssi = false;
 
 		// Form Input
 		public $selected_taxonomies = array();
@@ -29,6 +31,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			if ( !empty($args) ) {
 				$this->process_args($args);
 			}
+			$this->process_orderby();
 			$this->process_form_input();
 
 			add_action('wp_enqueue_scripts', array($this, 'styles') );
@@ -49,6 +52,8 @@ if (!class_exists('WP_Advanced_Search')) {
 				$this->wp_query_args = $args['wp_query'];
 			if (isset($args['fields']))
 				$this->fields = $args['fields'];
+			if (isset($args['relevanssi']))
+				$this->relevanssi = $args['relevanssi'];
 
 			$fields = $this->fields;
 			foreach ($fields as $field) {
@@ -106,6 +111,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$fields = $this->fields;
 	    	$has_search = false;
 	    	$has_submit = false;
+	    	$has_orderby = false;
 	    	$html = 1;
 
 	    	if (isset($_REQUEST['filter_page'])) {
@@ -137,11 +143,14 @@ if (!class_exists('WP_Advanced_Search')) {
 						} elseif ($field['type'] == 'order') {
 							$this->order_field($field);
 						} elseif ($field['type'] == 'orderby') {
+							$has_orderby = true;
 							$this->orderby_field($field);
 						} elseif ($field['type'] == 'html') {
-							$field['id'] = $html;
+							if (empty($field['id'])) {
+								$field['id'] = $html;
+								$html++;
+							}
 							$this->html_field($field);
-							$html++;
 						} elseif ($field['type'] == 'generic') {
 							$this->generic_field($field);
 						} elseif ($field['type'] == 'search' && !$has_search) {
@@ -154,8 +163,11 @@ if (!class_exists('WP_Advanced_Search')) {
 					}
 		    	}
 
-	    	echo '</form>';
+		    if ($this->relevanssi && !$has_orderby) {
+		    	echo '<input type="hidden" name="orderby" value="'.$this->orderby_relevanssi.'">';
+		    }
 
+	    	echo '</form>';
 	    }
 
 	    /**
@@ -310,11 +322,11 @@ if (!class_exists('WP_Advanced_Search')) {
     		$defaults = array('title' => '',
 							  'format' => 'select',
 							  'values' => array('ID' => 'ID', 
-											    'author' => 'Author', 
-											    'title' => 'Title', 
-											    'date' => 'Date', 
-											    'modified' => 'Modified',
-											    'parent' => 'Parent ID',
+											    'post_author' => 'Author', 
+											    'post_title' => 'Title', 
+											    'post_date' => 'Date', 
+											    'post_modified' => 'Modified',
+											    'post_parent' => 'Parent ID',
 											    'rand' => 'Random',
 											    'comment_count' => 'Comment Count',
 											    'menu_order' => 'Menu Order')
@@ -631,6 +643,27 @@ if (!class_exists('WP_Advanced_Search')) {
 	    }
 
 		/**
+		 * Converts certain orderby keys into formats compatible with WP_Query
+		 *
+		 * @since 1.0
+		 */
+	    function process_orderby() {
+			if (isset($this->wp_query_args['orderby'])) {
+				switch($this->wp_query_args['orderby']) {
+					case 'post_title' :
+					case 'post_author' :
+					case 'post_date' :
+					case 'post_modified' :
+					case 'post_parent' :
+					case 'post_name' :
+						$this->orderby_relevanssi = $this->wp_query_args['orderby'];
+						$this->wp_query_args['orderby'] = substr($this->wp_query_args['orderby'], 5);
+						break;
+				}	
+			}
+	    }
+
+		/**
 		 * Initializes a WP_Query object with the given search parameters
 		 *
 		 * @since 1.0
@@ -638,6 +671,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    function query() {
 	    	$this->build_tax_query();
 	    	$this->build_meta_query();
+	    	$this->process_orderby();
 
 	    	// Apply pagination
 	    	if ( get_query_var('paged') ) {
@@ -652,6 +686,13 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$this->wp_query = new WP_Query($this->wp_query_args);
 	    	$query = $this->wp_query;
 	    	$query->query_vars['post_type'] = $this->wp_query_args['post_type'];
+
+	    	if ($this->relevanssi) {
+	    		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				if (!empty($_REQUEST['search_query']) && is_plugin_active('relevanssi/relevanssi.php')) {
+					relevanssi_do_query($query);
+				}
+	    	}
 
 	    	if (defined('WPAS_DEBUG') && WPAS_DEBUG) {
 	    		echo '<pre>';
