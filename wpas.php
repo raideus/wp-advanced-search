@@ -19,6 +19,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $wp_query;
 		public $wp_query_args = array();
 		public $taxonomy_operators = array();
+		public $taxonomy_formats = array();
 		public $meta_keys = array();
 		public $orderby_relevanssi = 'relevance';
 		public $relevanssi = false;
@@ -109,6 +110,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    	$url = get_permalink($post->ID);
 	    	$fields = $this->fields;
+	    	$tax_fields = array();
 	    	$has_search = false;
 	    	$has_submit = false;
 	    	$has_orderby = false;
@@ -131,7 +133,11 @@ if (!class_exists('WP_Advanced_Search')) {
 		    	foreach ($fields as $field) {
 					if (isset($field['type'])) {
 						if ($field['type'] == 'taxonomy') {
-							$this->tax_field($field);
+							if (isset($field['taxonomy']) 
+								&& !in_array($field['taxonomy'], $tax_fields)) {
+								$tax_fields[] = $field['taxonomy'];
+								$this->tax_field($field);
+							}
 						} elseif ($field['type'] == 'meta_key') {
 							$this->meta_field($field);
 						} elseif ($field['type'] == 'author') {
@@ -219,17 +225,13 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$defaults = array( 
 	    					'taxonomy' => 'category',
 	    					'format' => 'select',
+	    					'term_format' => 'slug',
 	    					'terms' => array()
 	    				);
 	    	$args = wp_parse_args($args, $defaults);
 	    	extract(wp_parse_args($args, $defaults));
 
-	    	$terms_list = $args['terms'];
-	    	$selected_terms = array();
-
-	    	if (isset($this->selected_fields['tax_'.$taxonomy])) {
-	    		$selected_terms = $this->selected_fields['tax_'.$taxonomy];
-	    	}
+	    	$this->term_formats[$taxonomy] = $term_format;
 
 	    	$the_tax = get_taxonomy( $taxonomy );
 	    	$tax_name = $the_tax->labels->name;
@@ -245,23 +247,43 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$title = $tax_name;
 	    	}
 
-			$terms = array();
+	    	$terms_objects = array();
+			$term_values = array();
 
-			if (count($terms_list) < 1) {
-				$term_objects = get_terms($taxonomy, array( 'hide_empty' => 0 ));
-				foreach ($term_objects as $term) {
-					$terms[$term->term_id] = $term->name;
-				}
+			if (isset($terms) && is_array($terms) && (count($terms) < 1)) {
+				$term_objects = get_terms($taxonomy, array( 'hide_empty' => 0 )); 
 			} else {
-				foreach ($terms_list as $term_name) {
-					$term = get_term_by('slug', $term_name, $taxonomy);
+				foreach ($terms as $term_identifier) {
+					$term = get_term_by($term_format, $term_identifier, $taxonomy);
 					if ($term) {
-						$terms[$term->term_id] = $term->name;
+						$term_objects[] = $term;
 					}
 				}
 			}
+				
+			foreach ($term_objects as $term) {
+				switch($term_format) {
+					case 'id' :
+					case 'ID' :
+						$term_values[$term->term_id] = $term->name;
+						break;
+					case 'Name' :
+					case 'name' :
+						$term_values[$term->name] = $term->name;
+						break;
+					default :
+						$term_values[$term->slug] = $term->name;
+						break;
+				}
+			}
 
-			$args['values'] = $terms;
+			// Don't populate with values if this is a text or textarea field
+			if (empty($values)) {
+				if (!($format == 'text' || $format == 'textarea')) {
+					$args['values'] = $term_values;
+				}
+			}
+
 			$args['title'] = $title;
 
 			$field = new WPAS_Field('tax_'.$tax_slug, $args);
@@ -536,15 +558,45 @@ if (!class_exists('WP_Advanced_Search')) {
 	    function build_tax_query() {
 	    	$query = $this->wp_query_args;
 	    	$taxonomies = $this->selected_taxonomies;
+	    	
 
 	    	foreach ($taxonomies as $tax => $terms) {
+	    		$term_slugs = array(); // used when term_format is set to 'name'
+	    		$term_format = $this->term_formats[$tax];
+	    		$has_error = false;
+	    		if (isset($this->term_formats[$tax]))
+	    			$term_format = $this->term_formats[$tax];
+	    		else
+	    			$term_format = 'slug';
+
+	    		if ($term_format == 'name') {
+	    			if (!is_array($terms)) 
+	    				$terms = array($terms);
+
+	    			foreach ($terms as $term) {
+	    				$the_term = get_term_by('name', $term, $tax);
+	    				if ($the_term) {
+	    					$term_slugs[] = $the_term->slug;
+	    				} else {
+	    					$has_error = true;
+	    					$term_slugs[] = $term; // even if term invalid, we have to add it anyway to produce 0 results
+	    				}
+	    			}
+
+	    			$terms = $term_slugs;
+	    			$term_format = 'slug';
+	    		} else if (!($term_format == 'slug') && !($term_format == 'id')) {
+	    			$this->error('Invalid term_format for taxonomy "'.$tax.'"');
+	    			continue;
+	    		}
+
 	    		$this->wp_query_args['tax_query'][] = array(	
 				    									'taxonomy' => $tax,
-														'field' => 'id',
+														'field' => $term_format,
 														'terms' => $terms,
 														'operator' => $this->taxonomy_operators[$tax]
 														);
-	    	}
+	    	} // endforeach $taxonomies
 
 	    }
 
@@ -896,6 +948,19 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	        return $dates;
 
+	    }
+
+	    /**
+	     *  Displays an error message for debugging
+	     *
+	     *  @since 1.0
+	     */
+	    function error($msg = false) {
+	    	if ($msg) {
+				if (defined('WPAS_DEBUG') && WPAS_DEBUG) {
+					echo '<p><strong>WPAS Error: </strong> ' . $msg . '</p>';
+				}
+	    	}
 	    }
 
 	} // class
