@@ -133,8 +133,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		    	foreach ($fields as $field) {
 					if (isset($field['type'])) {
 						if ($field['type'] == 'taxonomy') {
-							if (isset($field['taxonomy']) 
-								&& !in_array($field['taxonomy'], $tax_fields)) {
+							if (isset($field['taxonomy']) && !in_array($field['taxonomy'], $tax_fields)) {
 								$tax_fields[] = $field['taxonomy'];
 								$this->tax_field($field);
 							}
@@ -159,6 +158,8 @@ if (!class_exists('WP_Advanced_Search')) {
 							$this->html_field($field);
 						} elseif ($field['type'] == 'generic') {
 							$this->generic_field($field);
+						} elseif ($field['type'] == 'posts_per_page') {
+							$this->posts_per_page_field($field);
 						} elseif ($field['type'] == 'search' && !$has_search) {
 							$this->search_field($field);
 							$has_search = true;
@@ -551,6 +552,25 @@ if (!class_exists('WP_Advanced_Search')) {
 	    }
 
 		/**
+		 * Generates a generic form field
+		 * 
+		 * Used for creating form fields that do not affect
+		 * the WP_Query object
+		 *
+		 * @since 1.0
+		 */  
+	    function posts_per_page_field( $args ) {
+	    	$defaults = array(
+	    		'format' => 'text',
+	    		'value' => ''
+	    		);
+
+	    	$args = wp_parse_args($args, $defaults);
+	    	$field = new WPAS_Field('posts_per_page', $args);
+	    	$field->build_field();
+	    }
+
+		/**
 		 * Builds the tax_query component of our WP_Query object based on form input
 		 *
 		 * @since 1.0
@@ -629,23 +649,18 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	foreach ($_REQUEST as $request => $value) {
 
 	    		if ($value) {
-
 	    			$this->selected_fields[$request] = $value;
-
 		    		if (substr($request, 0, 4) == 'tax_') {
-		    			
 		    			$tax = $this->tax_from_arg($request);
 		    			if ($tax) {
 		    				$this->selected_taxonomies[$tax] = $value;
 		    			}
-
 		    		} elseif (substr($request, 0, 5) == 'meta_') {
 
 		    			$meta = $this->meta_from_arg($request);
 		    			if ($meta) {
 		    				$this->selected_meta_keys[$meta] = $value;
 		    			}
-
 		    		} else {
 		    			$selected = array();
 		    			if (!is_array($value)) {
@@ -681,16 +696,19 @@ if (!class_exists('WP_Advanced_Search')) {
 		    				case('date_d') :
 		    					$this->wp_query_args['day'] = implode(',', $selected);
 		    					break;	
+		    				case('posts_per_page') :
+		    					$ppp = implode(',', $selected);
+		    					$this->wp_query_args['posts_per_page'] = intval($ppp);
+		    					break;	
 		    				case('search_query') :
 		    					$this->wp_query_args['s'] = implode(',', $selected);
 		    					break;	
-		    			}
+		    			} // switch
 
-		    		}
+		    		} // endif
+		    	} // endif ($value)
 
-		    	} // end if ($value)
-
-	    	}// end foreach $_REQUEST
+	    	}// endforeach $_REQUEST
 
 	    }
 
