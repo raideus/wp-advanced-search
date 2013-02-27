@@ -152,6 +152,8 @@ Class WPAS_Field {
     			$value = $this->selected[0];
     		else
     			$value = '';
+    	} elseif (isset($this->selected)) {
+    		$value = $this->selected;
     	} elseif (is_array($this->values)) {
     		$value = reset($this->values);
     	} else {
@@ -170,6 +172,8 @@ Class WPAS_Field {
     			$value = $this->selected[0];
     		else
     			$value = '';
+    	} elseif (isset($this->selected)) {
+    		$value = $this->selected;
     	} elseif (is_array($this->values)) {
     		$value = reset($this->values);
     	} else {
