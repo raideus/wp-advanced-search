@@ -99,8 +99,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	global $post;
 	    	global $wp_query;
 
-	    	wp_enqueue_script( 'test', get_template_directory_uri() . '/wp-advanced-search/test.js', array(), '1', false );
-
 	    	$url = get_permalink($post->ID);
 	    	$fields = $this->fields;
 	    	$tax_fields = array();
