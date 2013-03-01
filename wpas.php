@@ -34,13 +34,6 @@ if (!class_exists('WP_Advanced_Search')) {
 			}
 			$this->process_orderby();
 			$this->process_form_input();
-
-			add_action('wp_enqueue_scripts', array($this, 'styles') );
-		}
-
-
-		function styles() {
-			wp_enqueue_style( 'wp-advanced-search',  get_template_directory_uri() . '/wp-advanced-search/css/wp-advanced-search.css', array(), '1', 'all' );
 		}
 
 		/**
@@ -754,6 +747,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$this->wp_query_args['paged'] = $paged;
 
 	    	$this->wp_query = new WP_Query($this->wp_query_args);
+
 	    	$query = $this->wp_query;
 	    	$query->query_vars['post_type'] = $this->wp_query_args['post_type'];
 
