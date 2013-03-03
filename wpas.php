@@ -20,6 +20,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $wp_query_args = array();
 		public $taxonomy_operators = array();
 		public $term_formats = array();
+
 		public $meta_keys = array();
 		public $orderby_relevanssi = 'relevance';
 		public $relevanssi = false;
@@ -31,6 +32,8 @@ if (!class_exists('WP_Advanced_Search')) {
 
 
 		private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
+		public $orderby_meta_keys = array();
+
 
 		function __construct($args = '') {
 			if ( !empty($args) ) {
@@ -126,7 +129,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 
 			// Display the filter form
-	    	echo '<form id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'" method="GET" action="'.$args['action'].'">';
+	    	echo '<form id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'" method="'.$args['method'].'" action="'.$args['action'].'">';
 
 	    		// URL fix if pretty permalinks are not enabled
 		    	if ( get_option('permalink_structure') == '' ) { 
@@ -359,6 +362,22 @@ if (!class_exists('WP_Advanced_Search')) {
 						);
 
 			$args = wp_parse_args($args, $defaults);
+
+			if (isset($args['orderby_values']) && is_array($args['orderby_values'])) {
+				$args['values'] = array(); // orderby_values overrides normal values
+				foreach ($args['orderby_values'] as $k=>$v) {
+					if (isset($v['label'])) $label = $v['label'];
+					else $label = $k;
+					$args['values'][$k] = $label; // add to the values array
+
+					// Special handling for meta_key values
+					if (isset($v['meta_key']) && $v['meta_key']) {
+						if (isset($v['orderby']) && $v['orderby'] == 'meta_value_num') $type = $v['orderby'];
+						else $type = 'meta_value';
+						$this->orderby_meta_keys[$k] = $type;
+					}
+				}
+			}
 
 			$field = new WPAS_Field('orderby', $args);
 			$field->build_field();	
