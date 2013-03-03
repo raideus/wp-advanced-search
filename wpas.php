@@ -19,14 +19,18 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $wp_query;
 		public $wp_query_args = array();
 		public $taxonomy_operators = array();
-		public $taxonomy_formats = array();
+		public $term_formats = array();
 		public $meta_keys = array();
 		public $orderby_relevanssi = 'relevance';
 		public $relevanssi = false;
 
 		// Form Input
+		public $form_args = array();
 		public $selected_taxonomies = array();
 		public $selected_meta_keys = array();
+
+
+		private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
 
 		function __construct($args = '') {
 			if ( !empty($args) ) {
@@ -44,6 +48,8 @@ if (!class_exists('WP_Advanced_Search')) {
 		function process_args( $args ) {
 			if (isset($args['wp_query'])) 
 				$this->wp_query_args = $args['wp_query'];
+			if (isset($args['form'])) 
+				$this->form_args = $args['form'];
 			if (isset($args['fields']))
 				$this->fields = $args['fields'];
 			if (isset($args['relevanssi']))
@@ -99,7 +105,13 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	global $post;
 	    	global $wp_query;
 
-	    	$url = get_permalink($post->ID);
+	    	$defaults = array('action' => get_permalink($post->ID),
+	    						'method' => 'GET',
+	    						'id' => 'wp-advanced-search',
+	    						'name' => 'wp-advanced-search',
+	    						'class' => 'wp-advanced-search');
+
+	    	$args = wp_parse_args($this->form_args, $defaults);
 	    	$fields = $this->fields;
 	    	$tax_fields = array();
 	    	$has_search = false;
@@ -114,7 +126,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 
 			// Display the filter form
-	    	echo '<form id="wp-advanced-search" name="wp-advanced-search" class="wp-advanced-search" method="GET" action="'.$url.'">';
+	    	echo '<form id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'" method="GET" action="'.$args['action'].'">';
 
 	    		// URL fix if pretty permalinks are not enabled
 		    	if ( get_option('permalink_structure') == '' ) { 
@@ -673,7 +685,8 @@ if (!class_exists('WP_Advanced_Search')) {
 		    					$this->wp_query_args['order'] = implode(',', $selected);
 		    					break;
 		    				case('orderby') :
-		    					$this->wp_query_args['orderby'] = implode(',', $selected);
+		    					$orderby = implode(',', $selected);
+		    					$this->wp_query_args['orderby'] = $orderby;
 		    					break;
 		    				case('date_m') :
 		    					$year = strstr(reset($selected), '-', true);
