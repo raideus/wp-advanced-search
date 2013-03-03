@@ -24,22 +24,21 @@ if (!class_exists('WP_Advanced_Search')) {
 		public $meta_keys = array();
 		public $orderby_relevanssi = 'relevance';
 		public $relevanssi = false;
+		private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
+		private $orderby_meta_keys = array();
 
 		// Form Input
 		public $form_args = array();
 		public $selected_taxonomies = array();
 		public $selected_meta_keys = array();
 
-
-		private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
-		public $orderby_meta_keys = array();
-
+		public $the_form;
 
 		function __construct($args = '') {
 			if ( !empty($args) ) {
 				$this->process_args($args);
 			}
-			$this->process_orderby();
+			$this->convert_orderby();
 			$this->process_form_input();
 		}
 
@@ -93,7 +92,19 @@ if (!class_exists('WP_Advanced_Search')) {
 								$this->meta_keys[$meta]['compare'] = $operator;
 								$this->meta_keys[$meta]['data_type'] = $data_type;
 							}
-							break;		
+							break;	
+						case('orderby') :
+							if (isset($field['orderby_values']) && is_array($field['orderby_values'])) {
+								foreach ($field['orderby_values'] as $k=>$v) {
+									// Special handling for meta_key values
+									if (isset($v['meta_key']) && $v['meta_key']) {
+										if (isset($v['orderby']) && $v['orderby'] == 'meta_value_num') $type = $v['orderby'];
+										else $type = 'meta_value';
+										$this->orderby_meta_keys[$k] = $type;
+									}
+								}
+							}
+							break;	
 					}
 				}
 			}
@@ -128,12 +139,11 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$page = 1;
 	    	}
 
-			// Display the filter form
-	    	echo '<form id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'" method="'.$args['method'].'" action="'.$args['action'].'">';
+	    	$output = '<form id="'.$args['id'].'" name="'.$args['name'].'" class="'.$args['class'].'" method="'.$args['method'].'" action="'.$args['action'].'">';
 
 	    		// URL fix if pretty permalinks are not enabled
 		    	if ( get_option('permalink_structure') == '' ) { 
-		    		echo '<input type="hidden" name="page_id" value="'.$post->ID.'">'; 
+		    		$output .= '<input type="hidden" name="page_id" value="'.$post->ID.'">'; 
 		    	}
 
 		    	foreach ($fields as $field) {
@@ -141,46 +151,47 @@ if (!class_exists('WP_Advanced_Search')) {
 						if ($field['type'] == 'taxonomy') {
 							if (isset($field['taxonomy']) && !in_array($field['taxonomy'], $tax_fields)) {
 								$tax_fields[] = $field['taxonomy'];
-								$this->tax_field($field);
+								$output .= $this->tax_field($field);
 							}
 						} elseif ($field['type'] == 'meta_key') {
-							$this->meta_field($field);
+							$output .= $this->meta_field($field);
 						} elseif ($field['type'] == 'author') {
-							$this->author_field($field);
+							$output .= $this->author_field($field);
 						} elseif ($field['type'] == 'date') {
-							$this->date_field($field);
+							$output .= $this->date_field($field);
 						} elseif ($field['type'] == 'post_type') {
-							$this->post_type_field($field);
+							$output .= $this->post_type_field($field);
 						} elseif ($field['type'] == 'order') {
-							$this->order_field($field);
+							$output .= $this->order_field($field);
 						} elseif ($field['type'] == 'orderby') {
 							$has_orderby = true;
-							$this->orderby_field($field);
+							$output .= $this->orderby_field($field);
 						} elseif ($field['type'] == 'html') {
 							if (empty($field['id'])) {
 								$field['id'] = $html;
 								$html++;
 							}
-							$this->html_field($field);
+							$output .= $this->html_field($field);
 						} elseif ($field['type'] == 'generic') {
-							$this->generic_field($field);
+							$output .= $this->generic_field($field);
 						} elseif ($field['type'] == 'posts_per_page') {
-							$this->posts_per_page_field($field);
+							$output .= $this->posts_per_page_field($field);
 						} elseif ($field['type'] == 'search' && !$has_search) {
-							$this->search_field($field);
+							$output .= $this->search_field($field);
 							$has_search = true;
 						} elseif ($field['type'] == 'submit' && !$has_submit) {
-							$this->submit_button($field);
+							$output .= $this->submit_button($field);
 							$has_submit = true;
 						}
 					}
 		    	}
 
 		    if ($this->relevanssi && !$has_orderby) {
-		    	echo '<input type="hidden" name="orderby" value="'.$this->orderby_relevanssi.'">';
+		    	$output .= '<input type="hidden" name="orderby" value="'.$this->orderby_relevanssi.'">';
 		    }
 
-	    	echo '</form>';
+	    	$output .= '</form>';
+	    	echo $output;
 	    }
 
 	    /**
@@ -203,7 +214,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	}
 	    	$args['values'] = $value;
 	    	$field = new WPAS_Field('search_query', $args);
-	    	$field->build_field();
+	    	return $field->build_field();
 	    }
 
 	    /**
@@ -218,7 +229,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$args['values'] = $value;
 	    	$args['format'] = 'submit';
 	    	$field = new WPAS_Field('submit', $args);
-	    	$field->build_field();
+	    	return $field->build_field();
 	    }
 
 
@@ -294,7 +305,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$args['title'] = $title;
 
 			$field = new WPAS_Field('tax_'.$tax_slug, $args);
-			$field->build_field();
+			return $field->build_field();
 
 	    }
 
@@ -318,7 +329,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$meta_key = $args['meta_key'];
 
 			$field = new WPAS_Field('meta_'.$meta_key, $args);
-			$field->build_field();	    	
+			return $field->build_field();	    	
 	    }
 
 
@@ -338,7 +349,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$args = wp_parse_args($args, $defaults);
 
 			$field = new WPAS_Field('order', $args);
-			$field->build_field();				
+			return $field->build_field();				
 
 	    }
 
@@ -369,18 +380,11 @@ if (!class_exists('WP_Advanced_Search')) {
 					if (isset($v['label'])) $label = $v['label'];
 					else $label = $k;
 					$args['values'][$k] = $label; // add to the values array
-
-					// Special handling for meta_key values
-					if (isset($v['meta_key']) && $v['meta_key']) {
-						if (isset($v['orderby']) && $v['orderby'] == 'meta_value_num') $type = $v['orderby'];
-						else $type = 'meta_value';
-						$this->orderby_meta_keys[$k] = $type;
-					}
 				}
 			}
 
 			$field = new WPAS_Field('orderby', $args);
-			$field->build_field();	
+			return $field->build_field();	
 	    }
 
 
@@ -425,7 +429,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$args['values'] = $the_authors_list;
 
 			$field = new WPAS_Field('a', $args);
-			$field->build_field();
+			return $field->build_field();
 
 	    }
 
@@ -466,7 +470,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$args['values'] = $values;
 
 			$field = new WPAS_Field('ptype', $args);
-			$field->build_field();
+			return $field->build_field();
 			
 	    }
 
@@ -532,7 +536,7 @@ if (!class_exists('WP_Advanced_Search')) {
 			$args['id'] = $id;
 
 			$field = new WPAS_Field($id, $args);
-			$field->build_field();
+			return $field->build_field();
 
 	    }
 
@@ -552,7 +556,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$args['values'] = $value;
 
 			$field = new WPAS_Field('html-'.$id, $args);
-			$field->build_field();
+			return $field->build_field();
 	    }
 
 		/**
@@ -569,7 +573,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    	if (isset($id) && !empty($id)) {
 				$field = new WPAS_Field($id, $args);
-				$field->build_field();
+				return $field->build_field();
 			}
 	    }
 
@@ -589,7 +593,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 	    	$args = wp_parse_args($args, $defaults);
 	    	$field = new WPAS_Field('posts_per_page', $args);
-	    	$field->build_field();
+	    	return $field->build_field();
 	    }
 
 		/**
@@ -705,7 +709,12 @@ if (!class_exists('WP_Advanced_Search')) {
 		    					break;
 		    				case('orderby') :
 		    					$orderby = implode(',', $selected);
-		    					$this->wp_query_args['orderby'] = $orderby;
+		    					if (array_key_exists($orderby,$this->orderby_meta_keys)) {
+		    						$this->wp_query_args['orderby'] = $this->orderby_meta_keys[$orderby];
+		    						$this->wp_query_args['meta_key'] = $orderby;
+		    					} else {
+		    						$this->wp_query_args['orderby'] = $orderby;
+		    					}
 		    					break;
 		    				case('date_m') :
 		    					$year = strstr(reset($selected), '-', true);
@@ -740,7 +749,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		 *
 		 * @since 1.0
 		 */
-	    function process_orderby() {
+	    function convert_orderby() {
 			if (isset($this->wp_query_args['orderby'])) {
 				switch($this->wp_query_args['orderby']) {
 					case 'post_title' :
@@ -764,7 +773,7 @@ if (!class_exists('WP_Advanced_Search')) {
 	    function query() {
 	    	$this->build_tax_query();
 	    	$this->build_meta_query();
-	    	$this->process_orderby();
+	    	$this->convert_orderby();
 
 	    	// Apply pagination
 	    	if ( get_query_var('paged') ) {
