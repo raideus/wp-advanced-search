@@ -111,7 +111,7 @@ Class WPAS_Field {
 	}
 
 	function checkbox() {
-		echo '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes">';
+		echo '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
 		$ctr = 1;
 		foreach ($this->values as $value => $label) {
 			$value = esc_attr($value);
@@ -129,7 +129,7 @@ Class WPAS_Field {
 	}
 
 	function radio() {
-		echo '<div class="wpas-'.$this->id.'-radio-buttons">';
+		echo '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
 		$ctr = 1;
 		foreach ($this->values as $value => $label) {
 			$value = esc_attr($value);
