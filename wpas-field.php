@@ -32,6 +32,9 @@ Class WPAS_Field {
 		if(isset($_REQUEST[$id])) {
 			$this->selected = $_REQUEST[$id];
 			$this->selected_r = $_REQUEST[$id];
+		} elseif (isset($default)) {
+			$this->selected = $default;
+			$this->selected_r = $default;			
 		}
 
 		if (!is_array($this->selected)) {
