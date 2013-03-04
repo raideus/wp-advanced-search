@@ -655,12 +655,45 @@ if (!class_exists('WP_Advanced_Search')) {
 	    	$meta_keys = $this->selected_meta_keys;
 
 	    	foreach ($meta_keys as $key => $values) {
-	    		$this->wp_query_args['meta_query'][] = array(	
-				    									'key' => $key,
-														'value' => $values,
-														'compare' => $this->meta_keys[$key]['compare'],
-														'type' => $this->meta_keys[$key]['data_type']
-														);
+	    		
+	    		if ($this->meta_keys[$key]['compare'] == 'BETWEEN') {
+
+	    			//Special handling for BETWEEN comparisons.
+	    			
+	    			foreach($values as $value) {
+		    			if (strpos($value, '-')) {
+		    				$value_one = strstr($value,'-',true);
+		    				$value_two = substr(strstr($value, '-'),1);
+		    				if ($value_one == 0 || $value_two == 0) {
+		    					$values = 0;
+		    					$compare = '=';
+		    				} else {
+		    					$compare = $this->meta_keys[$key]['compare'];
+		    					$values = array($value_one, $value_two);
+		    				}
+		    				
+
+				    		$this->wp_query_args['meta_query'][] = array(	
+							    									'key' => $key,
+																	'value' => $values,
+																	'compare' => $compare,
+																	'type' => $this->meta_keys[$key]['data_type']
+																	);
+
+		    			} else {
+		    				$this->error('Invalid meta_value "'. $values .'"" for BETWEEN comparison.');
+		    			}
+		    		}
+
+	    		} else {
+
+		    		$this->wp_query_args['meta_query'][] = array(	
+					    									'key' => $key,
+															'value' => $values,
+															'compare' => $this->meta_keys[$key]['compare'],
+															'type' => $this->meta_keys[$key]['data_type']
+															);
+	    		}
 	    	}
 	 
 	    }
@@ -682,7 +715,6 @@ if (!class_exists('WP_Advanced_Search')) {
 		    				$this->selected_taxonomies[$tax] = $value;
 		    			}
 		    		} elseif (substr($request, 0, 5) == 'meta_') {
-
 		    			$meta = $this->meta_from_arg($request);
 		    			if ($meta) {
 		    				$this->selected_meta_keys[$meta] = $value;
