@@ -37,6 +37,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		function __construct($args = '') {
 			if ( !empty($args) ) {
 				$this->process_args($args);
+				$this->build_form();
 			}
 			$this->convert_orderby();
 			$this->process_form_input();
@@ -110,12 +111,13 @@ if (!class_exists('WP_Advanced_Search')) {
 			}
 		}
 
+
 	    /**
-		 * Generates and displays the search form
+		 * Generates the search form
 		 *
 		 * @since 1.0
 		 */
-	    function the_form() {
+	    function build_form() {
 	    	global $post;
 	    	global $wp_query;
 
@@ -191,7 +193,16 @@ if (!class_exists('WP_Advanced_Search')) {
 		    }
 
 	    	$output .= '</form>';
-	    	echo $output;
+	    	$this->the_form = $output;
+	    }
+
+	    /**
+		 * Displays the search form
+		 *
+		 * @since 1.0
+		 */
+	    function the_form() {
+	    	echo $this->the_form;
 	    }
 
 	    /**
@@ -849,12 +860,8 @@ if (!class_exists('WP_Advanced_Search')) {
 			$current_page = max(1, get_query_var('paged'));
 			$total_pages = $wp_query->max_num_pages;
 
-			if ( is_search() || is_post_type_archive() ) {  // Special treatment needed for search & archive pages
-				$big = '999999999';
-				$base = str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) );
-			} else {
-				$base = get_pagenum_link(1) . '%_%';
-			}
+			$big = '999999999';
+			$base = str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) );
 
 			$defaults = array(
 							'base' => $base,
