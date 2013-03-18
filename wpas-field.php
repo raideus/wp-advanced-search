@@ -1,14 +1,14 @@
 <?php
 Class WPAS_Field {
 	
-	public $id;
-	public $title;
-	public $type;
-	public $format;
-	public $placeholder;
-	public $values;
-	public $selected = '';
-	public $selected_r = array();
+	private $id;
+	private $title;
+	private $type;
+	private $format;
+	private $placeholder;
+	private $values;
+	private $selected = '';
+	private $selected_r = array();
 
 	function __construct($id, $args = array()) {
 		$defaults = array(	'title' => '',
