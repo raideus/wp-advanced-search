@@ -465,8 +465,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$selected_values = $this->selected_post_types;
 	    	}
 
-	    	$the_authors_list = array();
-
 			if (count($values) < 1) {
 				$post_types = get_post_types(array('public' => true)); 
 				foreach ( $post_types as $post_type ) {
