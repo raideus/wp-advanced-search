@@ -16,23 +16,22 @@ if (!class_exists('WP_Advanced_Search')) {
 	class WP_Advanced_Search {
 
 		// Query Data
-		public $wp_query;
-		public $wp_query_args = array();
-		public $taxonomy_operators = array();
-		public $term_formats = array();
-
-		public $meta_keys = array();
-		public $orderby_relevanssi = 'relevance';
-		public $relevanssi = false;
+		private $wp_query;
+		private $wp_query_args = array();
+		private $taxonomy_operators = array();
+		private $term_formats = array();
+		private $meta_keys = array();
+		private $orderby_relevanssi = 'relevance';
+		private $relevanssi = false;
 		private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
 		private $orderby_meta_keys = array();
 
 		// Form Input
-		public $form_args = array();
-		public $selected_taxonomies = array();
-		public $selected_meta_keys = array();
+		private $form_args = array();
+		private $selected_taxonomies = array();
+		private $selected_meta_keys = array();
 
-		public $the_form;
+		private $the_form;
 
 		function __construct($args = '') {
 			if ( !empty($args) ) {
