@@ -28,6 +28,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 		// Form Input
 		private $form_args = array();
+		private $post_types = array();
 		private $selected_taxonomies = array();
 		private $selected_meta_keys = array();
 
@@ -48,8 +49,15 @@ if (!class_exists('WP_Advanced_Search')) {
 		 * @since 1.0
 		 */
 		function process_args( $args ) {
-			if (isset($args['wp_query'])) 
+			if (isset($args['wp_query'])) {
 				$this->wp_query_args = $args['wp_query'];
+				if (isset($args['wp_query']['post_type'])) {
+					if (is_array($args['wp_query']['post_type']))
+						$this->post_types = $args['wp_query']['post_type'];
+					else
+						$this->post_types = array($args['wp_query']['post_type']);
+				}
+			}
 			if (isset($args['form'])) 
 				$this->form_args = $args['form'];
 			if (isset($args['fields']))
@@ -493,46 +501,30 @@ if (!class_exists('WP_Advanced_Search')) {
 			'id' => 'date_y',
 			'format' => 'select',
 			'date_type' => 'year',
+			'date_format' => false,
 			'values' => array() );
 
 			$args = wp_parse_args($args, $defaults);
 			extract($args);
-
+ 
 			$selected_values = array();
-			$months = array(1 => 'January', 
-							2 => 'Feburary', 
-							3 => 'March', 
-							4 =>'April', 
-							5 => 'May', 
-							6 => 'June', 
-							7 => 'July', 
-							8 => 'August', 
-							9 => 'September', 
-							10 => 'October', 
-							11 => 'November', 
-							12 => 'December');
-
-			$days = array();
-			for ($i=0;$i<31;$i++) {
-				$days[$i + 1] = $i + 1;
-			}
 
 			switch ($date_type) {
 				case ('year') :
 					if (count($values) < 1) {
-						$d_values = $this->get_years();
+						$d_values = $this->get_dates('year',$date_format);
 					}
 					$id = 'date_y';
 					break;
 				case ('month') :
 					if (count($values) < 1) {
-						$d_values = $this->get_months();
+						$d_values = $this->get_dates('month',$date_format);
 					}
 					$id = 'date_m';
 					break;
 				case ('day') :
 					if (count($values) < 1) {
-						$d_values = $days;
+						$d_values = $this->get_dates('day',$date_format);
 					}
 					$id = 'date_d';
 			}
@@ -742,6 +734,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		    					$this->wp_query_args['author'] = implode(',', $selected);
 		    					break;
 		    				case('ptype') :
+		    					$this->post_types = $selected;
 		    					$this->wp_query_args['post_type'] = $selected;
 		    					break;
 		    				case('order') :
@@ -756,17 +749,20 @@ if (!class_exists('WP_Advanced_Search')) {
 		    						$this->wp_query_args['orderby'] = $orderby;
 		    					}
 		    					break;
+		    				case('date_y') :
+								$this->wp_query_args['year'] = implode(',', $selected);
+		    					break;
 		    				case('date_m') :
 		    					$year = strstr(reset($selected), '-', true);
 		    					$month = substr(strstr(reset($selected), '-'), 1);
 		    					$this->wp_query_args['monthnum'] = $month;
 		    					$this->wp_query_args['year'] = $year;
 		    					break;    	
-		    				case('date_y') :
-								$this->wp_query_args['year'] = implode(',', $selected);
-		    					break;
 		    				case('date_d') :
-		    					$this->wp_query_args['day'] = implode(',', $selected);
+		    				    $dates = explode('-', reset($selected));
+								if (isset($dates[0])) $this->wp_query_args['year'] = $dates[0];
+								if (isset($dates[1])) $this->wp_query_args['month'] = $dates[1];
+								if (isset($dates[2])) $this->wp_query_args['day'] = $dates[2];
 		    					break;	
 		    				case('posts_per_page') :
 		    					$ppp = implode(',', $selected);
@@ -966,75 +962,47 @@ if (!class_exists('WP_Advanced_Search')) {
 	    }
 
 	    /**
-		 * Returns an array of years in which posts have been published
-		 *
-		 * @since 1.0
-		 */
-	    function get_years() {
+	     *  Returns an array of dates in which content has been published
+	     *
+	     *  @since 1.0
+	     */
+	    function get_dates($date_type = 'year', $format = false) {
+
+    		$display_format = "Y";
+        	$compare_format = "Y";
+
+	    	if ($date_type == 'month') {
+	    		$display_format = "M Y";
+	        	$compare_format = "Y-m";
+	    	} else if ($date_type == 'day') {
+	    		$display_format = "M j, Y";
+	        	$compare_format = "Y-m-d";
+	    	}
+
+	        if ($format) $display_format = $format;
+
 	    	$post_type = $this->wp_query_args['post_type'];
+	    	echo $post_type;
 	    	$posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type));
-	        $previous_year = "";
-
-	        $display_format = "F Y";
-	        $compare_format = "Ym";
-
-	        $years = array();
-
-	        foreach($posts as $post) {
-	            $post_date = strtotime($post->post_date);
-	            $current_ym_display = date_i18n($display_format, $post_date);
-	            $current_ym_value = date($compare_format, $post_date);
-	            $current_year = date("Y", $post_date);
-	            //echo $current_year.'<br/>';
-	            $current_month = date("m", $post_date);
-	            if ($previous_year != $current_year) {
-	            	if (empty($years[$current_year]))
-	            		$years[$current_year] = $current_year;
-	            }
-	            $previous_year = $current_year;
-	        }
-
-	        return $years;
-	    }
-
-	    /**
-		 * Returns an array of months in which posts have been published.
-		 *
-		 * Dates are formatted as YYYY-MM.
-		 *
-		 * @since 1.0
-		 */
-	    function get_months() {
-	    	$post_type = $this->wp_query_args['post_type'];
-	    	$posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type));
-	        $previous_ym_display = "";
-	        $previous_ym_value = "";        
-	        $previous_year = "";
-	        $previous_month = "";
+	        $previous_display = "";
+	        $previous_value = "";        
 	        $count = 0;
-
-	        $display_format = "M Y";
-	        $compare_format = "Y-m";
 
 	        $dates = array();
 
 	        foreach($posts as $post) {
 	            $post_date = strtotime($post->post_date);
-	            $current_ym_display = date_i18n($display_format, $post_date);
-	            $current_ym_value = date($compare_format, $post_date);
-	            $current_year = date("Y", $post_date);
-	            $current_month = date("m", $post_date);
-	            if ($previous_ym_value != $current_ym_value) {
-	            	$dates[$current_ym_value] = $current_ym_display;
+	            $current_display = date_i18n($display_format, $post_date);
+	            $current_value = date($compare_format, $post_date);
+
+	            if ($previous_value != $current_value) {
+	            	$dates[$current_value] = $current_display;
 	            }
-	            $previous_ym_display = $current_ym_display;
-	            $previous_ym_value = $current_ym_value;
-	            $previous_year = $current_year;
-	            $previous_month = $current_month;
+	            $previous_display = $current_display;
+	            $previous_value = $current_value;
+
 	        }
-
 	        return $dates;
-
 	    }
 
 	    /**
