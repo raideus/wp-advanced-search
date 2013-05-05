@@ -982,7 +982,6 @@ if (!class_exists('WP_Advanced_Search')) {
 	        if ($format) $display_format = $format;
 
 	    	$post_type = $this->wp_query_args['post_type'];
-	    	echo $post_type;
 	    	$posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type));
 	        $previous_display = "";
 	        $previous_value = "";        
