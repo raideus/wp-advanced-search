@@ -262,8 +262,15 @@ if (!class_exists('WP_Advanced_Search')) {
 	    					'taxonomy' => 'category',
 	    					'format' => 'select',
 	    					'term_format' => 'slug',
-	    					'terms' => array()
+	    					'hide_empty' => false,
+	    					'terms' => array(),
+	    					'term_args' => array()
 	    				);
+
+	    	$term_defaults = array( 
+	    					'hide_empty' => false
+	    				);
+
 	    	$args = wp_parse_args($args, $defaults);
 	    	extract(wp_parse_args($args, $defaults));
 
@@ -283,11 +290,15 @@ if (!class_exists('WP_Advanced_Search')) {
 	    		$title = $tax_name;
 	    	}
 
+	    	if (isset($term_args) && is_array($term_args)) {
+	    		$term_args = wp_parse_args($term_args, $term_defaults);
+	    	}
+
 	    	$terms_objects = array();
 			$term_values = array();
 
 			if (isset($terms) && is_array($terms) && (count($terms) < 1)) {
-				$term_objects = get_terms($taxonomy, array( 'hide_empty' => 0 )); 
+				$term_objects = get_terms($taxonomy, $term_args); 
 			} else {
 				foreach ($terms as $term_identifier) {
 					$term = get_term_by($term_format, $term_identifier, $taxonomy);
