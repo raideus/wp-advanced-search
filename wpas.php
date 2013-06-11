@@ -158,7 +158,7 @@ if (!class_exists('WP_Advanced_Search')) {
 		    	foreach ($fields as $field) {
 					if (isset($field['type'])) {
 						switch($field['type']) {
-							case 'taxonmy':
+							case 'taxonomy':
 								if (isset($field['taxonomy']) && !in_array($field['taxonomy'], $tax_fields)) {
 									$tax_fields[] = $field['taxonomy'];
 									$output .= $this->tax_field($field);
