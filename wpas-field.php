@@ -51,31 +51,31 @@ Class WPAS_Field {
 			}
 		}
 	 	switch($this->format) {
-	 		case ('select') :
+	 		case 'select':
 	 			$output .= $this->select();
 	 			break;
-	 		case ('multi-select') :
+	 		case 'multi-select':
 	 			$output .= $this->select(true);
 	 			break;
-	 		case ('checkbox') :
+	 		case 'checkbox':
 	 			$output .= $this->checkbox();
 	 			break;
-	 		case ('radio') :
+	 		case 'radio':
 	 			$output .= $this->radio();
 	 			break;
-	 		case ('text') :
+	 		case 'text':
 	 			$output .= $this->text();
 	 			break;
-	 		case ('textarea') :
+	 		case 'textarea':
 	 			$output .= $this->textarea();
 	 			break;
-	 		case ('html') :
+	 		case 'html':
 	 			$output .= $this->html();
 	 			break;
-	 		case ('hidden') :
+	 		case 'hidden':
 	 			$output .= $this->hidden();
 	 			break;
-	 		case ('submit') :
+	 		case 'submit':
 	 			$output .= $this->submit();
 	 			break;
 	 	}
