@@ -70,7 +70,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
 				if (isset($field['type'])) {
 					switch($field['type']) {
-						case ('taxonomy') :
+						case  'taxonomy':
 							if (isset($field['taxonomy'])) {
 								$tax = $field['taxonomy'];
 								if (isset($field['operator'])) {
@@ -81,7 +81,7 @@ if (!class_exists('WP_Advanced_Search')) {
 								$this->taxonomy_operators[$tax] = $operator;
 							}
 							break;
-						case('meta_key') :
+						case 'meta_key':
 							if (isset($field['meta_key'])) {
 								$meta = $field['meta_key'];
 
@@ -101,7 +101,7 @@ if (!class_exists('WP_Advanced_Search')) {
 								$this->meta_keys[$meta]['data_type'] = $data_type;
 							}
 							break;	
-						case('orderby') :
+						case 'orderby':
 							if (isset($field['orderby_values']) && is_array($field['orderby_values'])) {
 								foreach ($field['orderby_values'] as $k=>$v) {
 									// Special handling for meta_key values
@@ -157,43 +157,60 @@ if (!class_exists('WP_Advanced_Search')) {
 
 		    	foreach ($fields as $field) {
 					if (isset($field['type'])) {
-						if ($field['type'] == 'taxonomy') {
-							if (isset($field['taxonomy']) && !in_array($field['taxonomy'], $tax_fields)) {
-								$tax_fields[] = $field['taxonomy'];
-								$output .= $this->tax_field($field);
-							}
-						} elseif ($field['type'] == 'meta_key') {
-							$output .= $this->meta_field($field);
-						} elseif ($field['type'] == 'author') {
-							$output .= $this->author_field($field);
-						} elseif ($field['type'] == 'date') {
-							$output .= $this->date_field($field);
-						} elseif ($field['type'] == 'post_type') {
-							$output .= $this->post_type_field($field);
-						} elseif ($field['type'] == 'order') {
-							$output .= $this->order_field($field);
-						} elseif ($field['type'] == 'orderby') {
-							$has_orderby = true;
-							$output .= $this->orderby_field($field);
-						} elseif ($field['type'] == 'html') {
-							if (empty($field['id'])) {
-								$field['id'] = $html;
-								$html++;
-							}
-							$output .= $this->html_field($field);
-						} elseif ($field['type'] == 'generic') {
-							$output .= $this->generic_field($field);
-						} elseif ($field['type'] == 'posts_per_page') {
-							$output .= $this->posts_per_page_field($field);
-						} elseif ($field['type'] == 'search' && !$has_search) {
-							$output .= $this->search_field($field);
-							$has_search = true;
-						} elseif ($field['type'] == 'submit' && !$has_submit) {
-							$output .= $this->submit_button($field);
-							$has_submit = true;
-						}
-					}
-		    	}
+						switch($field['type']) {
+							case 'taxonmy':
+								if (isset($field['taxonomy']) && !in_array($field['taxonomy'], $tax_fields)) {
+									$tax_fields[] = $field['taxonomy'];
+									$output .= $this->tax_field($field);
+								}
+								break;
+							case 'meta_key':
+								$output .= $this->meta_field($field);
+								break;
+							case 'author':
+								$output .= $this->author_field($field);
+								break;
+							case 'date':
+								$output .= $this->date_field($field);
+								break;
+							case 'post_type':
+								$output .= $this->post_type_field($field);
+								break;
+							case 'order':
+								$output .= $this->order_field($field);
+								break;
+							case 'orderby':
+								$has_orderby = true;
+								$output .= $this->orderby_field($field);
+								break;
+							case 'html':
+								if (empty($field['id'])) {
+									$field['id'] = $html;
+									$html++;
+								}
+								$output .= $this->html_field($field);
+								break;
+							case 'generic':
+								$output .= $this->generic_field($field);
+								break;
+							case 'posts_per_page':
+								$output .= $this->posts_per_page_field($field);
+								break;
+							case 'search':
+								if (!$has_search) {
+									$output .= $this->search_field($field);
+									$has_search = true;
+								}
+								break;
+							case 'submit':
+								if (!$has_submit) {
+									$output .= $this->submit_button($field);
+									$has_submit = true;
+								}
+								break;
+						} //end switch
+					} //endif
+		    	} //endforeach
 
 		    if ($this->relevanssi && !$has_orderby) {
 		    	$output .= '<input type="hidden" name="orderby" value="'.$this->orderby_relevanssi.'">';
