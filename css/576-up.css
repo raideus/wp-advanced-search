@@ -16,6 +16,10 @@
   height: 182px;
 }
 
+#homepagerow {
+  margin-top: 35px;
+}
+
 #page-content {
   padding-top: 0;
 }
