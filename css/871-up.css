@@ -1,0 +1,62 @@
+.row {
+  padding: 0 30px;
+}
+
+.header-row h1 {
+  font-size: 4.015em;
+}
+.header-row span {
+  font-size: 1.5056em;
+}
+
+.home-buttons-inner {
+  float: right;
+  text-align: left;
+}
+
+.home-buttons {
+  margin-bottom: 0px;
+}
+
+#homepagerow {
+  margin-top: 55px;
+}
+
+.largest {
+  font-size: 4.3em;
+}
+
+.github {
+  width: auto;
+}
+
+#sidebar .button.download {
+  width: 100%;
+}
+
+#big-home-buttons .button {
+  width: auto;
+}
+
+.home-widget p {
+  font-size: 24px;
+  line-height: 38px;
+  text-align: left;
+}
+
+.padjust {
+  margin-top: auto;
+}
+
+.radjust {
+  margin-top: auto;
+}
+
+#amp {
+  margin-top: 55px;
+  margin-bottom: 0;
+}
+
+.side-widget .button.download {
+  display: block;
+}

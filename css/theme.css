@@ -1,0 +1,552 @@
+/************************************************************
+**															
+** THEME STYLESHEET                                           
+**   
+** Custom styles go here.  It's all you!                                                     
+*************************************************************/
+/* COLORS */
+/* ----------------------------------------------------------
+General Formatting
+------------------------------------------------------------- */
+html {
+  overflow: scroll;
+  -webkit-text-size-adjust: 100%;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Source Sans Pro', Arial, Helvetica, sans-serif;
+  font-size: 1em;
+  line-height: 1.4;
+  background-color: #f4f3ef;
+}
+
+ul, ol {
+  line-height: 1.8;
+}
+
+#page-content {
+  padding-top: 20px;
+}
+
+h1 {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-weight: 900;
+  color: #da5b49;
+  margin-top: 23px;
+  margin-bottom: 0px;
+  text-shadow: 2px 2px #fff;
+}
+
+.center {
+  text-align: center;
+}
+
+.header-row span {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-weight: 900;
+  color: #847e70;
+  margin: .6em 0;
+  font-size: 1.5056em;
+  float: left;
+  margin-top: 0px;
+}
+
+h2 {
+  color: #da5b49;
+}
+
+h2, h3 {
+  margin: .6em 0;
+  font-family: 'Oswald', sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin-top: 30px;
+  font-size: 1.7em;
+}
+
+h4 {
+  text-align: center;
+  color: #847e70;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 400;
+}
+
+.bottomright {
+  text-align: right;
+  padding-right: 100px;
+}
+
+h1 {
+  font-size: 1.6em;
+}
+
+h3 {
+  font-size: 1.4em;
+  color: #da5b49;
+  background-image: url(../img/line-bg.png);
+  background-repeat: repeat-x;
+  background-position: 0px 30px;
+  padding-bottom: 10px;
+  text-shadow: 1px 1px #bab8b6;
+  text-transform: uppercase;
+  font-weight: 200;
+}
+
+h4 {
+  font-size: .85em;
+}
+
+#main-col, p {
+  line-height: 1.8em;
+  font-weight: 300;
+  color: #847e70;
+}
+
+#main-col li {
+  margin-top: 10px;
+}
+
+a {
+  color: #79bbad;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #a3cec5;
+}
+
+td:hover {
+  background-color: #406e64;
+}
+
+td:hover a {
+  color: #e9e5db;
+}
+
+.nav {
+  list-style-type: none;
+  padding: 0;
+}
+.nav li {
+  padding: 0;
+}
+
+.button {
+  font-family: 'Source Sans Pro', sans-serif;
+  padding: 9px 20px;
+  color: #406e64;
+  font-size: 21px;
+  font-weight: bold;
+  line-height: 1.5;
+  display: inline-block;
+  border-bottom: #406e64 2px solid;
+  background-color: #79bbad;
+  text-shadow: 2px 2px 2px #a3cec5;
+  cursor: pointer;
+  border-radius: 2px;
+  height: 53px;
+  text-align: center;
+}
+.button:hover {
+  color: #406e64;
+  opacity: 0.8;
+}
+.button.download {
+  padding-left: 15px;
+}
+.button.download img {
+  position: relative;
+  bottom: 2px;
+  left: 8px;
+}
+
+/* ----------------------------------------------------------
+:: Grid Customization
+
+Defaults set in grid.css
+------------------------------------------------------------- */
+.row {
+  width: auto;
+  max-width: 1084px;
+  min-width: 200px;
+  margin: 20px auto 0 auto;
+  padding: 0;
+}
+
+.row .row {
+  padding: 0px;
+}
+
+.inner {
+  padding: 5px;
+}
+
+/* ----------------------------------------------------------
+Header
+------------------------------------------------------------- */
+#page-header, header {
+  background-color: #f4f3ef;
+  background: repeat-x url(../img/header-bg.png) 0 -40px;
+  height: 142px;
+}
+
+.header-row {
+  margin-top: 0;
+}
+.header-row span {
+  font-size: 1em;
+}
+
+.nav-container {
+  height: 100%;
+}
+
+.header-nav ul {
+  background-color: #e9e5db;
+  border-bottom: 2px solid #847e70;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1em;
+}
+.header-nav a {
+  display: block;
+  padding: 10px;
+  margin-right: 0px;
+}
+.header-nav a:hover {
+  background-color: #406e64;
+  color: white;
+}
+
+.nav-row {
+  margin-top: 0;
+}
+
+.nav-links li {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1em;
+  margin-right: 45px;
+}
+
+.nav-links li:last-child {
+  margin-left: 0;
+}
+
+a.nav-links {
+  color: #847e70;
+}
+
+.nav-links a:hover {
+  color: #e9e5db;
+  background: #406e64;
+  /*how to get this to fill the whole box?*/
+}
+
+.logo-container {
+  margin-top: 0;
+}
+
+.logo {
+  padding: 10px 0;
+}
+
+.headerimage {
+  display: inline;
+  float: right;
+}
+
+.header-row {
+  /*
+  margin-right: 50px;
+  margin-left: 50px;
+  padding-left: 15px;*/
+}
+
+td {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.27em;
+  padding-left: 19px;
+  padding-right: 19px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  color: #847e70;
+}
+
+td a:hover {
+  color: #e9e5db;
+  background: #406e64;
+}
+
+table {
+  border-bottom: 2px solid #847e70;
+}
+
+.github {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 85px;
+  z-index: 999;
+}
+
+/* ----------------------------------------------------------
+Homepage 
+------------------------------------------------------------- */
+.partialbg {
+  background-image: url(../img/line-bg.png);
+  background-repeat: repeat-x;
+  background-position: 0px 0px;
+  display: block;
+  height: 10px;
+}
+
+.med {
+  font-size: 1.7em;
+  background-image: none;
+  display: inline-block;
+  margin-bottom: 0;
+}
+
+#righthbb {
+  margin-left: 20px;
+  padding-left: 10px;
+  padding-right: 79px;
+  background-image: url(../img/download-arrow-lg.png);
+  background-repeat: no-repeat;
+  background-position: 180px 12px;
+}
+
+.homepagebuttons {
+  border-bottom: #406e64 2px solid;
+  background-color: #79bbad;
+  display: inline-block;
+  float: center;
+  margin-top: 11px;
+  padding-top: 3px;
+}
+
+.home-buttons {
+  margin-bottom: 20px;
+}
+.home-buttons .button:first-child {
+  margin-right: 17px;
+}
+
+@media only screen and (max-width: 410px) {
+  .home-buttons a {
+    width: 100%;
+    display: block;
+  }
+  .home-buttons a:first-child {
+    margin-bottom: 10px;
+  }
+}
+.home-buttons-inner {
+  text-align: center;
+}
+
+#bigbuttons {
+  margin-bottom: 0px;
+  text-align: left;
+  font-family: 'Source Sans Pro', sans-serif;
+  color: #406e64;
+  font-size: 2em;
+  font-weight: 900;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  line-height: 2.3;
+  display: block;
+  padding-left: 12px;
+}
+
+#big-home-buttons .button {
+  margin: 15px 0;
+  width: 100%;
+}
+#big-home-buttons .button:first-child {
+  margin-right: 18px;
+  margin-bottom: 0;
+}
+
+#nopad {
+  margin-top: 0px;
+}
+
+#amp {
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+#imgr {
+  text-align: center;
+}
+
+.largest {
+  font-size: 2.6em;
+  font-weight: 50;
+  text-shadow: 2px 2px #bab8b6;
+  background-image: url(../img/line-bg.png);
+  background-repeat: repeat-x;
+  background-position: 0px 100%;
+  color: #da5b49;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.largest.easy {
+  margin-top: 0;
+}
+
+.homepagebutton {
+  border-bottom: #406e64 2px solid;
+  background-color: #79bbad;
+  display: inline-block;
+  float: right;
+}
+
+#righthb {
+  margin-left: 20px;
+  padding-left: 6px;
+  padding-right: 54px;
+  background-image: url(../img/download-arrow2.png);
+  background-repeat: no-repeat;
+  background-position: 127px 10px;
+}
+
+#lefthb {
+  margin-right: 20px;
+  padding-right: 12px;
+}
+
+.home-widget p {
+  font-size: 18px;
+  line-height: 28px;
+  text-align: center;
+}
+.home-widget.img {
+  text-align: center;
+}
+
+#homepagerow {
+  margin-top: 35px;
+}
+
+.padjust {
+  margin-top: 8px;
+}
+
+.radjust {
+  margin-top: 0;
+}
+
+/* ----------------------------------------------------------
+Subpage Page
+------------------------------------------------------------- */
+/*
+#subpage{
+	width: 1160px;
+	margin-right: 50px;
+	margin-left: 50px;
+}*/
+/* ----------------------------------------------------------
+Sidebar
+------------------------------------------------------------- */
+#download {
+  border-bottom: #406e64 2px solid;
+  background-color: #79bbad;
+  background-image: url(../img/download-arrow2.png);
+  background-repeat: no-repeat;
+  background-position: 123px 10px;
+  margin-top: 40px;
+}
+
+.downloadbutton {
+  text-shadow: 2px 2px #a3cec5;
+}
+
+#subdownload {
+  margin-bottom: 0px;
+  text-align: left;
+  font-family: 'Source Sans Pro', sans-serif;
+  color: #406e64;
+  font-size: 1.4em;
+  font-weight: 900;
+  padding-bottom: 7px;
+  padding-top: 12px;
+  line-height: 1.4;
+  display: block;
+  padding-left: 12px;
+}
+
+.downloadimg {
+  display: inline;
+  float: right;
+  max-width: 50%;
+  max-height: 50%;
+}
+
+.side-widget {
+  border: none;
+  margin-bottom: 20px;
+  padding: 0px;
+}
+.side-widget .button.download {
+  display: none;
+}
+.side-widget li {
+  line-height: 1;
+}
+
+ul.subnav {
+  list-style: none;
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2em;
+  color: #406e64;
+  margin-left: 0px;
+  padding-left: 0px;
+  padding-right: 7px;
+  margin-bottom: 15px;
+}
+
+.subnav li {
+  padding: 0;
+}
+
+.subnav-links {
+  color: #406e64;
+  max-width: 100%;
+}
+
+.subnav a {
+  display: block;
+}
+
+.subnav a div {
+  padding: 8px;
+}
+
+.subnav a:hover div {
+  background: #e9e5db;
+  border-bottom: 1px solid #406e64;
+}
+
+/* ----------------------------------------------------------
+Footer
+------------------------------------------------------------- */
+#footerpage {
+  background-image: url(../img/footer-bg.png);
+  padding-top: 40px;
+  margin-top: 40px;
+  text-shadow: 1px 1px 3px #f1efe8;
+}
+
+#footertext a {
+  color: #2d2b26;
+}
+#footertext span {
+  display: block;
+}

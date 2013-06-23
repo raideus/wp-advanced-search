@@ -1,0 +1,15 @@
+.row {
+  padding: 0 30px;
+}
+
+.header-row h1 {
+  font-size: 4.015em;
+}
+
+.header-row span {
+  font-size: 1.5056em;
+}
+
+.github {
+  width: auto;
+}

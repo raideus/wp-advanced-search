@@ -1,0 +1,77 @@
+.row {
+  padding: 0 15px;
+}
+
+.header-row h1 {
+  font-size: 3em;
+  margin-top: 18px;
+}
+.header-row span {
+  font-size: 1.2em;
+}
+
+#page-header, header {
+  background-color: #f4f3ef;
+  background: repeat-x url(../img/header-bg.png) 0 0;
+  height: 182px;
+}
+
+#page-content {
+  padding-top: 0;
+}
+
+.github {
+  width: 120px;
+}
+
+.header-nav ul {
+  margin-top: 40px;
+}
+.header-nav li {
+  float: left;
+  margin-right: 10px;
+}
+.header-nav a {
+  margin-right: 0;
+}
+
+.nav-row {
+  margin-top: 20px;
+}
+
+.largest {
+  font-size: 3.3em;
+}
+
+.home-widget p {
+  font-size: 24px;
+  line-height: 38px;
+  text-align: center;
+}
+
+#big-home-buttons {
+  background: rgba(161, 155, 142, 0.15);
+  padding: 0px 25px;
+  display: inline-block;
+}
+
+#footertext span {
+  display: inline;
+}
+
+.button.large {
+  font-size: 32px;
+  padding: 12px 25px;
+  height: auto;
+}
+.button.download.large {
+  /*background-image: url(../img/download-arrow.png);*/
+  background-image: none;
+  background-position: 90% 15px;
+  padding-left: 20px;
+}
+.button.download.large img {
+  position: relative;
+  bottom: 2px;
+  left: 8px;
+}
