@@ -924,11 +924,10 @@ if (!class_exists('WP_Advanced_Search')) {
             $ppp = $query['posts_per_page'];
             $page =  get_query_var('paged');
             $range = 1;
-            $current_post = $wp_query->current_post + 1;
 
             $range = $page;
             if ($ppp > 1) {
-                $i = 1 + (($page - 1)*2);
+                $i = 1 + (($page - 1)*$ppp);
                 $j = $i + ($ppp - 1);
                 $range = sprintf('%d%s%d', $i, $marker, $j);
                 if ($j > $total) {
