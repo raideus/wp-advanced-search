@@ -921,7 +921,7 @@ if (!class_exists('WP_Advanced_Search')) {
             $total = $wp_query->found_posts;
             $count = $wp_query->post_count;
             $query = $wp_query->query;
-            $ppp = $query['posts_per_page'];
+            $ppp = (!empty($query['posts_per_page'])) ? $query['posts_per_page'] : get_option('posts_per_page');
             $page =  get_query_var('paged');
             $range = 1;
 
