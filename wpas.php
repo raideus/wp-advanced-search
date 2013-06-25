@@ -236,7 +236,7 @@ if (!class_exists('WP_Advanced_Search')) {
          */
         function search_field( $args ) {
             $defaults = array(
-                            'title' => 'Search',
+                            'label' => '',
                             'format' => 'text',
                             'value' => ''
                         );
@@ -301,10 +301,10 @@ if (!class_exists('WP_Advanced_Search')) {
                 return;
             }
 
-            if (isset($args['title'])) {
-                $title = $args['title'];
+            if (isset($args['label'])) {
+                $label = $args['label'];
             } else {
-                $title = $tax_name;
+                $label = $tax_name;
             }
 
             if (isset($term_args) && is_array($term_args)) {
@@ -348,7 +348,7 @@ if (!class_exists('WP_Advanced_Search')) {
                 }
             }
 
-            $args['title'] = $title;
+            $args['label'] = $label;
 
             $field = new WPAS_Field('tax_'.$tax_slug, $args);
             return $field->build_field();
@@ -365,7 +365,7 @@ if (!class_exists('WP_Advanced_Search')) {
         function meta_field( $args ) {
 
             $defaults = array(
-                            'title' => '',
+                            'label' => '',
                             'meta_key' => '',
                             'format' => 'select',
                             'values' => array()
@@ -386,7 +386,7 @@ if (!class_exists('WP_Advanced_Search')) {
          */         
         function order_field( $args ) {
             $defaults = array(
-                'title' => '',
+                'label' => '',
                 'format' => 'select',
                 'orderby' => 'title',
                 'values' => array('ASC' => 'ASC', 'DESC' => 'DESC')
@@ -405,7 +405,7 @@ if (!class_exists('WP_Advanced_Search')) {
          * @since 1.0
          */         
         function orderby_field( $args ) {
-            $defaults = array('title' => '',
+            $defaults = array('label' => '',
                               'format' => 'select',
                               'values' => array('ID' => 'ID', 
                                                 'post_author' => 'Author', 
@@ -441,13 +441,13 @@ if (!class_exists('WP_Advanced_Search')) {
          */   
         function author_field( $args ) {
             $defaults = array(
-                    'title' => '',
+                    'label' => '',
                     'format' => 'select',
                     'authors' => array()
                 );
 
             $args = wp_parse_args($args, $defaults);
-            $title = $args['title'];
+            $label = $args['label'];
             $format = $args['format'];
             $authors_list = $args['authors'];
             $selected_authors = array();
@@ -486,13 +486,13 @@ if (!class_exists('WP_Advanced_Search')) {
          */   
         function post_type_field( $args ) {
             $defaults = array(
-                    'title' => '',
+                    'label' => '',
                     'format' => 'select',
                     'values' => array('post' => 'Post', 'page' => 'Page')
                 );
 
             $args = wp_parse_args($args, $defaults);
-            $title = $args['title'];
+            $label = $args['label'];
             $format = $args['format'];
             $values = $args['values'];
             $selected_values = array();
@@ -525,7 +525,7 @@ if (!class_exists('WP_Advanced_Search')) {
          */   
         function date_field( $args ) {
             $defaults = array(
-            'title' => '',
+            'label' => '',
             'id' => 'date_y',
             'format' => 'select',
             'date_type' => 'year',

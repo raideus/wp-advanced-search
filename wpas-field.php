@@ -5,7 +5,7 @@
 Class WPAS_Field {
     
     private $id;
-    private $title;
+    private $label;
     private $type;
     private $format;
     private $placeholder;
@@ -14,7 +14,7 @@ Class WPAS_Field {
     private $selected_r = array();
 
     function __construct($id, $args = array()) {
-        $defaults = array(  'title' => '',
+        $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
                             'values' => array()
@@ -22,7 +22,7 @@ Class WPAS_Field {
 
         $this->id = $id;
         extract(wp_parse_args($args,$defaults));
-        $this->title = $title;
+        $this->label = $label;
         $this->type = $type;
         $this->format = $format;
         $this->values = $values;
@@ -49,8 +49,8 @@ Class WPAS_Field {
     function build_field() {
         if ($this->format != 'hidden') {
             $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
-            if ($this->title) {
-                $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->title.'</label></div>';
+            if ($this->label) {
+                $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->label.'</label></div>';
             }
         }
         switch($this->format) {
