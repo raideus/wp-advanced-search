@@ -1,7 +1,7 @@
 # WP Advanced Search
 **A PHP framework for building advanced search forms in WordPress**
 
-[View Documentation](https://github.com/growthspark/wp-advanced-search/wiki/Documentation)
+[View Documentation](http://wpadvancedsearch.com/docs/)
 
 ## Installation
 
