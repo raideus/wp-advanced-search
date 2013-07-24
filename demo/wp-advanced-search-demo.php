@@ -23,38 +23,38 @@ get_header();
 			                                'orderby' => 'date');
 
 			$args['fields'][] = array('type' => 'search',
-			                                'title' => 'Search',
+			                                'label' => 'Search',
 			                                'value' => '');
 
 			$args['fields'][] = array('type' => 'post_type',
-			                                'title' => 'Post Type',
+			                                'label' => 'Post Type',
 			                                'values' => array('post' => 'Post', 'page' => 'Page'),
 			                                'format' => 'select');				
 
 			$args['fields'][] = array('type' => 'taxonomy',
-				                                'title' => 'Category',
+				                                'label' => 'Category',
 				                                'taxonomy' => 'category',
 				                                'format' => 'multi-select',
 				                                'operator' => 'AND');
 
 			$args['fields'][] = array('type' => 'taxonomy',
-				                                'title' => 'Tags',
+				                                'label' => 'Tags',
 				                                'taxonomy' => 'post_tag',
 				                                'format' => 'checkbox',
 				                                'operator' => 'IN');
 
 			$args['fields'][] = array('type' => 'date',
-			                                'title' => 'Month',
+			                                'label' => 'Month',
 			                                'date_type' => 'month',
 			                                'format' => 'multi-select');
 
 			$args['fields'][] = array('type' => 'orderby',
-                            				'title' => 'Order By',
+                            				'label' => 'Order By',
                             				'values' => array('' => '', 'ID' => 'ID', 'title' => 'Title', 'date' => 'Date'),
                             				'format' => 'select');
 
 			$args['fields'][] = array('type' => 'order',
-                            				'title' => 'Order',
+                            				'label' => 'Order',
                             				'values' => array('' => '', 'ASC' => 'ASC', 'DESC' => 'DESC'),
                             				'format' => 'select');
 
