@@ -303,9 +303,7 @@ if (!class_exists('WP_Advanced_Search')) {
 
             if (isset($args['label'])) {
                 $label = $args['label'];
-            } else {
-                $label = $tax_name;
-            }
+            } 
 
             if (isset($term_args) && is_array($term_args)) {
                 $term_args = wp_parse_args($term_args, $term_defaults);
