@@ -276,6 +276,7 @@ if (!class_exists('WP_Advanced_Search')) {
          */
         function tax_field( $args ) {
             $defaults = array( 
+                            'label' => '',
                             'taxonomy' => 'category',
                             'format' => 'select',
                             'term_format' => 'slug',
@@ -345,8 +346,6 @@ if (!class_exists('WP_Advanced_Search')) {
                     $args['values'] = $term_values;
                 }
             }
-
-            $args['label'] = $label;
 
             $field = new WPAS_Field('tax_'.$tax_slug, $args);
             return $field->build_field();
