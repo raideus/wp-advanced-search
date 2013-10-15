@@ -10,6 +10,7 @@ Class WPAS_Field {
     private $format;
     private $placeholder;
     private $values;
+    private $default_all;
     private $selected = '';
     private $selected_r = array();
 
@@ -17,6 +18,7 @@ Class WPAS_Field {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
+                            'default_all' => false,
                             'values' => array()
                             );
 
@@ -26,6 +28,7 @@ Class WPAS_Field {
         $this->type = $type;
         $this->format = $format;
         $this->values = $values;
+        $this->default_all = $default_all;
         $this->placeholder = $placeholder;
         
         if (empty($values) && isset($value)) {
@@ -107,7 +110,7 @@ Class WPAS_Field {
                 $label = esc_attr($label);
                 $output .= '<option value="'.$value.'"';
 
-                    if (in_array($value, $this->selected_r)) {
+                    if ($multi && $this->default_all || in_array($value, $this->selected_r)) {
                         $output .= ' selected="selected"';
                     }
 
@@ -126,7 +129,7 @@ Class WPAS_Field {
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
             $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox" name="'.$this->id.'[]" value="'.$value.'"';
-                if (in_array($value, $this->selected_r)) {
+                if($this->default_all || if (in_array($value, $this->selected_r)) {
                     $output .= ' checked="checked"';
                 }
             $output .= '>';
