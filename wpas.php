@@ -216,6 +216,8 @@ if (!class_exists('WP_Advanced_Search')) {
                 $output .= '<input type="hidden" name="orderby" value="'.$this->orderby_relevanssi.'">';
             }
 
+            $output .= '<input type="hidden" name="wpas" value="1">';
+
             $output .= '</form>';
             $this->the_form = $output;
         }
