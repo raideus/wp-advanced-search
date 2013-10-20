@@ -17,7 +17,9 @@ Class WPAS_Field {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
-                            'values' => array()
+                            'values' => array(),
+                            'allow_null' => false,
+                            'default_all' => false
                             );
 
         $this->id = $id;
@@ -27,14 +29,32 @@ Class WPAS_Field {
         $this->format = $format;
         $this->values = $values;
         $this->placeholder = $placeholder;
+
+        // For select fields, add null value if specified
+        if ($format == 'select' && $allow_null && !empty($values)) {
+            $arr = array_reverse($this->values, true);
+            if ($allow_null === true) {
+                $arr[''] = '';
+            } else {
+                $arr[''] = $allow_null;
+            }
+            $arr = array_reverse($arr, true);
+            $this->values = $arr;
+        }
         
         if (empty($values) && isset($value)) {
             $this->values = $value;
         }
         
+        // Set selected values
         if(isset($_REQUEST[$id])) {
             $this->selected = $_REQUEST[$id];
             $this->selected_r = $_REQUEST[$id];
+        } elseif ($default_all && ($format == 'checkbox' || $format == 'multi-select')) {
+            foreach ($this->values as $value => $label) {
+                $this->selected[] = $value;
+                $this->selected_r[] = $value;
+            }
         } elseif (isset($default)) {
             $this->selected = $default;
             $this->selected_r = $default;           
@@ -126,7 +146,7 @@ Class WPAS_Field {
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
             $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox" name="'.$this->id.'[]" value="'.$value.'"';
-                if (in_array($value, $this->selected_r)) {
+                if (in_array($value, $this->selected_r, true)) {
                     $output .= ' checked="checked"';
                 }
             $output .= '>';
