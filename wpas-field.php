@@ -50,7 +50,7 @@ Class WPAS_Field {
         if(isset($_REQUEST[$id])) {
             $this->selected = $_REQUEST[$id];
             $this->selected_r = $_REQUEST[$id];
-        } elseif ($default_all && ($format == 'checkbox' || $format == 'multi-select')) {
+        } elseif ($default_all && !isset($_REQUEST['wpas']) && ($format == 'checkbox' || $format == 'multi-select')) {
             foreach ($this->values as $value => $label) {
                 $this->selected[] = $value;
                 $this->selected_r[] = $value;
