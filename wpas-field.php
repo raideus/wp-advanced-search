@@ -12,6 +12,7 @@ Class WPAS_Field {
     private $values;
     private $selected = '';
     private $selected_r = array();
+    private $exclude = array();
 
     function __construct($id, $args = array()) {
         $defaults = array(  'label' => '',
@@ -62,6 +63,15 @@ Class WPAS_Field {
 
         if (!is_array($this->selected)) {
             $this->selected_r = explode(',',$this->selected);
+        }
+
+        // Set excluded values
+        if (isset($exclude)) {
+            if (is_array($exclude)) {
+                $this->exclude = $exclude;
+            } else {
+                $this->exclude[] = $exclude;
+            }
         }
 
     }
@@ -123,6 +133,7 @@ Class WPAS_Field {
             $output .=  '"'.$multiple.'>';
 
             foreach ($this->values as $value => $label) {   
+                if (in_array($value,$this->exclude)) continue;
                 $value = esc_attr($value);
                 $label = esc_attr($label);
                 $output .= '<option value="'.$value.'"';
@@ -142,6 +153,7 @@ Class WPAS_Field {
         $output = '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
         $ctr = 1;
         foreach ($this->values as $value => $label) {
+            if (in_array($value,$this->exclude)) continue;
             $value = esc_attr($value);
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
@@ -161,6 +173,7 @@ Class WPAS_Field {
         $output = '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
         $ctr = 1;
         foreach ($this->values as $value => $label) {
+            if (in_array($value,$this->exclude)) continue;            
             $value = esc_attr($value);
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
