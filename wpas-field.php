@@ -10,7 +10,6 @@ Class WPAS_Field {
     private $format;
     private $placeholder;
     private $values;
-    private $default_all;
     private $selected = '';
     private $selected_r = array();
 
@@ -18,8 +17,9 @@ Class WPAS_Field {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
-                            'default_all' => false,
-                            'values' => array()
+                            'values' => array(),
+                            'allow_null' => false,
+                            'default_all' => false
                             );
 
         $this->id = $id;
@@ -28,16 +28,33 @@ Class WPAS_Field {
         $this->type = $type;
         $this->format = $format;
         $this->values = $values;
-        $this->default_all = $default_all;
         $this->placeholder = $placeholder;
+
+        // For select fields, add null value if specified
+        if ($format == 'select' && $allow_null && !empty($values)) {
+            $arr = array_reverse($this->values, true);
+            if ($allow_null === true) {
+                $arr[''] = '';
+            } else {
+                $arr[''] = $allow_null;
+            }
+            $arr = array_reverse($arr, true);
+            $this->values = $arr;
+        }
         
         if (empty($values) && isset($value)) {
             $this->values = $value;
         }
         
+        // Set selected values
         if(isset($_REQUEST[$id])) {
             $this->selected = $_REQUEST[$id];
             $this->selected_r = $_REQUEST[$id];
+        } elseif ($default_all && !isset($_REQUEST['wpas']) && ($format == 'checkbox' || $format == 'multi-select')) {
+            foreach ($this->values as $value => $label) {
+                $this->selected[] = $value;
+                $this->selected_r[] = $value;
+            }
         } elseif (isset($default)) {
             $this->selected = $default;
             $this->selected_r = $default;           
@@ -110,7 +127,7 @@ Class WPAS_Field {
                 $label = esc_attr($label);
                 $output .= '<option value="'.$value.'"';
 
-                    if ($multi && $this->default_all || in_array($value, $this->selected_r)) {
+                    if (in_array($value, $this->selected_r)) {
                         $output .= ' selected="selected"';
                     }
 
@@ -129,7 +146,7 @@ Class WPAS_Field {
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
             $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox" name="'.$this->id.'[]" value="'.$value.'"';
-                if($this->default_all || if (in_array($value, $this->selected_r)) {
+                if (in_array($value, $this->selected_r, true)) {
                     $output .= ' checked="checked"';
                 }
             $output .= '>';
