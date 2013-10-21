@@ -284,7 +284,8 @@ if (!class_exists('WP_Advanced_Search')) {
                             'term_format' => 'slug',
                             'hide_empty' => false,
                             'terms' => array(),
-                            'term_args' => array()
+                            'term_args' => array(),
+                            'exclude' => array(),
                         );
 
             $term_defaults = array( 
@@ -326,19 +327,36 @@ if (!class_exists('WP_Advanced_Search')) {
                 }
             }
                 
+            // Check for any exclusions; be it a string or array
             foreach ($term_objects as $term) {
-                switch($term_format) {
-                    case 'id' :
-                    case 'ID' :
-                        $term_values[$term->term_id] = $term->name;
-                        break;
-                    case 'Name' :
-                    case 'name' :
-                        $term_values[$term->name] = $term->name;
-                        break;
-                    default :
-                        $term_values[$term->slug] = $term->name;
-                        break;
+                if(!is_array($exclude) && $term->name != $exclude){
+                    switch($term_format) {
+                        case 'id' :
+                        case 'ID' :
+                            $term_values[$term->term_id] = $term->name;
+                            break;
+                        case 'Name' :
+                        case 'name' :
+                            $term_values[$term->name] = $term->name;
+                            break;
+                        default :
+                            $term_values[$term->slug] = $term->name;
+                            break;
+                    }
+                } elseif(is_array($exclude) && !in_array($term->name, $exclude)){
+                    switch($term_format) {
+                        case 'id' :
+                        case 'ID' :
+                            $term_values[$term->term_id] = $term->name;
+                            break;
+                        case 'Name' :
+                        case 'name' :
+                            $term_values[$term->name] = $term->name;
+                            break;
+                        default :
+                            $term_values[$term->slug] = $term->name;
+                            break;
+                    }
                 }
             }
 
