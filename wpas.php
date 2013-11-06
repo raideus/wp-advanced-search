@@ -27,6 +27,7 @@ if (!class_exists('WP_Advanced_Search')) {
         private $orderby_meta_keys = array();
 
         // Form Input
+        private $fields = array();
         private $form_args = array();
         private $post_types = array();
         private $selected_taxonomies = array();
