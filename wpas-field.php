@@ -5,6 +5,8 @@
 Class WPAS_Field {
     
     private $id;
+    private $name;
+    private $classes;
     private $label;
     private $type;
     private $format;
@@ -14,7 +16,7 @@ Class WPAS_Field {
     private $selected_r = array();
     private $exclude = array();
 
-    function __construct($id, $args = array()) {
+    function __construct($field_name, $args = array()) {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
@@ -23,8 +25,18 @@ Class WPAS_Field {
                             'default_all' => false
                             );
 
-        $this->id = $id;
+        $this->name = $field_name;
         extract(wp_parse_args($args,$defaults));
+        $this->id = (!empty($id)) ? $id : $field_name;
+
+        if (!empty($class)) {
+            $this->classes = $class;
+            if (is_array($this->classes)) {
+                $this->classes = implode(' ', $this->classes);
+            }
+            $this->classes = ' ' . $this->classes;
+        }
+
         $this->label = $label;
         $this->type = $type;
         $this->format = $format;
@@ -48,15 +60,15 @@ Class WPAS_Field {
         }
         
         // Set selected values
-        if(isset($_REQUEST[$id])) {
-            $this->selected = $_REQUEST[$id];
-            $this->selected_r = $_REQUEST[$id];
+        if(isset($_REQUEST[$field_name])) {
+            $this->selected = $_REQUEST[$field_name];
+            $this->selected_r = $_REQUEST[$field_name];
         } elseif ($default_all && !isset($_REQUEST['wpas']) && ($format == 'checkbox' || $format == 'multi-select')) {
             foreach ($this->values as $value => $label) {
                 $this->selected[] = $value;
                 $this->selected_r[] = $value;
             }
-        } elseif (isset($default)) {
+        } elseif (isset($default) && !isset($_REQUEST['wpas'])) {
             $this->selected = $default;
             $this->selected_r = $default;           
         }
@@ -78,7 +90,7 @@ Class WPAS_Field {
 
     function build_field() {
         if ($this->format != 'hidden') {
-            $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field  wpas-field">';
+            $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
             if ($this->label) {
                 $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->label.'</label></div>';
             }
@@ -126,11 +138,18 @@ Class WPAS_Field {
                 $multiple = '';
             }
 
-            $output = '<select id="'.$this->id.'" name="'.$this->id;
+            $output = '<select id="'.$this->id.'" name="'.$this->name;
             if ($multi) {
                 $output .= '[]';
             }
-            $output .=  '"'.$multiple.'>';
+            $output .=  '"'.$multiple.' class="';
+
+            if ($multi) {
+                $output .= 'wpas-multi-select';
+            } else {
+                $output .= 'wpas-select';
+            }
+            $output .= $this->classes.'">';
 
             foreach ($this->values as $value => $label) {   
                 if (in_array($value,$this->exclude)) continue;
@@ -157,7 +176,7 @@ Class WPAS_Field {
             $value = esc_attr($value);
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
-            $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox" name="'.$this->id.'[]" value="'.$value.'"';
+            $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox'.$this->classes.'" name="'.$this->name.'[]" value="'.$value.'"';
                 if (in_array($value, $this->selected_r, true)) {
                     $output .= ' checked="checked"';
                 }
@@ -177,7 +196,7 @@ Class WPAS_Field {
             $value = esc_attr($value);
             $label = esc_attr($label);
             $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
-            $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio" name="'.$this->id.'" value="'.$value.'"';
+            $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio'.$this->classes.'" name="'.$this->name.'" value="'.$value.'"';
                 if (in_array($value, $this->selected_r)) {
                     $output .= ' checked="checked"';
                 }
@@ -206,7 +225,7 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<input type="text" id="'.$this->id.'" value="'.$value.'" name="'.$this->id.'"'.$placeholder.'>';
+        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.'>';
         return $output;
     }
 
@@ -227,12 +246,12 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<textarea id="'.$this->id.'" name="'.$this->id.'"'.$placeholder.'>'.$value.'</textarea>';    
+        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'>'.$value.'</textarea>';    
         return $output; 
     }
 
     function submit() {
-        $output = '<input type="submit" value="'.esc_attr($this->values).'">';
+        $output = '<input type="submit" class="wpas-submit'.$this->classes.'" value="'.esc_attr($this->values).'">';
         return $output;
     }
 
@@ -247,7 +266,7 @@ Class WPAS_Field {
             $value = reset($value);
         } 
         $value = esc_attr($value);
-        $output = '<input type="hidden" name="'.$this->id.'" value="'.$value.'">';
+        $output = '<input type="hidden" name="'.$this->name.'" value="'.$value.'">';
         return $output;
     }
 
