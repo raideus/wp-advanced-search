@@ -1009,7 +1009,8 @@ if (!class_exists('WP_Advanced_Search')) {
             if ($format) $display_format = $format;
 
             $post_type = $this->wp_query_args['post_type'];
-            $posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type));
+            $post_status = (!empty($this->wp_query_args['post_status'])) ? $this->wp_query_args['post_status'] : 'publish';
+            $posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type, 'post_status' => $post_status));
             $previous_display = "";
             $previous_value = "";        
             $count = 0;
