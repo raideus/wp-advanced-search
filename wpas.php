@@ -6,7 +6,7 @@
  *
  * @author Sean Butze
  * @link https://github.com/growthspark/wp-advanced-search
- * @version 1.1.1
+ * @version 1.1.2
  * @license MIT
  */
 
