@@ -90,9 +90,10 @@ Class WPAS_Field {
 
     function build_field() {
         if ($this->format != 'hidden') {
-            $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
+            $output = '<div id="wpas-'.$this->id.'" class="form-group wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
             if ($this->label) {
-                $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->label.'</label></div>';
+                $output .= '<label for="'.$this->id.'" class="col-sm-2 control-label">'.$this->label.'</label>';
+                $output .= '<div class="col-sm-10">';
             }
         }
         switch($this->format) {
@@ -125,7 +126,7 @@ Class WPAS_Field {
                 break;
         }
         if ($this->format != 'hidden') {
-         $output .= '</div>';
+         $output .= '</div></div>';
         }
         return $output;
     }
@@ -138,7 +139,7 @@ Class WPAS_Field {
                 $multiple = '';
             }
 
-            $output = '<select id="'.$this->id.'" name="'.$this->name;
+            $output = '<select id="'.$this->id.'" class="form-control" name="'.$this->name;
             if ($multi) {
                 $output .= '[]';
             }
@@ -195,13 +196,13 @@ Class WPAS_Field {
             if (in_array($value,$this->exclude)) continue;            
             $value = esc_attr($value);
             $label = esc_attr($label);
-            $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
-            $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio'.$this->classes.'" name="'.$this->name.'" value="'.$value.'"';
+            $output .= '<div class="radio wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
+            $output .= '<label><input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio'.$this->classes.'" name="'.$this->name.'" value="'.$value.'"';
                 if (in_array($value, $this->selected_r)) {
                     $output .= ' checked="checked"';
                 }
             $output .= '>';
-            $output .= '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>';
+            $output .= $label.'</label></div>';
             $ctr++;
         }
         $output .= '</div>';    
@@ -225,7 +226,7 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.'>';
+        $output = '<input type="text" id="'.$this->id.'" class="form-control wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.'>';
         return $output;
     }
 
@@ -246,12 +247,12 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'>'.$value.'</textarea>';    
+        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.' form-control" name="'.$this->name.'"'.$placeholder.'>'.$value.'</textarea>';    
         return $output; 
     }
 
     function submit() {
-        $output = '<input type="submit" class="wpas-submit'.$this->classes.'" value="'.esc_attr($this->values).'">';
+        $output = '<input type="submit" class="wpas-submit btn btn-default"'.$this->classes.'" value="'.esc_attr($this->values).'">';
         return $output;
     }
 
