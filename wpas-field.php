@@ -7,6 +7,7 @@ Class WPAS_Field {
     private $id;
     private $name;
     private $classes;
+    private $attributes;
     private $label;
     private $type;
     private $format;
@@ -35,6 +36,10 @@ Class WPAS_Field {
                 $this->classes = implode(' ', $this->classes);
             }
             $this->classes = ' ' . $this->classes;
+        }
+
+        if (!empty($attributes) && is_array($attributes)) {
+            $this->attributes = $attributes;
         }
 
         $this->label = $label;
@@ -132,24 +137,18 @@ Class WPAS_Field {
 
     function select($multi = false) {
 
-            if ($multi) {
-                $multiple = ' multiple="multiple"';
-            } else {
-                $multiple = '';
-            }
-
             $output = '<select id="'.$this->id.'" name="'.$this->name;
             if ($multi) {
                 $output .= '[]';
             }
-            $output .=  '"'.$multiple.' class="';
 
-            if ($multi) {
-                $output .= 'wpas-multi-select';
-            } else {
-                $output .= 'wpas-select';
-            }
-            $output .= $this->classes.'">';
+            $output .=  '"';
+            $output .= ($multi) ? ' multiple="multiple"' : '';
+            $output .= '  class="';
+            $output .= ($multi) ? 'wpas-multi-select' : 'wpas-select';
+            $output .= ' ' . $this->classes.'"';
+            $output .= $this->add_attributes();
+            $output .= '>';
 
             foreach ($this->values as $value => $label) {   
                 if (in_array($value,$this->exclude)) continue;
@@ -225,7 +224,7 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.'>';
+        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.' '.$this->add_attributes().'>';
         return $output;
     }
 
@@ -246,12 +245,12 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'>'.$value.'</textarea>';    
+        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'  '.$this->add_attributes().'>'.$value.'</textarea>';    
         return $output; 
     }
 
     function submit() {
-        $output = '<input type="submit" class="wpas-submit'.$this->classes.'" value="'.esc_attr($this->values).'">';
+        $output = '<input type="submit" class="wpas-submit'.$this->classes.'" value="'.esc_attr($this->values).'" '.$this->add_attributes().'>';
         return $output;
     }
 
@@ -266,7 +265,17 @@ Class WPAS_Field {
             $value = reset($value);
         } 
         $value = esc_attr($value);
-        $output = '<input type="hidden" name="'.$this->name.'" value="'.$value.'">';
+        $output = '<input type="hidden" name="'.$this->name.'" value="'.$value.'" '.$this->add_attributes().'>';
+        return $output;
+    }
+
+    function add_attributes() {
+        $output = "";
+        if ($this->attributes) {
+            foreach($this->attributes as $k => $v) {
+                $output .= $k . '="'.$v.'" '; 
+            }
+        }        
         return $output;
     }
 
