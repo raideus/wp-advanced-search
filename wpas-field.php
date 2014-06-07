@@ -13,6 +13,7 @@ Class WPAS_Field {
     private $format;
     private $placeholder;
     private $values;
+    private $required;
     private $selected = '';
     private $selected_r = array();
     private $exclude = array();
@@ -47,6 +48,7 @@ Class WPAS_Field {
         $this->format = $format;
         $this->values = $values;
         $this->placeholder = $placeholder;
+        $this->required = $required;
 
         // For select fields, add null value if specified
         if ($format == 'select' && $allow_null && !empty($values)) {
@@ -224,7 +226,10 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.' '.$this->add_attributes().'>';
+        $required = '';
+        if ($this->required) 
+            $required = 'required';
+        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.' '.$this->add_attributes().' '.$required.'>';
         return $output;
     }
 
@@ -245,7 +250,10 @@ Class WPAS_Field {
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'  '.$this->add_attributes().'>'.$value.'</textarea>';    
+        $required = '';
+        if ($this->required) 
+            $required = 'required';
+        $output = '<textarea id="'.$this->id.'" class="wpas-textarea'.$this->classes.'" name="'.$this->name.'"'.$placeholder.'  '.$this->add_attributes().' '.$required.'>'.$value.'</textarea>';    
         return $output; 
     }
 
