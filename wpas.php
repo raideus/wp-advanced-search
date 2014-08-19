@@ -6,8 +6,8 @@
  *
  * @author Sean Butze
  * @link https://github.com/growthspark/wp-advanced-search
- * @version 1.2
- * @license MIT
+ * @version 1.3
+ * @license GPLv3
  */
 
 require_once('wpas-field.php');
@@ -246,11 +246,8 @@ if (!class_exists('WP_Advanced_Search')) {
             $args = wp_parse_args($args, $defaults);
             $format = $args['format'];
             if (isset($_REQUEST['search_query'])) {
-                $value = $_REQUEST['search_query'];
-            } else {
-                $value = $args['value'];
+                $args['values'] = $_REQUEST['search_query'];
             }
-            $args['values'] = $value;
             $field = new WPAS_Field('search_query', $args);
             return $field->build_field();
         }
@@ -1047,5 +1044,3 @@ if (!class_exists('WP_Advanced_Search')) {
 
     } // class
 } // endif
-
-new WP_Advanced_Search();

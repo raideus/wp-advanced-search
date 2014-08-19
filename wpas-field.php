@@ -1,8 +1,9 @@
 <?php
+
 /**
- *  Generates a form field to display in a search form
+ *  Class for configuring and generating a single form field
  */
-Class WPAS_Field {
+class WPAS_Field {
     
     private $id;
     private $name;
@@ -17,7 +18,7 @@ Class WPAS_Field {
     private $selected_r = array();
     private $exclude = array();
 
-    function __construct($field_name, $args = array()) {
+    public function __construct($field_name, $args = array()) {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
@@ -93,7 +94,12 @@ Class WPAS_Field {
 
     }
 
-    function build_field() {
+    /**
+     * Builds and returns the HTML represetation of the field
+     *
+     * @since 1.0
+     */
+    public function build_field() {
         if ($this->format != 'hidden') {
             $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
             if ($this->label) {
@@ -116,6 +122,45 @@ Class WPAS_Field {
             case 'text':
                 $output .= $this->text();
                 break;
+            case 'color':
+                $output .= $this->text( $this->format );
+                break;
+            case 'date':
+                $output .= $this->text( $this->format );
+                break;
+            case 'datetime':
+                $output .= $this->text( $this->format );
+                break;
+            case 'datetime-local':
+                $output .= $this->text( $this->format );
+                break;
+            case 'email':
+                $output .= $this->text( $this->format );
+                break;
+            case 'month':
+                $output .= $this->text( $this->format );
+                break;
+            case 'number':
+                $output .= $this->text( $this->format );
+                break;
+            case 'range':
+                $output .= $this->text( $this->format );
+                break;
+            case 'search':
+                $output .= $this->text( $this->format );
+                break;
+            case 'tel':
+                $output .= $this->text( $this->format );
+                break;
+            case 'time':
+                $output .= $this->text( $this->format );
+                break;
+            case 'url':
+                $output .= $this->text( $this->format );
+                break;
+            case 'week':
+                $output .= $this->text( $this->format );
+                break;
             case 'textarea':
                 $output .= $this->textarea();
                 break;
@@ -135,7 +180,12 @@ Class WPAS_Field {
         return $output;
     }
 
-    function select($multi = false) {
+    /**
+     * Generates a select field
+     *
+     * @since 1.0
+     */
+    private function select($multi = false) {
 
             $output = '<select id="'.$this->id.'" name="'.$this->name;
             if ($multi) {
@@ -167,7 +217,12 @@ Class WPAS_Field {
             return $output;
     }
 
-    function checkbox() {
+    /**
+     * Generates a checkbox field
+     *
+     * @since 1.0
+     */
+    private function checkbox() {
         $output = '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
         $ctr = 1;
         foreach ($this->values as $value => $label) {
@@ -187,7 +242,12 @@ Class WPAS_Field {
         return $output;
     }
 
-    function radio() {
+    /**
+     * Generates a radio field
+     *
+     * @since 1.0
+     */
+    private function radio() {
         $output = '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
         $ctr = 1;
         foreach ($this->values as $value => $label) {
@@ -207,41 +267,30 @@ Class WPAS_Field {
         return $output; 
     }
 
-    function text() {
-        if (is_array($this->selected)) {
-            if (isset($this->selected[0]))
-                $value = $this->selected[0];
-            else
-                $value = '';
-        } elseif (isset($this->selected)) {
-            $value = $this->selected;
-        } elseif (is_array($this->values)) {
-            $value = reset($this->values);
-        } else {
-            $value = $this->values;
-        }
-        $value = esc_attr($value);
+    /**
+     * Generates a text input field
+     *
+     * Also used to generate other HTML5 field types through use of $input_type
+     * argument.
+     *
+     * @since 1.0
+     */
+    private function text( $input_type = 'text' ) {
+        $value = esc_attr($this->get_input_value());
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
-        $output = '<input type="text" id="'.$this->id.'" class="wpas-text'.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.' '.$this->add_attributes().'>';
+        $output = '<input type="'.$input_type.'" id="'.$this->id.'" class="wpas-'.$input_type.''.$this->classes.'" value="'.$value.'" name="'.$this->name.'"'.$placeholder.' '.$this->add_attributes().'>';
         return $output;
     }
 
-    function textarea() {
-        if (is_array($this->selected)) {
-            if (isset($this->selected[0]))
-                $value = $this->selected[0];
-            else
-                $value = '';
-        } elseif (isset($this->selected)) {
-            $value = $this->selected;
-        } elseif (is_array($this->values)) {
-            $value = reset($this->values);
-        } else {
-            $value = $this->values;
-        }
-        $value = esc_textarea($value);
+    /**
+     * Generates a textarea field
+     *
+     * @since 1.0
+     */
+    private function textarea() {
+        $value = esc_textarea($this->get_input_value());
         $placeholder = '';
         if ($this->placeholder)
             $placeholder = ' placeholder="'.$this->placeholder.'"';
@@ -249,17 +298,32 @@ Class WPAS_Field {
         return $output; 
     }
 
-    function submit() {
+    /**
+     * Generates a submit button
+     *
+     * @since 1.0
+     */
+    private function submit() {
         $output = '<input type="submit" class="wpas-submit'.$this->classes.'" value="'.esc_attr($this->values).'" '.$this->add_attributes().'>';
         return $output;
     }
 
-    function html() {
+    /**
+     * Generates an html field
+     *
+     * @since 1.0
+     */
+    private function html() {
         $output = $this->values;
         return $output;
     }
 
-    function hidden() {
+    /**
+     * Generates a hidden field
+     *
+     * @since 1.0
+     */
+    private function hidden() {
         $value = $this->values;
         if (is_array($value)) {
             $value = reset($value);
@@ -269,7 +333,12 @@ Class WPAS_Field {
         return $output;
     }
 
-    function add_attributes() {
+    /**
+     * Returns a string of HTML attributes for inclusion in the field
+     *
+     * @since 1.2
+     */
+    private function add_attributes() {
         $output = "";
         if ($this->attributes) {
             foreach($this->attributes as $k => $v) {
@@ -277,6 +346,26 @@ Class WPAS_Field {
             }
         }        
         return $output;
+    }
+
+    /**
+     * Obtains the value to use in the field.  
+     * Used only for text & textarea inputs
+     *
+     * @since 1.3
+     */
+    private function get_input_value() {
+        $value = '';
+        if (is_array($this->selected) && !empty($this->selected[0])) {
+            $value = $this->selected[0];
+        } elseif (!empty($this->selected)) {
+            $value = $this->selected;
+        } elseif (is_array($this->values) && !empty($this->values[0])) {
+            $value = $this->values[0];
+        } else {
+            $value = $this->values;
+        }   
+        return $value;   
     }
 
 } // Class
