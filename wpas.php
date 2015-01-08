@@ -11,6 +11,8 @@
  */
 
 require_once('wpas-field.php');
+require_once('wpas-walker.php');
+require_once(ABSPATH .'/wp-includes/class-wp-walker.php');
 
 if (!class_exists('WP_Advanced_Search')) {
     class WP_Advanced_Search {
@@ -220,6 +222,34 @@ if (!class_exists('WP_Advanced_Search')) {
             $output .= '<input type="hidden" name="wpas" value="1">';
 
             $output .= '</form>';
+
+
+            /*@@ Experimental @@*/
+
+
+            $walker = new WPAS_Walker;
+            //$args = array( 'taxonomy' => 'category' );
+            $taxonomy = 'category';
+            //$tax = get_taxonomy( $taxonomy );
+            //$terms = (array) get_terms( $taxonomy, array( 'get' => 'all' ) );
+
+
+            $descendants_and_self;
+
+            $terms = (array) get_terms( $taxonomy, array(
+                'child_of' => 0,
+                'hierarchical' => 0,
+                'hide_empty' => 0
+            ) );
+
+            //echo "<pre>"; print_r($terms); echo "</pre>";
+
+            $a = $walker->build_nested_array( $terms, 0 );
+            echo "<pre>";print_r($a);echo "</pre>";
+
+            /*@@ @@*/
+
+
             $this->the_form = $output;
         }
 
