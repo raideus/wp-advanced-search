@@ -14,15 +14,18 @@ class WPAS_Field {
     private $format;
     private $placeholder;
     private $values;
+    private $nested;
     private $selected = '';
     private $selected_r = array();
     private $exclude = array();
+    private $ctr;
 
     public function __construct($field_name, $args = array()) {
         $defaults = array(  'label' => '',
                             'format' => 'select',
                             'placeholder' => false,
                             'values' => array(),
+                            'nested' => false,
                             'allow_null' => false,
                             'default_all' => false
                             );
@@ -47,18 +50,18 @@ class WPAS_Field {
         $this->type = $type;
         $this->format = $format;
         $this->values = $values;
+        $this->nested = $nested;
         $this->placeholder = $placeholder;
 
         // For select fields, add null value if specified
         if ($format == 'select' && $allow_null && !empty($values)) {
-            $arr = array_reverse($this->values, true);
+
             if ($allow_null === true) {
-                $arr[''] = '';
+                $this->add_null_option('');
             } else {
-                $arr[''] = $allow_null;
+                $this->add_null_option( $allow_null );
             }
-            $arr = array_reverse($arr, true);
-            $this->values = $arr;
+
         }
         
         if (empty($values) && isset($value)) {
@@ -92,6 +95,8 @@ class WPAS_Field {
             }
         }
 
+        $this->ctr = 1;
+
     }
 
     /**
@@ -114,10 +119,10 @@ class WPAS_Field {
                 $output .= $this->select(true);
                 break;
             case 'checkbox':
-                $output .= $this->checkbox();
+                $output .= $this->checkbox_field();
                 break;
             case 'radio':
-                $output .= $this->radio();
+                $output .= $this->radio_field();
                 break;
             case 'text':
                 $output .= $this->text();
@@ -200,17 +205,15 @@ class WPAS_Field {
             $output .= $this->add_attributes();
             $output .= '>';
 
-            foreach ($this->values as $value => $label) {   
-                if (in_array($value,$this->exclude)) continue;
-                $value = esc_attr($value);
-                $label = esc_attr($label);
-                $output .= '<option value="'.$value.'"';
-
-                    if (in_array($value, $this->selected_r)) {
-                        $output .= ' selected="selected"';
-                    }
-
-                $output .= '>'.$label.'</option>';
+            if ($this->nested) {
+                $output .= $this->build_options_list($this->values, array($this, 'select_option'), 0);
+            } else {
+                foreach ($this->values as $value => $label) {   
+                    if (in_array($value,$this->exclude)) continue;
+                    $value = esc_attr($value);
+                    $label = esc_attr($label);
+                    $output .= $this->select_option($value, $label);
+                }
             }
 
             $output .= '</select>';
@@ -218,26 +221,111 @@ class WPAS_Field {
     }
 
     /**
+     *  Builds and returns list of field options
+     *
+     *  Used for select, checkbox, and radio fields.  Supports nested
+     *  hierarchies of elements.
+     *
+     *  @since 1.3
+     */
+    private function build_options_list($elements = array(), $field_func, $level = 0, $pre = '', $post = '') {
+        if (empty($elements)) return "";
+
+        $output = "";
+        $output .= $pre;
+
+        foreach($elements as $element) {
+            $output .= call_user_func($field_func, $element['value'],$element['label'], $level);
+            $output .= $this->build_options_list($element['children'], $field_func, $level+1, $pre, $post);
+        }
+
+        $output .= $post;
+
+        return $output;
+    }
+
+    /**
+     * Generates a single option for a select field
+     *
+     * @since 1.3
+     */
+    private function select_option($value, $label, $level = 0) {
+        $indent = '';
+        if ($level > 0) {
+            for($i=0; $i<$level; $i++) {
+                $indent .= "—";
+            }
+            $indent .= ' ';
+        }
+        $output = '<option value="'.$value.'"';
+            if (in_array($value, $this->selected_r)) {
+                $output .= ' selected="selected"';
+            }
+        $output .= '>'.$indent.$label.'</option>';
+        return $output;
+    }
+
+    /**
+     * Generates a single option for a checkbox field
+     *
+     * @since 1.3
+     */
+    private function checkbox_option($value, $label, $level = 0) {
+        $ctr = $this->ctr;
+        $el = ($this->nested) ? 'li' : 'div';
+        $output = '';
+        $output .= '<'.$el.' class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
+        $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox'.$this->classes.'" name="'.$this->name.'[]" value="'.$value.'"';
+            if (in_array($value, $this->selected_r, true)) {
+                $output .= ' checked="checked"';
+            }
+        $output .= '>';
+        $output .= '<label for="wpas-'.$this->id.'-checkbox-'.$ctr.'"> '.$label.'</label></'.$el.'>';   
+        $this->ctr++;     
+        return $output;
+    }
+
+
+    /**
+     * Generates a single option for a radio field
+     *
+     * @since 1.3
+     */
+    private function radio_option($value, $label, $level = 0) {
+        $ctr = $this->ctr;
+        $el = ($this->nested) ? 'li' : 'div';
+        $output = '';
+        $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
+        $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio'.$this->classes.'" name="'.$this->name.'" value="'.$value.'"';
+            if (in_array($value, $this->selected_r)) {
+                $output .= ' checked="checked"';
+            }
+        $output .= '>';
+        $output .= '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>'; 
+        $this->ctr++;     
+        return $output;
+    }
+
+    /**
      * Generates a checkbox field
      *
      * @since 1.0
      */
-    private function checkbox() {
+    private function checkbox_field() {
         $output = '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
-        $ctr = 1;
+
+        if ($this->nested) {
+            $output .= $this->build_options_list($this->values, array($this, 'checkbox_option'), 0, '<ul>', '</ul>');
+            return $output;
+        }
+
         foreach ($this->values as $value => $label) {
             if (in_array($value,$this->exclude)) continue;
             $value = esc_attr($value);
             $label = esc_attr($label);
-            $output .= '<div class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
-            $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox'.$this->classes.'" name="'.$this->name.'[]" value="'.$value.'"';
-                if (in_array($value, $this->selected_r, true)) {
-                    $output .= ' checked="checked"';
-                }
-            $output .= '>';
-            $output .= '<label for="wpas-'.$this->id.'-checkbox-'.$ctr.'"> '.$label.'</label></div>';
-            $ctr++;
+            $output .= $this->checkbox_option($value, $label);
         }
+
         $output .= '</div>';        
         return $output;
     }
@@ -247,21 +335,20 @@ class WPAS_Field {
      *
      * @since 1.0
      */
-    private function radio() {
+    private function radio_field() {
         $output = '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
-        $ctr = 1;
+
+        if ($this->nested) {
+            $output .= $this->build_options_list($this->values, array($this, 'radio_option'), 0, '<ul>', '</ul>');
+            return $output;
+        }
+
+
         foreach ($this->values as $value => $label) {
             if (in_array($value,$this->exclude)) continue;            
             $value = esc_attr($value);
             $label = esc_attr($label);
-            $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
-            $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio'.$this->classes.'" name="'.$this->name.'" value="'.$value.'"';
-                if (in_array($value, $this->selected_r)) {
-                    $output .= ' checked="checked"';
-                }
-            $output .= '>';
-            $output .= '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>';
-            $ctr++;
+            $output .= $this->radio_option($value, $label);
         }
         $output .= '</div>';    
         return $output; 
@@ -366,6 +453,30 @@ class WPAS_Field {
             $value = $this->values;
         }   
         return $value;   
+    }
+
+    /**
+     * For select fields, adds a null option to the beginning of the menu  
+     *
+     * @since 1.3
+     */
+    private function add_null_option( $null_label ) {
+        $null_option = '';
+
+        if ($this->nested) {
+            $null_option = array(
+                    'value' => '',
+                    'label' => $null_label,
+                    'children' => array()
+                );
+        } else {
+            $null_option = $null_label;
+        }
+
+        $arr = array_reverse($this->values, true);
+        $arr[''] = $null_option;
+        $arr = array_reverse($arr, true);
+        $this->values = $arr;
     }
 
 } // Class

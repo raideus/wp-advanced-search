@@ -223,33 +223,6 @@ if (!class_exists('WP_Advanced_Search')) {
 
             $output .= '</form>';
 
-
-            /*@@ Experimental @@*/
-
-
-            $walker = new WPAS_Walker;
-            //$args = array( 'taxonomy' => 'category' );
-            $taxonomy = 'category';
-            //$tax = get_taxonomy( $taxonomy );
-            //$terms = (array) get_terms( $taxonomy, array( 'get' => 'all' ) );
-
-
-            $descendants_and_self;
-
-            $terms = (array) get_terms( $taxonomy, array(
-                'child_of' => 0,
-                'hierarchical' => 0,
-                'hide_empty' => 0
-            ) );
-
-            //echo "<pre>"; print_r($terms); echo "</pre>";
-
-            $a = $walker->build_nested_array( $terms, 0 );
-            echo "<pre>";print_r($a);echo "</pre>";
-
-            /*@@ @@*/
-
-
             $this->the_form = $output;
         }
 
@@ -312,6 +285,7 @@ if (!class_exists('WP_Advanced_Search')) {
                             'term_format' => 'slug',
                             'hide_empty' => false,
                             'terms' => array(),
+                            'nested' => false,
                             'term_args' => array()
                         );
 
@@ -342,42 +316,55 @@ if (!class_exists('WP_Advanced_Search')) {
 
             $terms_objects = array();
             $term_values = array();
+            $walker = new WPAS_Terms_Walker(array('taxonomy' => $taxonomy, 
+                                                  'term_format' => $term_format), 
+                                                   $term_args);
+            $max_depth = ($args['nested']) ? 0 : -1;
 
             if (isset($terms) && is_array($terms) && (count($terms) < 1)) {
-                $term_objects = get_terms($taxonomy, $term_args); 
-            } else {
+                // No terms specified; populate with all terms
+                if ($args['nested']) {
+                    $term_values = $walker->build_nested_terms_array( $max_depth );
+                } else {
+                    $term_values = $walker->build_basic_terms_array();
+                }
+                
+            } else { // Custom term list
+                $args['nested'] = false; // Disallow nesting for custom term lists
                 foreach ($terms as $term_identifier) {
                     $term = get_term_by($term_format, $term_identifier, $taxonomy);
                     if ($term) {
                         $term_objects[] = $term;
                     }
                 }
+
+                foreach ($term_objects as $term) {
+                    switch($term_format) {
+                        case 'id' :
+                        case 'ID' :
+                            $term_values[$term->term_id] = $term->name;
+                            break;
+                        case 'Name' :
+                        case 'name' :
+                            $term_values[$term->name] = $term->name;
+                            break;
+                        default :
+                            $term_values[$term->slug] = $term->name;
+                            break;
+                    }
+                }
+
             }
                 
-            foreach ($term_objects as $term) {
-                switch($term_format) {
-                    case 'id' :
-                    case 'ID' :
-                        $term_values[$term->term_id] = $term->name;
-                        break;
-                    case 'Name' :
-                    case 'name' :
-                        $term_values[$term->name] = $term->name;
-                        break;
-                    default :
-                        $term_values[$term->slug] = $term->name;
-                        break;
-                }
-            }
-
-            // Don't populate with values if this is a text or textarea field
             if (empty($values)) {
+                // Populate with values unless this is a text or textarea field
                 if (!($format == 'text' || $format == 'textarea')) {
                     $args['values'] = $term_values;
                 }
             }
 
             $field = new WPAS_Field('tax_'.$tax_slug, $args);
+            
             return $field->build_field();
 
         }
