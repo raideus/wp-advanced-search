@@ -19,6 +19,8 @@ class WPAS_Field {
     private $selected_r = array();
     private $exclude = array();
     private $ctr;
+    private $pre_html;
+    private $post_html;
 
     public function __construct($field_name, $args = array()) {
         $defaults = array(  'label' => '',
@@ -27,7 +29,9 @@ class WPAS_Field {
                             'values' => array(),
                             'nested' => false,
                             'allow_null' => false,
-                            'default_all' => false
+                            'default_all' => false,
+                            'pre_html' => '',
+                            'post_html' => ''
                             );
 
         $this->name = $field_name;
@@ -52,6 +56,8 @@ class WPAS_Field {
         $this->values = $values;
         $this->nested = $nested;
         $this->placeholder = $placeholder;
+        $this->pre_html = $pre_html;
+        $this->post_html = $post_html;
 
         // For select fields, add null value if specified
         if ($format == 'select' && $allow_null && !empty($values)) {
@@ -107,6 +113,9 @@ class WPAS_Field {
     public function build_field() {
         if ($this->format != 'hidden') {
             $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
+
+            $output .= $this->pre_html;
+
             if ($this->label) {
                 $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->label.'</label></div>';
             }
@@ -180,6 +189,7 @@ class WPAS_Field {
                 break;
         }
         if ($this->format != 'hidden') {
+         $output .= $this->post_html;
          $output .= '</div>';
         }
         return $output;
