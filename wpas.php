@@ -12,7 +12,6 @@
 
 require_once('wpas-field.php');
 require_once('wpas-walker.php');
-require_once(ABSPATH .'/wp-includes/class-wp-walker.php');
 
 if (!class_exists('WP_Advanced_Search')) {
     class WP_Advanced_Search {
