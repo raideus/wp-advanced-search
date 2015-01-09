@@ -499,4 +499,4 @@ class WPAS_Field {
         $this->values = $arr;
     }
 
-} // Class
+} // class

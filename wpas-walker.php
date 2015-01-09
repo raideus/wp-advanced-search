@@ -42,6 +42,11 @@ class WPAS_Terms_Walker {
 
         /**
          *  Builds and returns a nested, hierarchical array of taxonomy terms
+         *
+         *  @param int $max_depth The maximum number of nested levels to recurse
+         *                        (0 == all levels, -1 == flat hierarchy)
+         *  @return array An Array of nested taxonomy terms
+         *  @since 1.3
          */
         public function build_nested_terms_array( $max_depth ) {
                 $parent_element_array = array();
@@ -111,6 +116,14 @@ class WPAS_Terms_Walker {
          *  Adds a term element and all of its children to $value_array.
          *  Recursively calls itself to add each of the term's children,
          *  incrementing depth by +1 in the process.
+         *
+         *  @param array $element Term element to be added to the array
+         *  @param array $value_array  Master array to add the element to
+         *  @param array $parent_element_array  Parent term of the current element
+         *  @param array $children_elements  Array of all child elements
+         *  @param int   $max_depth  The maximum number of nested levels to recurse
+         *  @param int   $depth  The current depth of recursion
+         *  @since 1.3
          */
         public function add_element($element, &$value_array, &$parent_element_array, 
                                     &$children_elements, $max_depth, $depth) {
@@ -150,6 +163,9 @@ class WPAS_Terms_Walker {
         /**
          *  Builds and returns a basic, non-hierarchical array of taxonomy
          *  terms.
+         *
+         *  @return Array  
+         *  @since 1.3
          */
         public function build_basic_terms_array() {
             $term_values = array();
