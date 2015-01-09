@@ -3,6 +3,8 @@
  *  Class for building hierarchical lists of taxonomy terms
  *
  *  Derived from the native WordPress 'Walker'class.
+ *
+ *  @since 1.3
  */
 class WPAS_Terms_Walker {
 

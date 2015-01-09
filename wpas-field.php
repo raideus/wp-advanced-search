@@ -1,7 +1,7 @@
 <?php
-
 /**
  *  Class for configuring and generating a single form field
+ *  @since 1.0
  */
 class WPAS_Field {
     
@@ -111,15 +111,21 @@ class WPAS_Field {
      * @since 1.0
      */
     public function build_field() {
+        $output = '';
+
         if ($this->format != 'hidden') {
-            $output = '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
 
             $output .= $this->pre_html;
+
+            if (!defined('WPAS_DISABLE_WRAPPERS') || !WPAS_DISABLE_WRAPPERS) {
+                $output .= '<div id="wpas-'.$this->id.'" class="wpas-'.$this->id.' wpas-'.$this->type.'-field wpas-field">';
+            }
 
             if ($this->label) {
                 $output .= '<div class="label-container"><label for="'.$this->id.'">'.$this->label.'</label></div>';
             }
         }
+
         switch($this->format) {
             case 'select':
                 $output .= $this->select();
@@ -188,10 +194,14 @@ class WPAS_Field {
                 $output .= $this->submit();
                 break;
         }
+
         if ($this->format != 'hidden') {
-         $output .= $this->post_html;
-         $output .= '</div>';
+            if (!defined('WPAS_DISABLE_WRAPPERS') || !WPAS_DISABLE_WRAPPERS) {
+                $output .= '</div>';
+            }
+            $output .= $this->post_html;
         }
+
         return $output;
     }
 
