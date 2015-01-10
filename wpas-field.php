@@ -467,8 +467,11 @@ class WPAS_Field {
             $value = $this->selected[0];
         } elseif (!empty($this->selected)) {
             $value = $this->selected;
-        } elseif (is_array($this->values) && !empty($this->values[0])) {
-            $value = $this->values[0];
+        } elseif (is_array($this->values)) {
+            if (!empty($this->values[0]))
+                $value = $this->values[0];
+            else
+                $value = '';
         } else {
             $value = $this->values;
         }   
