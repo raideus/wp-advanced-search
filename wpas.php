@@ -101,6 +101,13 @@ if (!class_exists('WP_Advanced_Search')) {
 
                                 $this->meta_keys[$meta]['compare'] = $operator;
                                 $this->meta_keys[$meta]['data_type'] = $data_type;
+
+                                if (!empty($field['relation'])) {
+                                    $this->wp_query_args['meta_query']['relation'] = $field['relation'];
+                                } else {
+                                    $this->wp_query_args['meta_query']['relation'] = 'OR';
+                                }
+
                             }
                             break;  
                         case 'orderby':
@@ -697,10 +704,11 @@ if (!class_exists('WP_Advanced_Search')) {
 
             foreach ($meta_keys as $key => $values) {
                 
+                if (!isset($this->meta_keys[$key])) continue;
+                
                 if ($this->meta_keys[$key]['compare'] == 'BETWEEN') {
 
                     //Special handling for BETWEEN comparisons.
-                    
                     foreach($values as $value) {
                         if (strpos($value, '-')) {
                             $value_one = strstr($value,'-',true);
@@ -713,7 +721,6 @@ if (!class_exists('WP_Advanced_Search')) {
                                 $values = array($value_one, $value_two);
                             }
                             
-
                             $this->wp_query_args['meta_query'][] = array(   
                                                                     'key' => $key,
                                                                     'value' => $values,
@@ -724,6 +731,17 @@ if (!class_exists('WP_Advanced_Search')) {
                         } else {
                             $this->error('Invalid meta_value "'. $values .'"" for BETWEEN comparison.');
                         }
+                    }
+
+                } else if (is_array($values)) {
+
+                    foreach($values as $value) {
+                        $this->wp_query_args['meta_query'][] = array(   
+                                                                'key' => $key,
+                                                                'value' => $value,
+                                                                'compare' => $this->meta_keys[$key]['compare'],
+                                                                'type' => $this->meta_keys[$key]['data_type']
+                                                                );                        
                     }
 
                 } else {
