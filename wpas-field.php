@@ -255,6 +255,7 @@ class WPAS_Field {
         $output .= $pre;
 
         foreach($elements as $element) {
+            if (in_array($element['value'],$this->exclude)) continue;
             $output .= call_user_func($field_func, $element['value'],$element['label'], $level);
             $output .= $this->build_options_list($element['children'], $field_func, $level+1, $pre, $post);
         }
