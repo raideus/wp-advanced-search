@@ -27,9 +27,17 @@ if (!class_exists('WP_Advanced_Search')) {
         private $orderby_values = array('ID','author','title','date','modified','parent','rand','comment_count','menu_order');
         private $orderby_meta_keys = array();
 
+        // Config
+        private $meta_key_relation = 'AND';
+        private $taxonomy_relation = 'AND';
+        private $form_args = array('action' => '',
+                                'method' => 'GET',
+                                'id' => 'wp-advanced-search',
+                                'name' => 'wp-advanced-search',
+                                'class' => 'wp-advanced-search');
+
         // Form Input
         private $fields = array();
-        private $form_args = array();
         private $post_types = array();
         private $selected_taxonomies = array();
         private $selected_meta_keys = array();
@@ -37,6 +45,10 @@ if (!class_exists('WP_Advanced_Search')) {
         private $the_form;
 
         function __construct($args = '') {
+            global $post;
+
+            $this->form_args['action'] = get_permalink($post->ID);
+
             if ( !empty($args) ) {
                 $this->process_args($args);
                 $this->build_form();
@@ -60,8 +72,20 @@ if (!class_exists('WP_Advanced_Search')) {
                         $this->post_types = array($args['wp_query']['post_type']);
                 }
             }
-            if (isset($args['form'])) 
-                $this->form_args = $args['form'];
+
+            // Process configuration arguments
+            $config = array();
+            if (isset($args['config'])) {
+                if (!isset($args['config']['form']) && isset($args['form'])) {
+                    // Fallback for deprecated form settings covention as $args['form']
+                    $args['config']['form'] = $args['form'];
+                }
+                $config = $args['config'];
+            } else if (isset($args['form'])) {
+                $config = array('form' => $args['form']);
+            }
+            $this->process_configuration($config);
+
             if (isset($args['fields']))
                 $this->fields = $args['fields'];
             if (isset($args['relevanssi']))
@@ -87,20 +111,13 @@ if (!class_exists('WP_Advanced_Search')) {
                             if (isset($field['meta_key'])) {
                                 $meta = $field['meta_key'];
 
-                                if (isset($field['compare'])) {
-                                    $operator = $field['compare'];
-                                } else {
-                                    $operator = '=';
-                                }
+                                $compare = isset($field['compare']) ? $field['compare'] : '=';
+                                $data_type = isset($field['data_type']) ? $field['data_type'] : 'CHAR';
+                                $relation = isset($field['relation']) ? $field['relation'] : 'OR';
 
-                                if (isset($field['data_type'])) {
-                                    $data_type = $field['data_type'];
-                                } else {
-                                    $data_type = 'CHAR';
-                                }
-
-                                $this->meta_keys[$meta]['compare'] = $operator;
+                                $this->meta_keys[$meta]['compare'] = $compare;
                                 $this->meta_keys[$meta]['data_type'] = $data_type;
+                                $this->meta_keys[$meta]['relation'] = $relation;
 
                                 if (!empty($field['relation'])) {
                                     $this->wp_query_args['meta_query']['relation'] = $field['relation'];
@@ -127,6 +144,20 @@ if (!class_exists('WP_Advanced_Search')) {
             }
         }
 
+        function process_configuration( $config ) {
+            $defaults = array(
+                    'meta_key_relation' => $this->meta_key_relation,
+                    'taxonomy_relation' => $this->taxonomy_relation,
+                    'form' => $this->form_args
+            );
+
+            extract(wp_parse_args($config, $defaults));
+
+            $this->meta_key_relation = $meta_key_relation;
+            $this->taxonomy_relation = $taxonomy_relation;
+            $this->form_args = $form;
+        }
+
 
         /**
          * Generates the search form
@@ -137,13 +168,7 @@ if (!class_exists('WP_Advanced_Search')) {
             global $post;
             global $wp_query;
 
-            $defaults = array('action' => get_permalink($post->ID),
-                                'method' => 'GET',
-                                'id' => 'wp-advanced-search',
-                                'name' => 'wp-advanced-search',
-                                'class' => 'wp-advanced-search');
-
-            $args = wp_parse_args($this->form_args, $defaults);
+            $args = $this->form_args;
             $fields = $this->fields;
             $tax_fields = array();
             $has_search = false;
@@ -695,20 +720,61 @@ if (!class_exists('WP_Advanced_Search')) {
         }
 
         /**
-         * Builds the meta_query component of our WP_Query object based on form input
+         * Builds the meta_query component of our WP_Query object based on 
+         * form input
          *
          * @since 1.0
          */
         function build_meta_query() {
+            global $wp_version;
+            if ($wp_version < 4.1) {
+                $this->build_meta_query_deprecated();
+                return;
+            } 
+
+            $meta_keys = $this->selected_meta_keys;
+            $this->wp_query_args['meta_query']['relation'] = $this->meta_key_relation;
+
+            foreach ($meta_keys as $key => $values) {
+                if (!isset($this->meta_keys[$key])) continue;
+
+                $meta_key_query = array();
+                $meta_key_query['relation'] = $this->meta_keys[$key]['relation'];
+
+                if (!is_array($values)) {
+                    $values = array($values);
+                }
+
+                foreach($values as $value) {
+                    $meta_key_query[] = array(   
+                                            'key' => $key,
+                                            'value' => $value,
+                                            'compare' => $this->meta_keys[$key]['compare'],
+                                            'type' => $this->meta_keys[$key]['data_type']
+                                            );                        
+                }
+
+                $this->wp_query_args['meta_query'][] = $meta_key_query;
+            }
+        }
+
+        /**
+         *  Deprecated version of build_meta_query
+         *
+         *  Used for WordPress versions prior to 4.1, which do not
+         *  support complex nested meta queries.
+         *
+         *  @since 1.4
+         */
+        function build_meta_query_deprecated() {
             $meta_keys = $this->selected_meta_keys;
 
             foreach ($meta_keys as $key => $values) {
                 
-                if (!isset($this->meta_keys[$key])) continue;
-                
                 if ($this->meta_keys[$key]['compare'] == 'BETWEEN') {
 
                     //Special handling for BETWEEN comparisons.
+                    
                     foreach($values as $value) {
                         if (strpos($value, '-')) {
                             $value_one = strstr($value,'-',true);
@@ -721,6 +787,7 @@ if (!class_exists('WP_Advanced_Search')) {
                                 $values = array($value_one, $value_two);
                             }
                             
+
                             $this->wp_query_args['meta_query'][] = array(   
                                                                     'key' => $key,
                                                                     'value' => $values,
@@ -731,17 +798,6 @@ if (!class_exists('WP_Advanced_Search')) {
                         } else {
                             $this->error('Invalid meta_value "'. $values .'"" for BETWEEN comparison.');
                         }
-                    }
-
-                } else if (is_array($values)) {
-
-                    foreach($values as $value) {
-                        $this->wp_query_args['meta_query'][] = array(   
-                                                                'key' => $key,
-                                                                'value' => $value,
-                                                                'compare' => $this->meta_keys[$key]['compare'],
-                                                                'type' => $this->meta_keys[$key]['data_type']
-                                                                );                        
                     }
 
                 } else {
@@ -756,6 +812,8 @@ if (!class_exists('WP_Advanced_Search')) {
             }
      
         }
+
+
 
         /**
          * Processes form input and modifies the query accordingly
