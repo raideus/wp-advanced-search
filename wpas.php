@@ -677,8 +677,11 @@ if (!class_exists('WP_Advanced_Search')) {
         function build_tax_query() {
             $query = $this->wp_query_args;
             $taxonomies = $this->selected_taxonomies;
+            $this->wp_query_args['tax_query'] = array();
+            if (count($taxonomies) > 1) {
+                $this->wp_query_args['tax_query']['relation'] = $this->taxonomy_relation;
+            }
             
-
             foreach ($taxonomies as $tax => $terms) {
                 $term_slugs = array(); // used when term_format is set to 'name'
                 $term_format = $this->term_formats[$tax];
@@ -709,11 +712,16 @@ if (!class_exists('WP_Advanced_Search')) {
                     continue;
                 }
 
+                $operator = $this->taxonomy_operators[$tax];
+                if (count($terms) == 1 && $operator == 'AND') $operator = 'IN';
+                // 'AND' operator doesn't work when only one term is selected
+                // (it returns zero results)
+
                 $this->wp_query_args['tax_query'][] = array(    
                                                         'taxonomy' => $tax,
                                                         'field' => $term_format,
                                                         'terms' => $terms,
-                                                        'operator' => $this->taxonomy_operators[$tax]
+                                                        'operator' => $operator
                                                         );
             } // endforeach $taxonomies
 
