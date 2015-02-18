@@ -118,13 +118,6 @@ if (!class_exists('WP_Advanced_Search')) {
                                 $this->meta_keys[$meta]['compare'] = $compare;
                                 $this->meta_keys[$meta]['data_type'] = $data_type;
                                 $this->meta_keys[$meta]['relation'] = $relation;
-
-                                if (!empty($field['relation'])) {
-                                    $this->wp_query_args['meta_query']['relation'] = $field['relation'];
-                                } else {
-                                    $this->wp_query_args['meta_query']['relation'] = 'OR';
-                                }
-
                             }
                             break;  
                         case 'orderby':
@@ -741,16 +734,22 @@ if (!class_exists('WP_Advanced_Search')) {
             } 
 
             $meta_keys = $this->selected_meta_keys;
-            $this->wp_query_args['meta_query']['relation'] = $this->meta_key_relation;
+
+            if (count($meta_keys) > 1) {
+                $this->wp_query_args['meta_query']['relation'] = $this->meta_key_relation;
+            }
 
             foreach ($meta_keys as $key => $values) {
                 if (!isset($this->meta_keys[$key])) continue;
 
                 $meta_key_query = array();
-                $meta_key_query['relation'] = $this->meta_keys[$key]['relation'];
 
                 if (!is_array($values)) {
                     $values = array($values);
+                }
+
+                if (count($values) > 1) {
+                    $meta_key_query['relation'] = $this->meta_keys[$key]['relation'];
                 }
 
                 foreach($values as $value) {
