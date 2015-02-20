@@ -151,9 +151,76 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
 
             $this->assertEquals($test['valid'], $validation->passes(), $msg);
         }
+    }
+
+    public function testMixedTypes() {
+        $tests = array(
+
+            array(  "expect" => "array|bool|numeric|string", 
+                    "got" => array("one"), 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|bool|numeric|string", 
+                    "got" => false, 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|bool|numeric|string", 
+                    "got" => 123, 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|bool|numeric|string", 
+                    "got" => "mystring", 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|numeric", 
+                    "got" => array("one"), 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|numeric", 
+                    "got" => 123, 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array|numeric", 
+                    "got" => "mystring", 
+                    "valid" => false
+                    ),
+            array(  "expect" => "array<string>|array<bool>", 
+                    "got" => 123, 
+                    "valid" => false
+                    ),
+            array(  "expect" => "array<string>|array<bool>", 
+                    "got" => array("one","two"), 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array<string>|array<bool>", 
+                    "got" => array(true,true,false), 
+                    "valid" => true
+                    ),
+            array(  "expect" => "array<string>|array<bool>", 
+                    "got" => array(4.5,7.8,91.2), 
+                    "valid" => false
+                    ),
+        );
+
+        foreach ($tests as $test) {
+            $validation = new Validator(
+                array('arg' => $test['expect']),
+                array('arg' => $test['got'])
+            );
+
+            $got = (is_array($test['got'])) ? implode(",",$test['got']) 
+                                            : $test['got'];
+
+            $msg = sprintf("Testing %s with value=[%s], valid=%b.  Error: %s", 
+                            $test['expect'], $got, 
+                            $test['valid'], implode(" ",$validation->getErrors()));                
+
+            $this->assertEquals($test['valid'], $validation->passes(), $msg);
+        }
 
 
     }
+
 
     private function strContains($str, $substr) {
         return (strpos($str,$substr) !== FALSE);
