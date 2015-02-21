@@ -18,9 +18,8 @@ class Input extends StdObject {
     private $placeholder;
     private $values;
     private $nested;
-    private $selected = '';
-    private $selected_r = array();
-    private $exclude = array();
+    private $selected;
+    private $exclude;
     private $ctr;
     private $pre_html;
     private $post_html;
@@ -30,11 +29,13 @@ class Input extends StdObject {
     protected static $rules = array(
                             'id' => 'string',
                             'attributes' => 'array<scalar>',
-                            'type' => 'string',
+                            'field_type' => array('type' => 'FieldType', 'required' => true),
                             'label' => 'string',
-                            'format' => 'InputFormat',
+                            'format' => array('type' => 'InputFormat', 'required' => true),
                             'placeholder' => 'string|bool',
-                            'values' => 'array',
+                            'values' => 'array<scalar>',
+                            'selected' => 'array<string>',
+                            'exclude' => 'array<string>',
                             'nested' => 'bool',
                             'allow_null' => 'bool|string',
                             'default_all' => 'bool',
@@ -77,24 +78,24 @@ class Input extends StdObject {
         }
     }
 
-    public function getID() {
-        return $this->id;
-    }
-
-    public function getName() {
-        return $this->name;
-    }
-
-    public function getClass() {
-        return $this->class;
-    }
-
-    public function getAttributes() {
-        return $this->attributes;
-    }
-
-    public function getLabel() {
-        return $this->label;
-    }
+//    public function getID() {
+//        return $this->id;
+//    }
+//
+//    public function getName() {
+//        return $this->name;
+//    }
+//
+//    public function getClass() {
+//        return $this->class;
+//    }
+//
+//    public function getAttributes() {
+//        return $this->attributes;
+//    }
+//
+//    public function getLabel() {
+//        return $this->label;
+//    }
 
 }

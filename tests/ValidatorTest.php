@@ -26,7 +26,7 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
             'item4' => false);
 
         $validation = new Validator($rules, $data);
-        $this->assertTrue($validation->passes());
+        $this->assertTrue($validation->passes(), $validation->getErrors());
     }
 
     public function testPassesWithMissingArgValue() {
@@ -41,9 +41,55 @@ class ValidatorTest extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($validation->passes());
     }
 
-    public function testScalarNumeric() {
+    public function testFailsWithMissingRequiredValue() {
+        $rules = array('item4' => array('type' => 'string', 'required' => true));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item3' => array("test"),
+            'item4');
 
+        $validation = new Validator($rules, $data);
+        $this->assertFalse($validation->passes());
+
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item3' => array("test"));
+        $validation = new Validator($rules, $data);
+        $this->assertFalse($validation->passes());
     }
+
+    public function testPassesWithMissingNonRequiredValue() {
+        $rules = array('item4' => array('type' => 'string', 'required' => false));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item3' => array("test"));
+
+        $validation = new Validator($rules, $data);
+        $this->assertTrue($validation->passes());
+    }
+
+    public function testRequiredString() {
+        $rules = array('item4' => 'required');
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item3' => array("test"));
+
+        $validation = new Validator($rules, $data);
+        $this->assertFalse($validation->passes());
+
+
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item4' => array("test"));
+        $validation = new Validator($rules, $data);
+        $this->assertTrue($validation->passes());
+    }
+
 
     public function testTypeChecking() {
         $types = array( 'string' => 'hello', 
