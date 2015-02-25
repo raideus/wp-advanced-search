@@ -8,6 +8,7 @@ class InputFormat extends BasicEnum {
     const checkbox = "checkbox";
     const radio = "radio";
     const text = "text";
+    const textarea = "textarea";
     const hidden = "hidden";
     const number = "number";
     const color = "color";
@@ -18,4 +19,6 @@ class InputFormat extends BasicEnum {
     const datetime = "datetime";
     const time = "time";
     const week = "week";
+    const submit = "submit";
+    const html = "html";
 }

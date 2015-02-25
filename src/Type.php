@@ -8,8 +8,11 @@
 namespace WPAS;
 require_once('FormMethod.php');
 require_once('InputFormat.php');
+require_once('FieldType.php');
 
 class Type {
+
+    private function __construct() {}
 
     // Array of allowed data types in $k => $v format
     // If $v is an array, $v corresponds to valid types which are
@@ -20,9 +23,10 @@ class Type {
         "bool" => true,
         "scalar" => array("string", "numeric", "bool"),
         "array" => true,
-        "object" => true,
+        "object" => array("Input", "Form"),
         "FormMethod" => true, 
-        "InputFormat" => true
+        "InputFormat" => true,
+        "FieldType" => true,
     );
 
     // Validation functions for each type
@@ -34,7 +38,8 @@ class Type {
         "array" => "is_array",
         "object" => "is_object",
         "FormMethod" => array("\WPAS\FormMethod", "isValid"),
-        "InputFormat" => array("\WPAS\InputFormat", "isValid")
+        "InputFormat" => array("\WPAS\InputFormat", "isValid"),
+        "FieldType" => array("\WPAS\FieldType", "isValid")
     );
 
     /**
@@ -111,8 +116,8 @@ class Type {
         }
 
         if ($type == $superset_type) return true;
-
-        if (is_array(self::$types[$superset_type])) {
+        if (isset(self::$types[$superset_type]) &&
+                                     is_array(self::$types[$superset_type])) {
             $subtypes = self::$types[$superset_type];
             if (in_array($type, $subtypes, true) === TRUE) {
                 return true;

@@ -497,7 +497,7 @@ if (!class_exists('WP_Advanced_Search')) {
             $the_authors_list = array();
 
             if (count($authors_list) < 1) {
-                    $authors = get_users();
+                    $authors = get_users(array('who' => 'authors'));
                     foreach ($authors as $author) {
                         $the_authors_list[$author->ID] = $author->display_name;
                     }

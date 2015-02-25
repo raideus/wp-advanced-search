@@ -2,6 +2,7 @@
 namespace WPAS;
 require_once('Type.php');
 
+
 class Validator {
 
     private $data;
@@ -27,6 +28,13 @@ class Validator {
         $this->passed = true;
     }
 
+    /**
+     * Validates an argument against a rule string
+     *
+     * @param string $arg
+     * @param string $rule
+     * @return bool
+     */
     public function validateRule($arg, $rule) {
         $required = $this->isRequired($rule);
         $types = $this->getTypeString($rule);
@@ -99,11 +107,11 @@ class Validator {
      *  Returns true if $value is of type $type,
      *  false otherwise.
      *
-     *  @param mixed   $data
+     *  @param mixed   $value
      *  @param string  $type
      *  @return bool
      */
-    public function validateType($value, $type) {
+    public static function validateType($value, $type) {
         if (!Type::isValidName($type)) {
             $msg = sprintf("Misformatted type string. '%s' is 
                 not a valid type name.", $type);
@@ -139,41 +147,6 @@ class Validator {
                                     but got '%s'.", $arg, $expected, $got);
     }
 
-    /**
-     *  Verify whether a variable contains an array of strings
-     *
-     *  @param string $arr
-     *  @return bool
-     */
-    private function isArrayOfStrings($arr) {
-        if (!is_array($arr)) return false;
-
-        foreach ($arr as $a) {
-            if (!is_string($a)) {
-                return false;
-            }
-        }     
-
-        return true;   
-    }
-
-    /**
-     *  Verify whether a variable contains an array of scalars
-     *
-     *  @param string $arr
-     *  @return bool
-     */
-    private function isArrayOfScalars($arr) {
-        if (!is_array($arr)) return false;
-
-        foreach ($arr as $a) {
-            if (!is_scalar($a)) {
-                return false;
-            }
-        }     
-
-        return true;   
-    }
 
     /**
      *  Boolean function indicating whether the validation test passed.

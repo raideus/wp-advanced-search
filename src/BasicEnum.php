@@ -1,27 +1,9 @@
 <?php
-/**
- *  Abstract Enum class
- *
- *  @author Brian Cline
- *  @link http://stackoverflow.com/a/254543
- */
-
 namespace WPAS;
+require_once('StdObject.php');
 
-abstract class BasicEnum {
-    private static $constCacheArray = NULL;
-
-    private static function getConstants() {
-        if (self::$constCacheArray == NULL) {
-            self::$constCacheArray = [];
-        }
-        $calledClass = get_called_class();
-        if (!array_key_exists($calledClass, self::$constCacheArray)) {
-            $reflect = new \ReflectionClass($calledClass);
-            self::$constCacheArray[$calledClass] = $reflect->getConstants();
-        }
-        return self::$constCacheArray[$calledClass];
-    }
+abstract class BasicEnum extends StdObject {
+    private function __construct() {}
 
     public static function isValidName($name, $strict = false) {
         $constants = self::getConstants();
