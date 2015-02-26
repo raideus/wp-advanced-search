@@ -34,8 +34,8 @@ abstract class StdObject {
     }
 
     protected static function validationErrorMsg( array $errors ) {
-        $err_msg = "Validation of object ". get_called_class() .
-                                            " failed. ". implode(" ",$errors);
+        $err_msg = 'Validation of object '. get_called_class() .
+                                            ' failed. '. implode(" ",$errors);
         return $err_msg;
     }
 

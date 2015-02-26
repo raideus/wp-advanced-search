@@ -84,7 +84,6 @@ class TestInputBuilder extends \WP_UnitTestCase {
         $input = InputBuilder::make('category', FieldType::taxonomy, $args);
 
         $values = $input->getValues();
-        print_r($values);
         $this->assertTrue(count($values) == 4);
 
         // Test term_format = 'slug'
@@ -113,6 +112,61 @@ class TestInputBuilder extends \WP_UnitTestCase {
         $values = $input->getValues();
         $this->assertTrue(key($input->getValues()) == $t[2]->name);
 
+        // Test exclude
+        $args['exclude'] = array('category-one');
+        $args['term_format'] = 'slug';
+        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count($values) == 3);
+        $this->assertFalse(isset($values[$args['exclude'][0]]));
+    }
+
+    public function testSetSelectedValues() {
+        $t = array();
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Category One"));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Category Two"));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Z Category"));
+
+        $request = array('tax_category' => array('category-two'));
+        $args = array(
+            'field_type' => 'taxonomy',
+            'taxonomy' => 'category',
+            'format' => 'select',
+            'term_format' => 'slug'
+        );
+        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+                                    $request);
+
+        // Selected value is present
+        $selected = $input->getSelected();
+        $this->assertTrue(count($selected) == 1);
+        $this->assertTrue($selected[0] == 'category-two');
+
+        // Default should be overridden by request value
+        $args['default'] = 'category-one';
+        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+            $request);
+        $selected = $input->getSelected();
+        $this->assertTrue(count($selected) == 1);
+        $this->assertTrue($selected[0] == 'category-two');
+
+        // Default should be selected with empty request
+        $request = array();
+        $args['default'] = 'category-one';
+        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+                                    $request);
+        $selected = $input->getSelected();
+        $this->assertTrue(count($selected) == 1);
+        $this->assertTrue($selected[0] == 'category-one');
+
+
+        // Check default_all
+        $args['default_all'] = true;
+        $args['format'] = 'multi-select';
+        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+                                    $request);
+        $selected = $input->getSelected();
+        $this->assertTrue(count($selected) == 4);
     }
 
 

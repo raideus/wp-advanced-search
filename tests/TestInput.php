@@ -86,25 +86,6 @@ class TestInput extends \PHPUnit_Framework_TestCase {
         $input = new Input(123, $args);
     }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsOnInvalidExclude() {
-        $args = array(
-            'id' => 'my_id',
-            'name' => 'some_name',
-            'class' => array('form-class'),
-            'format' => 'select',
-            'field_type' => 'search',
-            'attributes' => array("one", "two"),
-            'values' => array("one", "two", "three"),
-            'exclude' => 'one',
-            'label' => 'mylabel',
-        );
-
-        $input = new Input("inputname", $args);
-    }
-
 
     public function testBasicSelect() {
         $args = array('field_type' => 'meta_key', 'format' => 'select', 'values' => array('one', 'two'));

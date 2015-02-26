@@ -38,9 +38,11 @@ class Validator {
     public function validateRule($arg, $rule) {
         $required = $this->isRequired($rule);
         $types = $this->getTypeString($rule);
+        $matches = $this->getMatchesString($rule);
+
         if (!empty($this->data[$arg])) {
-            if (!$types) return true;
-            return $this->validateTypes($this->data[$arg], $arg, $types);
+            return ($this->validateTypes($this->data[$arg], $arg, $types) &&
+                    $this->validateMatches($this->data[$arg], $arg, $matches) );
         } else if ($required) {
             $this->errors[] = "Argument '".$arg."' required but not provided.";
             return false;
@@ -81,6 +83,21 @@ class Validator {
     }
 
     /**
+     *  Returns a 'matches' string from a rule if present.  False
+     *  otherwise.
+     *
+     *  @param string|array $rule
+     *  @return mixed
+     */
+    public function getMatchesString($rule) {
+        if (!is_array($rule) || empty($rule['matches'])) {
+            return false;
+        }
+        if (!is_string($rule['matches'])) return false;
+        return strtolower($rule['matches']);
+    }
+
+    /**
      *  Validates a value against a formatted string of allowed types.
      *
      *  Returns true if $value matches at least one allowed type,
@@ -92,12 +109,25 @@ class Validator {
      *  @return bool
      */
     public function validateTypes($value, $arg, $types) {
-        $types_r = $this->parseTypeRule($types);
+        if (!$types) return true;// False value indicates no rule was
+                                 // provided, so validation passes by default
+        $types_r = $this->parseRuleString($types);
 
         foreach($types_r as $t) {
             if ($this->validateType($value, $t) == true) return true;
         }
         $this->addTypeError($arg, $types, gettype($value));
+        return false;
+    }
+
+    public function validateMatches($value, $arg, $matches) {
+        if (!$matches) return true; // False value indicates no rule was
+                                    // provided, so validation passes by default
+        $matches_r = $this->parseRuleString($matches);
+        $value = (is_string($value)) ? strtolower($value) : $value;
+        foreach($matches_r as $m) {
+            if ($m == $value) return true;
+        }
         return false;
     }
 
@@ -123,13 +153,13 @@ class Validator {
     }
 
     /**
-     *  Parses a string representation of a type rule and returns an array
+     *  Parses a string representation of a rule and returns an array
      *  of valid types for that rule.
      *
      *  @param string $str
      *  @return array
      */
-    public function parseTypeRule($str) {
+    public function parseRuleString($str) {
         if (is_array($str)) return $str;
         return explode('|', $str);
     }
@@ -143,8 +173,8 @@ class Validator {
      *  @return void
      */
     private function addTypeError($arg, $expected, $got) {
-        $this->errors[] = sprintf("Invalid argument '%s'.  Expected type '%s' 
-                                    but got '%s'.", $arg, $expected, $got);
+        $this->errors[] = sprintf("Invalid argument '%s'.  Expected type '%s'".
+                                    " but got '%s'.", $arg, $expected, $got);
     }
 
 

@@ -90,6 +90,38 @@ class TestValidator extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($validation->passes());
     }
 
+    public function testMatches() {
+        $rules = array('item4' => array('matches' => 'dog|cat'));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item4' => 'cat'
+        );
+
+        $validation = new Validator($rules, $data);
+        $this->assertTrue($validation->passes());
+
+        $rules = array('item4' => array('matches' => 'dog|CAT'));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item4' => 'cat'
+        );
+
+        $validation = new Validator($rules, $data);
+        $this->assertTrue($validation->passes());
+
+        $rules = array('item4' => array('matches' => 'dog|cat'));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item4' => 'fish'
+        );
+
+        $validation = new Validator($rules, $data);
+        $this->assertFalse($validation->passes());
+    }
+
 
     public function testTypeChecking() {
         $types = array( 'string' => 'hello', 
@@ -265,11 +297,6 @@ class TestValidator extends \PHPUnit_Framework_TestCase {
         }
 
 
-    }
-
-
-    private function strContains($str, $substr) {
-        return (strpos($str,$substr) !== FALSE);
     }
     
 }

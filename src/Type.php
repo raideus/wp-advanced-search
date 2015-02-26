@@ -9,6 +9,7 @@ namespace WPAS;
 require_once('FormMethod.php');
 require_once('InputFormat.php');
 require_once('FieldType.php');
+require_once('RequestVar.php');
 
 class Type {
 
@@ -27,6 +28,7 @@ class Type {
         "FormMethod" => true, 
         "InputFormat" => true,
         "FieldType" => true,
+        "RequestVar" => true,
     );
 
     // Validation functions for each type
@@ -39,7 +41,8 @@ class Type {
         "object" => "is_object",
         "FormMethod" => array("\WPAS\FormMethod", "isValid"),
         "InputFormat" => array("\WPAS\InputFormat", "isValid"),
-        "FieldType" => array("\WPAS\FieldType", "isValid")
+        "FieldType" => array("\WPAS\FieldType", "isValid"),
+        "RequestVar" => array("\WPAS\RequestVar", "isValidValue"),
     );
 
     /**

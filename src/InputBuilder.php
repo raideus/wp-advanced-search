@@ -17,11 +17,22 @@ class InputBuilder extends StdObject {
      * @param array  $args
      * @return object
      */
-    public static function make($input_name, $field_type, $args) {
+    public static function make($input_name, $field_type, $args,
+                                $request = false) {
+
         self::validate($field_type);
-        return call_user_func("self::$field_type", $input_name, $args);
+        $args = self::preProcess($input_name, $field_type, $args, $request);
+        $args = call_user_func("self::$field_type", $input_name, $args,$request);
+        $args = self::postProcess($input_name, $field_type, $args, $request);
+
+        return new Input($input_name, $args);
     }
 
+    /**
+     * Validate the input arguments
+     *
+     * @param $field_type
+     */
     public static function validate($field_type) {
         if (FieldType::isValid($field_type)) return;
         $err_msg = self::validationErrorMsg(
@@ -31,35 +42,165 @@ class InputBuilder extends StdObject {
     }
 
     /**
+     * Pre-processing of input arguments
+     *
+     * @param $input_name
+     * @param $field_type
+     * @param $args
+     * @param $request
+     * @return mixed
+     */
+    public static function preProcess($input_name, $field_type, $args,
+                                       $request) {
+
+        if (isset($args['exclude']) && is_scalar($args['exclude'])) {
+            $args['exclude'] = array($args['exclude']);
+        }
+
+        return $args;
+    }
+
+    /**
+     * Post-processing of input arguments
+     *
+     * @param $input_name
+     * @param $field_type
+     * @param $args
+     * @param $request
+     * @return mixed
+     */
+    private static function postProcess($input_name, $field_type, $args,
+                                            $request) {
+        $args['selected'] = self::getSelected($input_name, $field_type, $args,
+                                              $request);
+        $args = self::removeExcludedValues($args);
+        return $args;
+    }
+
+
+    /**
+     * Removes values from the 'values' array which are flagged under the
+     * 'exclude' option
+     *
+     * @param $args
+     * @return mixed
+     */
+    public static function removeExcludedValues($args) {
+        if (empty($args['values']) || empty($args['exclude'])) return $args;
+
+        if (isset($args['exclude']) && is_scalar($args['exclude'])) {
+            $args['exclude'] = array($args['exclude']);
+        } else if (!is_array($args['exclude'])) {
+            $args['exclude'] = array();
+        }
+
+        foreach ($args['exclude'] as $e) {
+            if (isset($args['values'][$e])) unset($args['values'][$e]);
+        }
+
+        return $args;
+
+    }
+
+    /**
+     * Returns an array of selected input elements based on the given
+     * arguments and request data.
+     *
+     * @param $input_name
+     * @param $field_type
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function getSelected($input_name, $field_type, $args,
+                                       $request) {
+        $request_var = RequestVar::nameToVar($input_name, $field_type);
+
+        $request_val = isset( $request[$request_var] ) ? $request[$request_var] : null;
+
+        if (isset($request_val)) {
+            if (is_array($request_val)) {
+                return $request_val ;
+            }
+            return array($request_val);
+        }
+
+        if (self::canApplyDefaultAll($args, $request)) {
+            $selected = array();
+            foreach ($args['values'] as $value => $label) {
+                $selected[] = $value;
+            }
+            return $selected;
+        }
+
+
+        if (isset($args['default']) && !isset($request['wpas'])) {
+            if (!is_array($args['default'])) {
+                return array($args['default']);
+            }
+            return $args['default'];
+        }
+
+        return array();
+    }
+
+    public static function getRequestVar($input_name, $args) {
+        if (!empty($args['type'])) {
+
+        }
+    }
+
+    /**
+     * Determine whether the default_all option should be invoked under
+     * the given arguments and request data
+     *
+     * @param $args
+     * @param $request
+     * @return bool
+     */
+    public static function canApplyDefaultAll($args, $request) {
+        $format = isset($args['format']) ? $args['format'] : false;
+        $default_all = isset($args['default_all']) ? $args['default_all'] : false;
+        $supports_multiple = ($format == 'checkbox' || $format == 'multi-select');
+
+        return ($default_all && $supports_multiple && !isset($request['wpas']));
+    }
+
+    /**
      * Generates a search field
      */
-    public static function search($input_name, $args) {
+    public static function search($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'format' => 'text',
             'values' => array()
         );
         $args = self::parseArgs($args, $defaults);
-        if (isset($_REQUEST['search_query'])) {
-            $args['values'] = $_REQUEST['search_query'];
-        }
 
-        return new Input($input_name, $args);
+        return $args;
     }
 
     /**
      * Generates a submit button
      */
-    public static function submit($input_name, $args) {
+    public static function submit($input_name, $args, $request) {
         $defaults = array(
             'values' => array('Search')
         );
         $args = self::parseArgs($args, $defaults);
         $args['format'] = 'submit';
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function meta_key($input_name, $args) {
+    /**
+     * Configure a meta_key input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function meta_key($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'meta_key' => '',
@@ -67,10 +208,18 @@ class InputBuilder extends StdObject {
             'values' => array()
         );
         $args = self::parseArgs($args, $defaults);
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function order($input_name, $args) {
+    /**
+     * Configure an order input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function order($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -78,10 +227,18 @@ class InputBuilder extends StdObject {
         );
 
         $args = self::parseArgs($input_name, $defaults);
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function orderby($input_name, $args) {
+    /**
+     * Configure an orderby input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function orderby($input_name, $args, $request) {
         $defaults = array(
                         'label' => '',
                         'format' => 'select',
@@ -105,10 +262,18 @@ class InputBuilder extends StdObject {
             }
         }
         $args = self::parseArgs($input_name, $defaults);
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function author($input_name, $args) {
+    /**
+     * Configure an author input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function author($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -136,11 +301,18 @@ class InputBuilder extends StdObject {
         }
 
         $args['values'] = $the_authors_list;
-
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function post_type($input_name, $args) {
+    /**
+     * Configure a post_type input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function post_type($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -160,10 +332,18 @@ class InputBuilder extends StdObject {
         }
 
         $args['values'] = $values;
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function date($input_name, $args) {
+    /**
+     * Configure a date input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function date($input_name, $args, $request) {
         $default_date_type = 'year';
         $defaults = array(
             'label' => '',
@@ -185,33 +365,67 @@ class InputBuilder extends StdObject {
             $input_name = $date_type_to_var[$default_date_type];
         }
 
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function html($input_name, $args) {
+    /**
+     * Configure an html input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function html($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'values' => array()
         );
         $args = self::parseArgs($input_name, $defaults);
         $args['format'] = 'html';
-        return new Input($input_name, $args);
+
+        return $args;
     }
 
-    public static function generic($input_name, $args) {
-        return new Input($input_name, $args);
+    /**
+     * Configure a generic input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function generic($input_name, $args, $request) {
+        return $args;
     }
 
-    public static function posts_per_page($input_name, $args) {
+    /**
+     * Configure a posts_per_page input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function posts_per_page($input_name, $args, $request) {
         $defaults = array(
             'format' => 'select',
             'values' => array(10 => "10", 25 => "25", 50 => "50")
         );
         $args = self::parseArgs($input_name, $defaults);
-        return new Input($input_name, $args);
+        return $args;
     }
 
-    public static function taxonomy($input_name, $args) {
+
+    /**
+     * Configure a taxonomy input
+     *
+     * @param $input_name
+     * @param $args
+     * @param $request
+     * @return array
+     */
+    public static function taxonomy($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
             'taxonomy' => 'category',
@@ -289,7 +503,7 @@ class InputBuilder extends StdObject {
             }
         }
 
-        return new Input($input_name, $args);
+        return $args;
     }
 
     /**
@@ -297,7 +511,7 @@ class InputBuilder extends StdObject {
      *
      *  @since 1.0
      */
-    function get_dates($date_type = 'year', $format = false) {
+    private function get_dates($date_type = 'year', $format = false) {
 
         $display_format = "Y";
         $compare_format = "Y";

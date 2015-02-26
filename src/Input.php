@@ -35,7 +35,6 @@ class Input extends StdObject {
                             'placeholder' => 'string|bool',
                             'values' => 'array',
                             'selected' => 'array',
-                            'exclude' => 'array',
                             'nested' => 'bool',
                             'allow_null' => 'bool|string',
                             'default_all' => 'bool',
@@ -46,7 +45,6 @@ class Input extends StdObject {
                             'label' => '',
                             'placeholder' => false,
                             'values' => array(),
-                            'exclude' => array(),
                             'selected' => array(),
                             'nested' => false,
                             'allow_null' => false,
@@ -98,13 +96,9 @@ class Input extends StdObject {
         }
 
         // For select fields, add null value if specified
-        if ($this->format == 'select' && $this->allow_null &&
-            !empty($this->values)) {
-            if ($this->allow_null === true) {
-                $this->addNullOption('');
-            } else {
-                $this->addNullOption( $this->allow_null );
-            }
+        if ($this->format == 'select' && $this->allow_null && !empty($this->values)) {
+            $null_val = ($this->allow_null === true) ? '' : $this->allow_null;
+            $this->addNullOption($null_val);
         }
 
         if (!empty($this->class) && is_array($this->class)) {
@@ -230,7 +224,6 @@ class Input extends StdObject {
                                              array($this, 'select_option'), 0);
         } else {
             foreach ($this->values as $value => $label) {
-                if (in_array($value,$this->exclude)) continue;
                 $output .= $this->selectOption($value, $label);
             }
         }
@@ -253,7 +246,6 @@ class Input extends StdObject {
         }
 
         foreach ($this->values as $value => $label) {
-            if (in_array($value,$this->exclude)) continue;
             $output .= $this->checkboxOption($value, $label);
         }
 
@@ -276,7 +268,6 @@ class Input extends StdObject {
 
 
         foreach ($this->values as $value => $label) {
-            if (in_array($value,$this->exclude)) continue;
             $output .= $this->radioOption($value, $label);
         }
         $output .= '</div>';
@@ -455,17 +446,11 @@ class Input extends StdObject {
      */
     private function getInputValue() {
         $value = '';
-        if (is_array($this->selected) && !empty($this->selected[0])) {
-            $value = $this->selected[0];
-        } elseif (!empty($this->selected)) {
-            $value = $this->selected;
-        } elseif (is_array($this->values)) {
-            if (!empty($this->values[0]))
-                $value = $this->values[0];
-            else
-                $value = '';
-        } else {
-            $value = $this->values;
+
+        if (!empty($this->selected)) {
+            $value = reset($this->selected);
+        } else if (!empty($this->values)) {
+            $value = reset($this->values);
         }
         return $value;
     }
@@ -493,7 +478,6 @@ class Input extends StdObject {
         $arr = array_reverse($arr, true);
         $this->values = $arr;
     }
-
 
     /**
      * @return mixed
