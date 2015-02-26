@@ -2,6 +2,7 @@
 
 namespace WPAS;
 require_once('StdObject.php');
+require_once('Input.php');
 require_once('TermsWalker.php');
 
 class InputBuilder extends StdObject {
@@ -56,6 +57,12 @@ class InputBuilder extends StdObject {
         if (isset($args['exclude']) && is_scalar($args['exclude'])) {
             $args['exclude'] = array($args['exclude']);
         }
+
+        if (isset($args['class']) && is_string($args['class'])) {
+            $args['class'] = explode(',', $args['class']);
+        }
+
+        $args['field_type'] = $field_type;
 
         return $args;
     }
@@ -203,8 +210,8 @@ class InputBuilder extends StdObject {
     public static function meta_key($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
-            'meta_key' => '',
             'format' => 'select',
+            'compare' => 'IN',
             'values' => array()
         );
         $args = self::parseArgs($args, $defaults);
@@ -226,7 +233,7 @@ class InputBuilder extends StdObject {
             'values' => array('ASC' => 'ASC', 'DESC' => 'DESC')
         );
 
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
         return $args;
     }
 
@@ -261,7 +268,7 @@ class InputBuilder extends StdObject {
                 $args['values'][$k] = $label; // add to the values array
             }
         }
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
         return $args;
     }
 
@@ -279,7 +286,7 @@ class InputBuilder extends StdObject {
             'format' => 'select',
             'authors' => array()
         );
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
 
 
         $authors_list = $args['authors'];
@@ -318,7 +325,7 @@ class InputBuilder extends StdObject {
             'format' => 'select',
             'values' => array('post' => 'Post', 'page' => 'Page')
         );
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
         $values = $args['values'];
 
         if (count($values) < 1) {
@@ -356,7 +363,7 @@ class InputBuilder extends StdObject {
             'month' => 'date_m',
             'day' => 'date_d'
         );
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
 
         if (isset($date_type_to_var[$args['date_type']])) {
             $input_name = $date_type_to_var[$args['date_type']];
@@ -428,9 +435,9 @@ class InputBuilder extends StdObject {
     public static function taxonomy($input_name, $args, $request) {
         $defaults = array(
             'label' => '',
-            'taxonomy' => 'category',
             'format' => 'select',
             'term_format' => 'slug',
+            'operator' => 'AND',
             'hide_empty' => false,
             'terms' => array(),
             'nested' => false,

@@ -3,17 +3,17 @@ namespace WPAS;
 require_once(dirname(__DIR__).'/src/Input.php');
 require_once(dirname(__DIR__).'/src/Form.php');
 require_once(dirname(__DIR__).'/src/FormMethod.php');
-require_once(dirname(__DIR__).'/src/ValidationException.php');
+require_once(dirname(__DIR__) . '/src/Exceptions.php');
 
 class TestForm extends \PHPUnit_Framework_TestCase {
 
     public function testCanGetAttributes() {
-        $args = array(  
-                        'action' => 'http://google.com',
-                        'method' => 'GET',
-                        'id' => 'my_id',
-                        'name' => 'some_name',
-                        'class' => array('form-class') );
+        $args = array(
+            'action' => 'http://google.com',
+            'method' => 'GET',
+            'id' => 'my_id',
+            'name' => 'some_name',
+            'class' => array('form-class') );
 
         $form = new Form($args);
         $this->assertEquals($form->getAction(), 'http://google.com');
@@ -79,44 +79,29 @@ class TestForm extends \PHPUnit_Framework_TestCase {
         $this->assertTrue(is_string($form->toHTML()));
     }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsValidationWithBadAction() {
-        $args = array( 'action' => 123 );
-        $form = new Form($args);
-    }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsValidationWithBadMethod() {
+    public function testBadMethodInvokesDefault() {
         $args = array( 'method' => 'BADMETHOD' );
         $form = new Form($args);
+        $this->assertTrue($form->getMethod() == $form->getDefaults()['method']);
     }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsValidationWithBadID() {
+    public function testBadIdInvokesDefault() {
         $args = array( 'id' => 123 );
         $form = new Form($args);
+        $this->assertTrue($form->getID() == $form->getDefaults()['id']);
     }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsValidationWithBadName() {
-        $args = array( 'name' => 123 );
+    public function testBadNameInvokesDefault() {
+        $args = array( 'name' => 1.2 );
         $form = new Form($args);
+        $this->assertTrue($form->getName() == $form->getDefaults()['name']);
     }
 
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsValidationWithBadClass() {
+    public function testBadClassInvokesDefault() {
         $args = array( 'class' => array(1,2,3) );
         $form = new Form($args);
+        $this->assertTrue($form->getClass() == $form->getDefaults()['class']);
     }
 
 }

@@ -2,7 +2,7 @@
 namespace WPAS;
 require_once('StdObject.php');
 require_once('Validator.php');
-require_once('ValidationException.php');
+require_once('Exceptions.php');
 
 class Form extends StdObject {
     private $id;
@@ -24,16 +24,18 @@ class Form extends StdObject {
                                         'method' => 'GET',
                                         'id' => 'wp-advanced-search',
                                         'name' => 'wp-advanced-search',
-                                        'class' => 'wp-advanced-search',
+                                        'class' => array('wp-advanced-search'),
                                         'inputs' => array() );
 
     function __construct( $args ) {
-        $this->args = $this->parseArgs($args,self::$defaults);
-        $this->validate();
+        $args = $this->preProcessArgs($args);
+        $args = $this->parseArgs($args, self::$defaults);
+        $this->args = $this->validate($args, self::$defaults);
 
         foreach($this->args as $key => $value) {
             $this->$key = $value;
         }
+
     }
 
     /**
@@ -43,6 +45,11 @@ class Form extends StdObject {
      */
     public function toHTML() {
         global $post;
+
+        if (!is_array($this->class)) {
+            echo "Not an array!" . gettype($this->class);
+            die;
+        }
 
         $output = "
         <form id=\"".$this->id."\" name=\"".$this->name."\" 
@@ -70,14 +77,22 @@ class Form extends StdObject {
         $this->inputs[] = $input;
     }
 
-    public function validate() {
-        $validation = new Validator(self::$rules, $this->args);
-        if ($validation->passes()) return;
+    public function validate($args, $defaults) {
+        $validation = new Validator(self::$rules, $args, $defaults);
+        if ($validation->fails()) {
+            $errors = $validation->getErrors();
+            $err_msg = $this->validationErrorMsg($errors);
+            throw new ValidationException($err_msg);
+        }
 
-        $errors = $validation->getErrors();
-        $err_msg = $this->validationErrorMsg($errors);
-        throw new ValidationException($err_msg);
-        die;
+        return $validation->getArgs();
+    }
+
+    private function preProcessArgs($args) {
+        if (!empty($args['class']) && is_string($args['class'])) {
+            $args['class'] = explode(' ', $args['class']);
+        }
+        return $args;
     }
 
     public function getID() {
@@ -102,6 +117,10 @@ class Form extends StdObject {
 
     public function getInputs() {
         return $this->inputs;
+    }
+
+    public function getDefaults() {
+        return self::$defaults;
     }
 
 

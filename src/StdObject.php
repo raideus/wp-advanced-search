@@ -3,13 +3,11 @@ namespace WPAS;
 
 abstract class StdObject {
 
-    protected $args;
-    protected $errors;
     protected static $rules;
     private static $constCacheArray = NULL;
     private static $methodCacheArray = NULL;
 
-    protected static function getConstants() {
+    public static function getConstants() {
         if (self::$constCacheArray == NULL) {
             self::$constCacheArray = [];
         }
@@ -49,5 +47,6 @@ abstract class StdObject {
             return array_merge( $defaults, $r );
         return $r;
     }
+
 
 }

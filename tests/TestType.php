@@ -97,4 +97,11 @@ class TestType extends \PHPUnit_Framework_TestCase {
 
     }
 
+    public function testFlexibleBoolType() {
+        $this->assertTrue(Type::matches("bool", "1"));
+        $this->assertTrue(Type::matches("bool", "0"));
+        $this->assertTrue(Type::matches("bool", "true"));
+        $this->assertTrue(Type::matches("bool", "false"));
+    }
+
 }

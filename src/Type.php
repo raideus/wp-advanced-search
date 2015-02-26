@@ -10,6 +10,9 @@ require_once('FormMethod.php');
 require_once('InputFormat.php');
 require_once('FieldType.php');
 require_once('RequestVar.php');
+require_once('Operator.php');
+require_once('Relation.php');
+require_once('Compare.php');
 
 class Type {
 
@@ -29,13 +32,16 @@ class Type {
         "InputFormat" => true,
         "FieldType" => true,
         "RequestVar" => true,
+        "Operator" => true,
+        "Relation" => true,
+        "Compare" => true,
     );
 
     // Validation functions for each type
     private static $validate = array(
         "string" => "is_string",
         "numeric" => "is_numeric",
-        "bool" => "is_bool",
+        "bool" => "self::isBool",
         "scalar" => "is_scalar",
         "array" => "is_array",
         "object" => "is_object",
@@ -43,6 +49,9 @@ class Type {
         "InputFormat" => array("\WPAS\InputFormat", "isValid"),
         "FieldType" => array("\WPAS\FieldType", "isValid"),
         "RequestVar" => array("\WPAS\RequestVar", "isValidValue"),
+        'Operator' => array("\WPAS\Operator", "isValidValue"),
+        'Compare' => array("\WPAS\Compare", "isValidValue"),
+        'Relation' => array("\WPAS\Relation", "isValidValue")
     );
 
     /**
@@ -169,4 +178,29 @@ class Type {
 
         return true;
     }
+
+    /**
+     * Flexible type checker for boolean values.  Will accept strings
+     * equal to 'true','false','0', or '1' in addition to real booleans
+     *
+     * @param $val
+     * @return bool
+     */
+    public static function isBool($val) {
+        switch ($val) {
+            case is_bool($val) :
+                return true;
+            case !is_string($val) :
+                return false;
+            case strtolower($val) == 'true' :
+            case strtolower($val) == 'false' :
+            case strtolower($val) == '1' :
+            case strtolower($val) == '0' :
+                return true;
+                break;
+        }
+        return false;
+    }
+
+
 }

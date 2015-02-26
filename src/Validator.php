@@ -1,18 +1,32 @@
 <?php
 namespace WPAS;
+require_once('StdObject.php');
 require_once('Type.php');
 
 
-class Validator {
+class Validator extends StdObject {
 
-    private $data;
     private $passed;
-    private $errors;
+    private $invalid_args;
+    protected $args;
+    protected $errors;
 
-    function __construct( array $rules, array $data ) {
+    /**
+     * Perform validation on an array of arguments against an array of rules
+     *
+     * If an optional $defaults array is passed, an additional check will be
+     * performed to see if any invalid arguments can be replaced with their
+     * default value
+     *
+     * @param array $rules
+     * @param array $args
+     * @param array $defaults (opitional)
+     */
+    function __construct( array $rules, array $args, array $defaults = null ) {
         $this->errors = array();
         $this->passed = false;
-        $this->data = $data;
+        $this->args = $args;
+        $this->invalid_args = array();
         
         if (empty($rules)) { // If no rules provided, validation must pass
             $this->passed = true;
@@ -21,11 +35,18 @@ class Validator {
 
         foreach ($rules as $arg => $rule) {
             if ($this->validateRule($arg,$rule) == false) {
-                $this->passed = false;
-                return;
+                $this->invalid_args[$arg] = $arg;
             }
         }
-        $this->passed = true;
+
+        if (empty($this->invalid_args)) {
+            $this->passed = true;
+        }
+
+        if (!$this->passed && $this->canOverride($defaults)) {
+            $this->args = $this->defaultOverride($this->args, $defaults,$this->invalid_args);
+            $this->passed = true;
+        }
     }
 
     /**
@@ -40,14 +61,18 @@ class Validator {
         $types = $this->getTypeString($rule);
         $matches = $this->getMatchesString($rule);
 
-        if (!empty($this->data[$arg])) {
-            return ($this->validateTypes($this->data[$arg], $arg, $types) &&
-                    $this->validateMatches($this->data[$arg], $arg, $matches) );
+        if (!empty($this->args[$arg])) {
+            return ($this->validateTypes($this->args[$arg], $arg, $types) &&
+                    $this->validateMatches($this->args[$arg], $arg, $matches) );
         } else if ($required) {
             $this->errors[] = "Argument '".$arg."' required but not provided.";
             return false;
         }
         return true;
+    }
+
+    public function trySwapDefault($arg) {
+
     }
 
     /**
@@ -103,7 +128,7 @@ class Validator {
      *  Returns true if $value matches at least one allowed type,
      *  false otherwise.
      *
-     *  @param mixed   $data
+     *  @param mixed   value
      *  @param string  $arg
      *  @param string  $types
      *  @return bool
@@ -116,7 +141,7 @@ class Validator {
         foreach($types_r as $t) {
             if ($this->validateType($value, $t) == true) return true;
         }
-        $this->addTypeError($arg, $types, gettype($value));
+        $this->addTypeError($arg, $types, gettype($value), $value);
         return false;
     }
 
@@ -145,11 +170,47 @@ class Validator {
         if (!Type::isValidName($type)) {
             $msg = sprintf("Misformatted type string. '%s' is 
                 not a valid type name.", $type);
-            throw new \Exception($msg);
+            throw new \InvalidArgumentException($msg);
             return false;
         }
 
         return Type::matches($type, $value);
+    }
+
+    /**
+     * Given an array of default arguments, determine if the invalid
+     * arguments can be resolved by swapping in their corresponding default
+     *
+     * @param array $defaults
+     * @return bool
+     */
+    public function canOverride($defaults) {
+        if (empty($this->invalid_args)) return true;
+        if (empty($defaults)) return false;
+        return (count(array_intersect_key ( $this->invalid_args, $defaults  )) == count($this->invalid_args) );
+    }
+
+    /**
+     * Given an array of overrides, replaces existing elements in $args
+     * with the corresponding element in $defaults and returns the
+     * modified $args array
+     *
+     * Can be used when validation fails to set invalid arguments to
+     * their default as a fallback
+     *
+     * @param array $args
+     * @param array $defaults
+     * @param array $overrides
+     * @return array
+     */
+    protected function defaultOverride(array $args, array $defaults,
+                                              array $overrides) {
+        foreach($overrides as $override) {
+            if (!empty($defaults[$override])) {
+                $args[$override] = $defaults[$override];
+            }
+        }
+        return $args;
     }
 
     /**
@@ -206,5 +267,24 @@ class Validator {
     public function getErrors() {
         return $this->errors;
     }
+
+    /**
+     *  Return an array of invalid arguments
+     *
+     *  @return array
+     */
+    public function getInvalidArgs() {
+        return $this->invalid_args;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgs()
+    {
+        return $this->args;
+    }
+
+
 
 }

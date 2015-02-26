@@ -2,7 +2,7 @@
 namespace WPAS;
 require_once('StdObject.php');
 require_once('Validator.php');
-require_once('ValidationException.php');
+require_once('Exceptions.php');
 
 class Input extends StdObject {
 
@@ -54,7 +54,7 @@ class Input extends StdObject {
 
     public function __construct($input_name, $args = array()) {
         $args = $this->parseArgs($args,self::$defaults);
-        $this->validate($input_name, $args);
+        $args = $this->validate($input_name, $args, self::$defaults);
         $this->initMembers($input_name, $args);
     }
 
@@ -64,14 +64,15 @@ class Input extends StdObject {
      * @param string $input_name
      * @param array  $args
      * @throws ValidationException
+     * @throws InvalidArgumentException
+     * @return array
      */
-    public function validate( $input_name, $args ) {
-        $validation = new Validator(self::$rules, $args);
+    public function validate( $input_name, $args, $defaults ) {
+        $validation = new Validator(self::$rules, $args, $defaults);
         if ($validation->fails()) {
             $errors = $validation->getErrors();
             $err_msg = $this->validationErrorMsg($errors);
             throw new ValidationException($err_msg);
-            die;
         }
         
         if (!is_string($input_name)) {
@@ -80,6 +81,8 @@ class Input extends StdObject {
                     'must be a string.'));
             throw new \InvalidArgumentException($err_msg);
         }
+
+        return $validation->getArgs();
     }
 
     /**

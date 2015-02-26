@@ -169,6 +169,20 @@ class TestInputBuilder extends \WP_UnitTestCase {
         $this->assertTrue(count($selected) == 4);
     }
 
+    public function testGenericFieldSelected() {
+        $inputname = 'myfield';
+        $request = array($inputname => array('blue','green'));
+
+        $args = array(
+            'field_type' => 'generic',
+            'format' => 'checkbox',
+            'values' => array('red','blue','green')
+        );
+        $input = InputBuilder::make($inputname, FieldType::generic, $args,
+                                    $request);
+        $this->assertTrue(count($input->getSelected()) == 2);
+    }
+
 
 
 

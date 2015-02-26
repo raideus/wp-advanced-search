@@ -71,6 +71,19 @@ class TestValidator extends \PHPUnit_Framework_TestCase {
         $this->assertTrue($validation->passes());
     }
 
+    public function testInvalidArgs() {
+        $rules = array('item4' => array('type' => 'string', 'required' => true));
+        $data = array(
+            'item' => 1,
+            'item2' => "a string",
+            'item3' => array("test"));
+        $validation = new Validator($rules, $data);
+        $i = $validation->getInvalidArgs();
+
+        $this->assertTrue(count($i) ==  1);
+        $this->assertTrue(isset($i['item4']));
+    }
+
     public function testRequiredString() {
         $rules = array('item4' => 'required');
         $data = array(

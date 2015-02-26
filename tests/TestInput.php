@@ -2,7 +2,7 @@
 namespace WPAS;
 require_once(dirname(__DIR__).'/src/Input.php');
 require_once(dirname(__DIR__).'/src/InputFormat.php');
-require_once(dirname(__DIR__).'/src/ValidationException.php');
+require_once(dirname(__DIR__) . '/src/Exceptions.php');
 
 class TestInput extends \PHPUnit_Framework_TestCase {
 
@@ -35,22 +35,6 @@ class TestInput extends \PHPUnit_Framework_TestCase {
          $this->assertEquals($input->getSelected(), array('one'));
          $this->assertEquals($input->getPreHtml(), '<h1>Some HTML</h1>');
          $this->assertEquals($input->getPostHtml(), '<span>more code</span>');
-    }
-
-    /**
-     * @expectedException     WPAS\ValidationException
-     */
-    public function testFailsOnMissingFieldType() {
-        $args = array(
-            'id' => 'my_id',
-            'name' => 'some_name',
-            'class' => array('form-class'),
-            'format' => 'select',
-            'attributes' => array("one", "two"),
-            'label' => 'mylabel',
-        );
-
-        $input = new Input('my_input', $args);
     }
 
     /**

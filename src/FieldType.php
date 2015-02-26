@@ -1,6 +1,4 @@
 <?php
-/**
- */
 
 namespace WPAS;
 require_once('BasicEnum.php');
