@@ -1,7 +1,7 @@
 <?php
 namespace WPAS;
 use WPAS\Enum\RequestVar;
-require_once(dirname(__DIR__).'/wp-advanced-search.php');
+require_once(dirname(__DIR__) . '/wpas.php');
 
 class TestFactory extends \PHPUnit_Framework_TestCase
 {

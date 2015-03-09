@@ -1,6 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/wp-advanced-search.php');
+require_once(dirname(__DIR__) . '/wpas.php');
 
 class TestInput extends \PHPUnit_Framework_TestCase {
 

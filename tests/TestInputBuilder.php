@@ -2,7 +2,7 @@
 namespace WPAS;
 use WPAS\Enum\FieldType;
 use WPAS\Enum\InputFormat;
-require_once(dirname(__DIR__).'/wp-advanced-search.php');
+require_once(dirname(__DIR__) . '/wpas.php');
 
 class TestInputBuilder extends \WP_UnitTestCase {
 
