@@ -1,6 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/src/Field.php');
+require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestField extends \PHPUnit_Framework_TestCase
 {
@@ -23,35 +23,32 @@ class TestField extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testCanBuildSearchField() {
-        $args = ['type' => 'search',
-                'label' => 'Search',
-                'id' => 'hhh',
-                'format' => 'text',
-                'class' => 'testclass',
-                'name' => 'my_search',
-                'attributes' => ['data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100],
-                'default' => 'something'
-        ];
-
-        $f = new Field($args);
-    }
-
     public function testCanBuildMultiInput() {
-        $args = ['type' => 'search',
-            'label' => 'Search',
-            'id' => 'hhh',
-            'format' => 'text',
-            'class' => 'testclass',
-            'name' => 'my_search',
-            'attributes' => ['data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100],
-            'default' => 'something'
+        $meta_key = 'price';
+        $args = [
+            'type' => 'meta_key',
+            'meta_key' => $meta_key,
+            'compare' => 'BETWEEN',
+            'data_type' => 'NUMERIC',
+            'group_method' => 'merge',
+            'inputs' => [
+                [
+                    'format' => 'text',
+                ],
+                [
+                    'format' => 'text'
+                ]
+            ]
         ];
 
         $f = new Field($args);
+        $inputs = $f->getInputs();
+        $this->assertTrue(count($inputs) == 2);
+        $this->assertTrue($f->getCompare() == 'BETWEEN');
+        $this->assertTrue($f->getFieldId() == $meta_key);
     }
 
-    public function testCanOverrideRelation() {
+    public function testCanOverrideInvalidRelation() {
         $args = [
             'type' => 'taxonomy',
             'taxonomy' => 'category',
@@ -60,6 +57,17 @@ class TestField extends \PHPUnit_Framework_TestCase
         $f = new Field($args);
         $default_relation = $f->getDefaults()['relation'];
         $this->assertTrue($f->getRelation() == $default_relation);
+    }
+
+    /**
+     * @expectedException     WPAS\ValidationException
+     */
+    public function testThrowsExceptionOnMissingType() {
+        $args = [
+            'taxonomy' => 'category',
+            'relation' => 'IN'
+        ];
+        $f = new Field($args);
     }
 
 }

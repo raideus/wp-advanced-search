@@ -30,6 +30,20 @@ class InputBuilder extends StdObject {
     }
 
     /**
+     * Initializes and returns an Input object according to the
+     * given field type and arguments
+     *
+     * @param string $input_name
+     * @param string $field_type
+     * @param array  $args
+     * @return object
+     */
+    public static function makeDate($input_name, $args, array $post_types, $request = false) {
+        $args = self::addDateValues($args, $post_types);
+        return self::make($input_name, 'date', $args, $request);
+    }
+
+    /**
      * Validate the input arguments
      *
      * @param $field_type
@@ -121,7 +135,7 @@ class InputBuilder extends StdObject {
      */
     public static function getSelected($input_name, $field_type, $args,
                                        $request) {
-        $request_var = RequestVar::nameToVar($input_name, $field_type);
+        $request_var = $input_name;
 
         $request_val = isset( $request[$request_var] ) ? $request[$request_var] : null;
 
@@ -211,6 +225,7 @@ class InputBuilder extends StdObject {
         $defaults = array(
             'label' => '',
             'format' => 'select',
+            'data_type' => 'CHAR',
             'compare' => 'IN',
             'values' => array()
         );
@@ -250,11 +265,11 @@ class InputBuilder extends StdObject {
                         'label' => '',
                         'format' => 'select',
                         'values' => array(  'ID' => 'ID',
-                                            'post_author' => 'Author',
-                                            'post_title' => 'Title',
-                                            'post_date' => 'Date',
-                                            'post_modified' => 'Modified',
-                                            'post_parent' => 'Parent ID',
+                                            'author' => 'Author',
+                                            'title' => 'Title',
+                                            'date' => 'Date',
+                                            'modified' => 'Modified',
+                                            'parent' => 'Parent ID',
                                             'rand' => 'Random',
                                             'comment_count' => 'Comment Count',
                                             'menu_order' => 'Menu Order' )
@@ -388,7 +403,7 @@ class InputBuilder extends StdObject {
             'label' => '',
             'values' => array()
         );
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
         $args['format'] = 'html';
 
         return $args;
@@ -419,7 +434,7 @@ class InputBuilder extends StdObject {
             'format' => 'select',
             'values' => array(10 => "10", 25 => "25", 50 => "50")
         );
-        $args = self::parseArgs($input_name, $defaults);
+        $args = self::parseArgs($args, $defaults);
         return $args;
     }
 
@@ -450,11 +465,13 @@ class InputBuilder extends StdObject {
 
         extract(self::parseArgs($args, $defaults));
 
-        //$this->term_formats[$taxonomy] = $term_format;
-
         $the_tax = get_taxonomy($taxonomy);
-        $tax_name = $the_tax->labels->name;
-        $tax_slug = $the_tax->name;
+
+        if (!is_object($the_tax)) {
+            $msg = "Taxonomy '". $taxonomy ."' not found in this WordPress
+            installation.";
+            throw new InvalidTaxonomyException($msg);
+        }
 
         if (!$the_tax) return; // No taxonomy found
 
@@ -513,12 +530,22 @@ class InputBuilder extends StdObject {
         return $args;
     }
 
+    private static function addDateValues($args, array $post_types) {
+        if (!empty($args['values'])) return $args;
+
+        $date_format = (empty($args['date_format'])) ? false : $args['date_format'];
+        $date_type = (empty($args['date_type'])) ? 'year' : $args['date_type'];
+
+        $args['values'] = self::getDates($date_type, $date_format, $post_types);
+        return $args;
+    }
+
     /**
      *  Returns an array of dates in which content has been published
      *
      *  @since 1.0
      */
-    private function get_dates($date_type = 'year', $format = false) {
+    private static function getDates($date_type = 'year', $format = false, array $post_types) {
 
         $display_format = "Y";
         $compare_format = "Y";
@@ -533,13 +560,10 @@ class InputBuilder extends StdObject {
 
         if ($format) $display_format = $format;
 
-        $post_type = $this->wp_query_args['post_type'];
-        $post_status = (!empty($this->wp_query_args['post_status'])) ? $this->wp_query_args['post_status'] : 'publish';
-        $posts = get_posts(array('numberposts' => -1, 'post_type' => $post_type, 'post_status' => $post_status));
-        $previous_display = "";
-        $previous_value = "";
-        $count = 0;
+        $post_status = 'publish';
+        $posts = get_posts(array('numberposts' => 1000, 'post_type' => $post_types, 'post_status' => $post_status));
 
+        $previous_value = "";
         $dates = array();
 
         foreach($posts as $post) {
@@ -550,7 +574,6 @@ class InputBuilder extends StdObject {
             if ($previous_value != $current_value) {
                 $dates[$current_value] = $current_display;
             }
-            $previous_display = $current_display;
             $previous_value = $current_value;
 
         }

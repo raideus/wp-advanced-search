@@ -1,9 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/src/RequestVar.php');
-require_once(dirname(__DIR__).'/src/Input.php');
-require_once(dirname(__DIR__).'/src/InputFormat.php');
-require_once(dirname(__DIR__).'/src/InputBuilder.php');
+require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestInputBuilder extends \WP_UnitTestCase {
 
@@ -54,7 +51,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
                     'taxonomy' => 'category',
                     'format' => 'select'
                 );
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $this->assertTrue($input instanceof Input);
         $this->assertFalse($input->isNested());
 
@@ -64,7 +61,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
             'format' => 'select',
             'nested' => true
         );
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $this->assertTrue($input->isNested());
     }
 
@@ -81,7 +78,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
             'format' => 'select',
             'term_format' => 'slug'
         );
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
 
         $values = $input->getValues();
         $this->assertTrue(count($values) == 4);
@@ -94,32 +91,93 @@ class TestInputBuilder extends \WP_UnitTestCase {
 
         // Test term_format = 'id'
         $args['term_format'] = 'id';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
         $first_value = key($values);
         $this->assertTrue(key($input->getValues()) == $t[0]->term_id);
 
         // Test term_format = 'name'
         $args['term_format'] = 'name';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
         $first_value = key($values);
         $this->assertTrue(key($input->getValues()) == $t[0]->name);
 
         // Test term_args
         $args['term_args'] = array('orderby' => 'name', 'order' => 'DESC');
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
         $this->assertTrue(key($input->getValues()) == $t[2]->name);
 
         // Test exclude
         $args['exclude'] = array('category-one');
         $args['term_format'] = 'slug';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
         $this->assertTrue(count($values) == 3);
         $this->assertFalse(isset($values[$args['exclude'][0]]));
     }
+
+    public function testTaxonomyNestedTerms() {
+        $t = array();
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Category One"));
+        $t[] = $this->factory->category->create_and_get(array('name' => "Category Two", 'parent' => $t[0]->term_id));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Z Category", 'parent' => $t[0]->term_id));
+
+        $args = array(
+            'field_type' => 'taxonomy',
+            'taxonomy' => 'category',
+            'format' => 'select',
+            'nested' => 'true',
+            'term_format' => 'slug'
+        );
+
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count(reset($values)['children']) == 2);
+
+        $args['format'] = 'multi-select';
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count(reset($values)['children']) == 2);
+        $input->toHTML();
+
+        $args['format'] = 'radio';
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count(reset($values)['children']) == 2);
+        $input->toHTML();
+
+        $args['format'] = 'checkbox';
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count(reset($values)['children']) == 2);
+        $input->toHTML();
+
+    }
+
+    public function testExcludeWithNestedTaxonomy() {
+
+        $t = array();
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Category One"));
+        $t[] = $this->factory->category->create_and_get(array('name' => "Category Two", 'parent' => $t[0]->term_id));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Z Category", 'parent' => $t[0]->term_id));
+
+        $args = array(
+            'field_type' => 'taxonomy',
+            'taxonomy' => 'category',
+            'format' => 'select',
+            'nested' => 'true',
+            'exclude' => array('category-one'),
+            'term_format' => 'slug'
+        );
+
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+        $this->assertTrue(count($values) == 1);
+        $input->toHTML();
+    }
+
 
     public function testSetSelectedValues() {
         $t = array();
@@ -134,17 +192,17 @@ class TestInputBuilder extends \WP_UnitTestCase {
             'format' => 'select',
             'term_format' => 'slug'
         );
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
-                                    $request);
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args, $request);
 
         // Selected value is present
         $selected = $input->getSelected();
+
         $this->assertTrue(count($selected) == 1);
         $this->assertTrue($selected[0] == 'category-two');
 
         // Default should be overridden by request value
         $args['default'] = 'category-one';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args,
             $request);
         $selected = $input->getSelected();
         $this->assertTrue(count($selected) == 1);
@@ -153,7 +211,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
         // Default should be selected with empty request
         $request = array();
         $args['default'] = 'category-one';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args,
                                     $request);
         $selected = $input->getSelected();
         $this->assertTrue(count($selected) == 1);
@@ -163,7 +221,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
         // Check default_all
         $args['default_all'] = true;
         $args['format'] = 'multi-select';
-        $input = InputBuilder::make('category', FieldType::taxonomy, $args,
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args,
                                     $request);
         $selected = $input->getSelected();
         $this->assertTrue(count($selected) == 4);

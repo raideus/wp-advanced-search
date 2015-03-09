@@ -1,7 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/src/Type.php');
-require_once(dirname(__DIR__).'/src/Validator.php');
+require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestValidator extends \PHPUnit_Framework_TestCase {
 

@@ -1,9 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/src/Input.php');
-require_once(dirname(__DIR__).'/src/Form.php');
-require_once(dirname(__DIR__).'/src/FormMethod.php');
-require_once(dirname(__DIR__) . '/src/Exceptions.php');
+require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestForm extends \PHPUnit_Framework_TestCase {
 

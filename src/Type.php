@@ -35,6 +35,7 @@ class Type {
         "Operator" => true,
         "Relation" => true,
         "Compare" => true,
+        "DataType" => true
     );
 
     // Validation functions for each type
@@ -51,7 +52,8 @@ class Type {
         "RequestVar" => array("\WPAS\RequestVar", "isValidValue"),
         'Operator' => array("\WPAS\Operator", "isValidValue"),
         'Compare' => array("\WPAS\Compare", "isValidValue"),
-        'Relation' => array("\WPAS\Relation", "isValidValue")
+        'Relation' => array("\WPAS\Relation", "isValidValue"),
+        'DataType' => array("\WPAS\DataType", "isValidValue")
     );
 
     /**

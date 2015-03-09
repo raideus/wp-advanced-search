@@ -15,7 +15,6 @@ class Input extends StdObject {
     private $format;
     private $placeholder;
     private $values;
-    private $exclude;
     private $nested;
     private $selected;
     private $ctr;
@@ -224,7 +223,7 @@ class Input extends StdObject {
 
         if ($this->nested) {
             $output .= $this->buildOptionsList($this->values,
-                                             array($this, 'select_option'), 0);
+                                             array($this, 'selectOption'), 0);
         } else {
             foreach ($this->values as $value => $label) {
                 $output .= $this->selectOption($value, $label);
@@ -244,7 +243,7 @@ class Input extends StdObject {
         $output = '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
 
         if ($this->nested) {
-            $output .= $this->buildOptionsList($this->values, array($this, 'checkbox_option'), 0, '<ul>', '</ul>');
+            $output .= $this->buildOptionsList($this->values, array($this, 'checkboxOption'), 0, '<ul>', '</ul>');
             return $output;
         }
 
@@ -265,7 +264,7 @@ class Input extends StdObject {
         $output = '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
 
         if ($this->nested) {
-            $output .= $this->buildOptionsList($this->values, array($this, 'radio_option'), 0, '<ul>', '</ul>');
+            $output .= $this->buildOptionsList($this->values, array($this, 'radioOption'), 0, '<ul>', '</ul>');
             return $output;
         }
 
@@ -464,8 +463,6 @@ class Input extends StdObject {
      * @since 1.3
      */
     private function addNullOption( $null_label ) {
-        $null_option = '';
-
         if ($this->nested) {
             $null_option = array(
                 'value' => '',

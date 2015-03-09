@@ -18,4 +18,5 @@ class Compare extends BasicEnum {
     const notbetween = 'NOT BETWEEN';
     const exists = 'EXISTS';
     const notexists = 'NOT EXISTS';
+    const _default = self::equal;
 }

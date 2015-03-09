@@ -155,10 +155,10 @@ class TermsWalker extends StdObject {
 
         if (empty($parent_element_array)) {
             // If this is a top-level element, just append to the array
-            $value_array[] = $el;
+            $value_array[$el['value']] = $el;
         } else {
             // Otherwise append to parent's children array
-            $parent_element_array['children'][] = $el;
+            $parent_element_array['children'][$el['value']] = $el;
         }
 
     }

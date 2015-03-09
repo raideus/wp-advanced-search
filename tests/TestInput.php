@@ -1,8 +1,6 @@
 <?php
 namespace WPAS;
-require_once(dirname(__DIR__).'/src/Input.php');
-require_once(dirname(__DIR__).'/src/InputFormat.php');
-require_once(dirname(__DIR__) . '/src/Exceptions.php');
+require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestInput extends \PHPUnit_Framework_TestCase {
 
@@ -68,6 +66,18 @@ class TestInput extends \PHPUnit_Framework_TestCase {
         );
 
         $input = new Input(123, $args);
+    }
+
+    public function testAllowNull() {
+        $args = array(
+            'field_type' => 'search',
+            'format' => 'select',
+            'values' => array('one' => 'one', 'three' => 'three', 'four' => 'four'),
+            'allow_null' => 'my_null_value'
+        );
+        $input = new Input('my_input', $args);
+        $values = $input->getValues();
+        $this->assertTrue(reset($values) == 'my_null_value');
     }
 
 

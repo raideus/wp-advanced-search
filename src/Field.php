@@ -1,6 +1,9 @@
 <?php
 namespace WPAS;
 require_once('StdObject.php');
+require_once('DataType.php');
+require_once('Validator.php');
+require_once('Exceptions.php');
 
 class Field extends StdObject {
     private $field_id;
@@ -10,13 +13,15 @@ class Field extends StdObject {
     private $group_method;
     private $operator;
     private $compare;
+    private $data_type;
 
     protected static $rules = array(
-        'field_type' => array('type' => 'FieldType', 'required' => true),
+        'type' => array('type' => 'FieldType', 'required' => true),
         'inputs' => 'array<array>',
         'taxonomy' => 'string',
         'meta_key' => 'string',
-        'group' => array('type' => 'string', 'matches' => 'merge|distinct'),
+        'data_type' => 'DataType',
+        'group_method' => array('type' => 'string', 'matches' => 'merge|distinct'),
         'relation' => array('type'=>'Relation','required' => true),
         'operator' => array('type'=>'Operator','required' => true),
         'compare' => array('type'=>'Compare','required' => true),
@@ -24,9 +29,11 @@ class Field extends StdObject {
 
     private static $defaults = array(
         'relation' => 'AND',
-        'group' => 'merge',
+        'group_method' => 'distinct',
         'operator' => 'AND',
         'compare' => '=',
+        'data_type' => DataType::_default,
+        'acf' => false
     );
 
     private static $input_args = array(
@@ -45,30 +52,39 @@ class Field extends StdObject {
         'operator' => 1,
         'pre_html' => 1,
         'post_html' => 1,
-        'label' => 1
+        'label' => 1,
+        'taxonomy' => 1,
+        'relation' => 1,
+        'data_type' => 1,
+        'date_type' => 1,
+        'orderby_values' => 1
     );
 
     public function __construct($args) {
         $args = $this->parseArgs($args,self::$defaults);
         $args = $this->validate($args);
+        $args = $this->postProcessArgs($args);
         $this->inputs = array();
+        $this->field_id = $this->setFieldId($args);
         $this->field_type = $args['field_type'];
         $this->relation = $args['relation'];
-        $this->group_method = $args['group'];
+        $this->group_method = $args['group_method'];
         $this->operator = $args['operator'];
         $this->compare = $args['compare'];
-        $this->populateInputs($args);
+        $this->data_type = $args['data_type'];
+        $this->populateInputs($this->field_id, $args);
     }
 
-    private function populateInputs($args) {
-        $field_id = $this->fieldId($args);
+    private function populateInputs($field_id, $args) {
         if (!empty($args['inputs'])) {
             $count = count($args['inputs']);
             if ($count == 1) {
-                $this->inputs[$field_id] = reset($args['inputs']);
+                $input = $this->addRemainingArgs(reset($args['inputs']), $args);
+                $this->inputs[$field_id] = $input;
             } else {
                 for($i=1; $i<=$count; $i++) {
-                    $this->inputs[$field_id.$i] = $args['inputs'][$i-1];
+                    $input = $this->addRemainingArgs($args['inputs'][$i-1], $args);
+                    $this->inputs[$field_id.$i] = $input;
                 }
             }
         } else {
@@ -76,6 +92,18 @@ class Field extends StdObject {
                                                             self::$input_args);
         }
     }
+
+    private function addRemainingArgs($input_args, $field_args) {
+        if (isset($field_args['inputs'])) unset($field_args['inputs']);
+        $input_args = parent::parseArgs($input_args, $field_args);
+
+        if ($inner_type = DataType::isArrayType($input_args['data_type'])) {
+            $input_args['data_type'] = $inner_type;
+        }
+
+        return $input_args;
+    }
+
 
     private function validate($args) {
         $validation = new Validator(self::$rules, $args, self::$defaults);
@@ -86,7 +114,7 @@ class Field extends StdObject {
         return $validation->getArgs();
     }
 
-    private function fieldId($args) {
+    private function setFieldId($args) {
         switch($args['field_type']) {
             case 'meta_key' :
                 if (empty($args['meta_key'])) {
@@ -109,6 +137,10 @@ class Field extends StdObject {
 
     protected static function parseArgs(array $args, array $defaults) {
         $args = parent::parseArgs($args, self::$defaults);
+        return $args;
+    }
+
+    private function postProcessArgs(array $args) {
         $args['field_type'] = $args['type'];
         unset($args['type']);
         return $args;
@@ -146,6 +178,44 @@ class Field extends StdObject {
         return self::$defaults;
     }
 
+    /**
+     * @return void
+     */
+    public function getFieldId()
+    {
+        return $this->field_id;
+    }
 
+    /**
+     * @return mixed
+     */
+    public function getGroupMethod()
+    {
+        return $this->group_method;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCompare()
+    {
+        return $this->compare;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOperator()
+    {
+        return $this->operator;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDataType()
+    {
+        return $this->data_type;
+    }
 
 }
