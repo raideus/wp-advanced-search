@@ -111,19 +111,19 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
     public function testMetaQueryBetween() {
         $args = [];
+        $prefix = RequestVar::meta_key;
         $meta_key = 'price';
         $compare = 'BETWEEN';
         $type = 'NUMERIC';
 
-        $request = array($meta_key.'1' => 10, $meta_key.'2' => 25,
-            $meta_key.'3' => 30);
+        $request = array($prefix.$meta_key.'1' => 10, $prefix.$meta_key.'2' => 25,
+            $prefix.$meta_key.'3' => 30);
 
         $args['fields'][] = [
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => $compare,
             'data_type' => $type,
-            'group_method' => 'merge',
             'inputs' => [
                 [
                     'format' => 'text',
@@ -134,27 +134,60 @@ class TestFactory extends \PHPUnit_Framework_TestCase
             ]
         ];
 
-        $expected_meta_query = [
+        $f = new Factory($args, $request);
+        $this->assertFalse($f->hasErrors());
+        $q = $f->buildQuery();
+        $this->assertTrue(!empty($q));
+        $this->assertTrue(!empty($q['meta_query']));
+        $expected_query = '[{"key":"price","type":"NUMERIC","value":["10","25"],"compare":"BETWEEN"}]';
+        $this->assertTrue(json_encode($q['meta_query']) == $expected_query);
 
-            [
+    }
+
+    public function testMetaQueryBetweenSingleInput() {
+        $args = [];
+        $prefix = RequestVar::meta_key;
+        $meta_key = 'price';
+        $compare = 'BETWEEN';
+        $type = 'NUMERIC';
+
+        $request = array($prefix.$meta_key => '0-10');
+
+        $args['fields'][] = [
+            'type' => 'meta_key',
+            'meta_key' => $meta_key,
+            'compare' => $compare,
+            'data_type' => $type,
+            'inputs' => [
                 [
-                    'key' => $meta_key,
-                    'compare' => $compare,
-                    'type' => $type,
-                    'value' => [10,25]
+                    'format' => 'select',
+                    'values' => [
+                        '0-10' => '0 to 10',
+                        '11-25' => '11 to 25',
+                        '26+' => '26+'
+                    ]
+                ],
 
-                ]
             ]
-
         ];
-
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
         $q = $f->buildQuery();
         $this->assertTrue(!empty($q));
         $this->assertTrue(!empty($q['meta_query']));
-        //print_r($q['meta_query']);
+
+        $expected_query = '[{"key":"price","type":"NUMERIC","value":["0","10"],"compare":"BETWEEN"}]';
+        $this->assertTrue(json_encode($q['meta_query']) == $expected_query);
+
+        $request = array($prefix.$meta_key => '26+');
+        $f = new Factory($args, $request);
+        $this->assertFalse($f->hasErrors());
+        $q = $f->buildQuery();
+        $this->assertTrue(!empty($q));
+        $this->assertTrue(!empty($q['meta_query']));
+        $expected_query = '[{"key":"price","type":"NUMERIC","value":"26","compare":">="}]';
+        $this->assertTrue(json_encode($q['meta_query']) == $expected_query);
 
     }
 

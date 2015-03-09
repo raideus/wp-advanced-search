@@ -60,7 +60,7 @@ class TestField extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException     WPAS\ValidationException
+     * @expectedException     Exception
      */
     public function testThrowsExceptionOnMissingType() {
         $args = [
