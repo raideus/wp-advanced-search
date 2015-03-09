@@ -36,6 +36,11 @@ class Factory extends StdObject
         $this->buildForm();
     }
 
+    /**
+     * Creates empty table of fields as $field_type => array() pairs
+     *
+     * @return array
+     */
     private function initFieldTable() {
         $table = array();
         $field_types = FieldType::getConstants();
@@ -45,6 +50,12 @@ class Factory extends StdObject
         return $table;
     }
 
+    /**
+     * Perform initial processing of arguments
+     *
+     * @param $args
+     * @return array
+     */
     private function preProcessArgs($args) {
         global $post;
 
@@ -70,6 +81,12 @@ class Factory extends StdObject
         return $args;
     }
 
+    /**
+     * Process and sanitize an array of request variables
+     *
+     * @param $request
+     * @return mixed
+     */
     private function processRequest($request) {
         $request = (empty($request)) ? $_REQUEST : $request;
         if (empty($request)) return $request;
@@ -79,6 +96,12 @@ class Factory extends StdObject
         return $request;
     }
 
+    /**
+     * Sanitize a request variable
+     *
+     * @param $var
+     * @return string|void
+     */
     private function sanitizeRequestVar($var) {
         if (is_scalar($var)) return esc_attr($var);
         foreach ($var as $i => $el) {
@@ -87,28 +110,32 @@ class Factory extends StdObject
         return $var;
     }
 
+    /**
+     * Populate fields table
+     */
     private function initFields() {
         $i = 0;
         if (empty($this->args['fields'])) return;
         foreach ($this->args['fields'] as $f) {
             try {
                 $field = new Field($f);
-            } catch (MissingArgumentException $e) {
-                $this->addExceptionError($e);
-                continue;
-            } catch (ValidationException $e) {
+            } catch (\Exception $e) {
                 $this->addExceptionError($e);
                 continue;
             }
             $this->fields[$field->getFieldType()][] = $field;
-            $inputs = $field->getInputs();
-            //$this->addInputs($field->getFieldType(), $inputs, $this->request);
             $this->addInputs($field, $this->request);
             $i++;
         }
         $this->fields_ready = true;
     }
 
+    /**
+     * Populate orderby_meta_keys table
+     *
+     * Keeps track of which orderby options (if any) are meta_keys
+     * and whether they are character-based or numeric values
+     */
     private function initOrderBy() {
         if ($this->fields_ready == false) return;
         if (empty($this->fields[FieldType::orderby])) return;
@@ -124,7 +151,6 @@ class Factory extends StdObject
         $values = $inputs[FieldType::orderby]['orderby_values'];
 
         foreach ($values as $k=>$v) {
-            // Special handling for meta_key values
             if (isset($v['meta_key']) && $v['meta_key']) {
                 if (isset($v['orderby']) && $v['orderby'] == 'meta_value_num') {
                     $type = $v['orderby'];
@@ -136,6 +162,13 @@ class Factory extends StdObject
         }
     }
 
+    /**
+     * Given a Field object, initializes that field's input(s) to Input objects
+     * and adds them to the inputs table
+     *
+     * @param Field $field
+     * @param $request
+     */
     private function addInputs(Field $field, $request) {
         $field_type = $field->getFieldType();
         $inputs = $field->getInputs();
@@ -155,21 +188,21 @@ class Factory extends StdObject
             } catch (\InvalidArgumentException $e) {
                 $this->addExceptionError($e);
                 continue;
-            } catch (ValidationException $e) {
-                $this->addExceptionError($e);
-                continue;
-            } catch (InvalidTaxonomyException $e) {
+            } catch (\Exception $e) {
                 $this->addExceptionError($e);
                 continue;
             }
         }
     }
 
+    /**
+     * Initializes a new Form object and adds all inputs to it
+     */
     private function buildForm() {
 
         try {
             $this->form = new Form($this->args['config']['form']);
-        } catch (ValidationException $e) {
+        } catch (\Exception $e) {
             $this->addExceptionError($e);
             return;
         }
@@ -180,6 +213,11 @@ class Factory extends StdObject
 
     }
 
+    /**
+     * Initializes and returns a WP_Query object for the search instance
+     *
+     * @return \WP_Query
+     */
     public function buildQueryObject() {
         $query_args = $this->buildQuery();
         $query = new \WP_Query($query_args);
@@ -195,12 +233,17 @@ class Factory extends StdObject
         return $query;
     }
 
+    /**
+     * Assembles an array of WP_Query arguments
+     *
+     * @return array
+     */
     public function buildQuery() {
         $query = array();
         if (!$this->fields_ready) {
             $this->addError('Method buildQuery called before initializing' .
                 'query fields.  Must call initFields first.');
-            return;
+            return $query;
         }
 
         $meta_query = array();
@@ -223,7 +266,7 @@ class Factory extends StdObject
                     $date_query = $date_query->getQuery();
                     break;
                 case 'orderby' :
-                    $query = $this->addOrderbyArg($query, $fields, $this->request);
+                    $query = $this->addOrderbyArg($query, $this->request);
                     break;
                 default :
                     $query = $this->addQueryArg($query, $fields, $this->request);
@@ -239,10 +282,14 @@ class Factory extends StdObject
         return self::parseArgs($query, $this->wp_query_args);
     }
 
-    private function addOrderbyArg(array $query, array $fields, array $request) {
-        if (empty($fields)) return $query;
-        $field = reset($fields); // As of v1.4, only one field allowed per
-                                // query var (other than taxonomy and meta_key)
+    /**
+     * Takes an array of query arguments and adds an orderby argument
+     *
+     * @param array $query
+     * @param array $request
+     * @return array
+     */
+    private function addOrderbyArg(array $query, array $request) {
         $var = RequestVar::orderby;
 
         if (empty($request[$var])) return $query;
@@ -259,6 +306,15 @@ class Factory extends StdObject
         return $query;
     }
 
+    /**
+     * Adds and argument to an array of query arguments
+     *
+     * @param array $query
+     * @param array $fields
+     * @param array $request
+     * @param bool $wp_var
+     * @return array
+     */
     private function addQueryArg(array $query, array $fields, array $request,
                                  $wp_var = false) {
         if (empty($fields)) return $query;
@@ -366,6 +422,22 @@ class Factory extends StdObject
     public function getInputs()
     {
         return $this->inputs;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWPQueryArgs()
+    {
+        return $this->wp_query_args;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWPQuery()
+    {
+        return $this->wp_query_obj;
     }
 
     /**

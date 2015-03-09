@@ -68,10 +68,6 @@ class Validator extends StdObject {
         return true;
     }
 
-    public function trySwapDefault($arg) {
-
-    }
-
     /**
      *  Extract and return the type string from a rule
      *

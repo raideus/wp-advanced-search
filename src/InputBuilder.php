@@ -370,18 +370,12 @@ class InputBuilder extends StdObject {
             'date_type' => $default_date_type,
             'date_format' => false,
             'values' => array() );
-        $date_type_to_var = array(
-            'year' => 'date_y',
-            'month' => 'date_m',
-            'day' => 'date_d'
-        );
+        $disallowed_formats = array('multi-select', 'checkbox');
+
         $args = self::parseArgs($args, $defaults);
 
-        if (isset($date_type_to_var[$args['date_type']])) {
-            $input_name = $date_type_to_var[$args['date_type']];
-        } else {
-            $args['date_type'] = $default_date_type;
-            $input_name = $date_type_to_var[$default_date_type];
+        if (in_array($args['format'], $disallowed_formats)) {
+            throw new \Exception("Date field does not currently support multi-select or checkbox formats");
         }
 
         return $args;
@@ -467,7 +461,7 @@ class InputBuilder extends StdObject {
         if (!is_object($the_tax)) {
             $msg = "Taxonomy '". $taxonomy ."' not found in this WordPress
             installation.";
-            throw new InvalidTaxonomyException($msg);
+            throw new \Exception($msg);
         }
 
         if (!$the_tax) return; // No taxonomy found

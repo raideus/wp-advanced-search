@@ -45,7 +45,7 @@ class DateQuery {
         $value = $this->getRequestVar($var, $request);
         if ($value == false) return $query;
 
-        $query['year'] = intval($value);
+        $query['year'] = $value;
 
         return $query;
     }
@@ -82,7 +82,7 @@ class DateQuery {
     private function getRequestVar($var, $request) {
         if (empty($request[$var])) return false;
         $value = $request[$var];
-        if (is_array($value)) $value = $value[0];
+        if (is_array($value)) implode(",",$value);
         return $value;
     }
 

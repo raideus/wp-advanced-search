@@ -1,11 +1,11 @@
 <?php
+namespace WPAS;
+
 /**
  *  Type class
  *
  *  Used for defining and validating data types
  */
-namespace WPAS;
-
 class Type {
 
     private function __construct() {}
@@ -60,7 +60,6 @@ class Type {
             return true;
         }
 
-        $subtype = false;
         if ($subtype = self::isTypedArray($name)) {
             return self::isValidName($subtype);
         }
@@ -129,9 +128,6 @@ class Type {
                 return true;
             }
         }
-
-        $subtype = false;
-        $super_subtype = false;
 
         if ( ($subtype = self::isTypedArray($type)) == false ) {
             return false;

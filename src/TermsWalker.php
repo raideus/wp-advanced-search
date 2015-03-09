@@ -7,7 +7,6 @@ require_once('StdObject.php');
  *
  *  Derived from the native WordPress 'Walker'class.
  *
- *  @since 1.3
  */
 class TermsWalker extends StdObject {
 
@@ -49,7 +48,6 @@ class TermsWalker extends StdObject {
      *  @param int $max_depth The maximum number of nested levels to recurse
      *                        (0 == all levels, -1 == flat hierarchy)
      *  @return array An Array of nested taxonomy terms
-     *  @since 1.3
      */
     public function build_nested_terms_array( $max_depth ) {
         $parent_element_array = array();
@@ -126,7 +124,6 @@ class TermsWalker extends StdObject {
      *  @param array $children_elements  Array of all child elements
      *  @param int   $max_depth  The maximum number of nested levels to recurse
      *  @param int   $depth  The current depth of recursion
-     *  @since 1.3
      */
     public function add_element($element, &$value_array, &$parent_element_array,
                                 &$children_elements, $max_depth, $depth) {
@@ -168,7 +165,6 @@ class TermsWalker extends StdObject {
      *  terms.
      *
      *  @return array
-     *  @since 1.3
      */
     public function build_basic_terms_array() {
         $term_values = array();

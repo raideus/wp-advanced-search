@@ -1,8 +1,5 @@
 <?php 
 namespace WPAS;
-require_once('StdObject.php');
-require_once('Validator.php');
-require_once('Exceptions.php');
 
 class Form extends StdObject {
     private $id;
@@ -12,6 +9,7 @@ class Form extends StdObject {
     private $class;
     private $inputs;
     protected $args;
+
     static protected $rules = array(
                                     'action' => 'string',
                                     'method' => 'FormMethod',
@@ -19,6 +17,7 @@ class Form extends StdObject {
                                     'name' => 'string',
                                     'class' => 'array<string>',
                                     'inputs' => 'array' );
+
     static protected $defaults = array(  
                                         'action' => '',
                                         'method' => 'GET',
@@ -73,21 +72,40 @@ class Form extends StdObject {
         return $output;
     }
 
+    /**
+     * Add an Input object to the form
+     *
+     * @param Input $input
+     */
     public function addInput( Input $input ) {
         $this->inputs[] = $input;
     }
 
+    /**
+     * Validate form arguments
+     *
+     * @param $args
+     * @param $defaults
+     * @return array
+     * @throws \Exception
+     */
     public function validate($args, $defaults) {
         $validation = new Validator(self::$rules, $args, $defaults);
         if ($validation->fails()) {
             $errors = $validation->getErrors();
             $err_msg = $this->validationErrorMsg($errors);
-            throw new ValidationException($err_msg);
+            throw new \Exception($err_msg);
         }
 
         return $validation->getArgs();
     }
 
+    /**
+     * Process and return arguments
+     *
+     * @param $args
+     * @return mixed
+     */
     private function preProcessArgs($args) {
         if (!empty($args['class']) && is_string($args['class'])) {
             $args['class'] = explode(' ', $args['class']);

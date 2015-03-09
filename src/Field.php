@@ -29,8 +29,7 @@ class Field extends StdObject {
         'group_method' => 'distinct',
         'operator' => 'AND',
         'compare' => '=',
-        'data_type' => DataType::_default,
-        'acf' => false
+        'data_type' => DataType::_default
     );
 
     private static $input_args = array(
@@ -106,7 +105,7 @@ class Field extends StdObject {
         $validation = new Validator(self::$rules, $args, self::$defaults);
         if ($validation->fails()) {
             $msg = self::validationErrorMsg($validation->getErrors());
-            throw new ValidationException($msg);
+            throw new \Exception($msg);
         }
         return $validation->getArgs();
     }
@@ -115,14 +114,14 @@ class Field extends StdObject {
         switch($args['field_type']) {
             case 'meta_key' :
                 if (empty($args['meta_key'])) {
-                    throw new MissingArgumentException('Field is missing '.
+                    throw new \Exception('Field is missing '.
                     'argument \'meta_key\'');
                     return;
                 }
                 return $args['meta_key'];
             case 'taxonomy' :
                 if (empty($args['taxonomy'])) {
-                    throw new MissingArgumentException('Field is missing '.
+                    throw new \Exception('Field is missing '.
                         'argument \'taxonomy\'');
                     return;
                 }

@@ -13,6 +13,14 @@ class MetaQuery {
         $this->query = $this->build($fields, $relation, $request);
     }
 
+    /**
+     * Build and return a meta_query argument array
+     *
+     * @param array $fields
+     * @param string $relation
+     * @param $request
+     * @return array
+     */
     public function build(array $fields, $relation = 'AND', $request) {
         $query = array();
         $this->request = $request;
@@ -28,7 +36,14 @@ class MetaQuery {
         return $query;
     }
 
-
+    /**
+     * Build a meta_query group comprising query arguments and values related
+     * to a single meta_key
+     *
+     * @param $field
+     * @param $request
+     * @return array
+     */
     public function metaQueryGroup($field, $request) {
         $group = array();
         $meta_key = $field->getFieldId();
@@ -36,23 +51,28 @@ class MetaQuery {
         $data_type = $field->getDataType();
         $compare = $field->getCompare();
 
+        $clauses = array();
+
         if ($compare == Compare::between) {
-            $group[] = $this->metaQueryClauseBetween($meta_key, $inputs, 2);
-            return $group;
+            $clauses[] = $this->metaQueryClauseBetween($meta_key, $inputs, 2);
+        } else {
+            // Disallow multiple input sources if not using BETWEEN comparison
+            // This is a (potentially) temporary restriction
+            $inputs = array(array_keys($inputs)[0] => $inputs[array_keys($inputs)[0]]);
+            //
+            //
+
+            foreach ($inputs as $input_name => $input) {
+                if (DataType::isArrayType($data_type)) {
+                    $clause = $this->metaQueryClauseArray($meta_key, $input_name, $input);
+                } else {
+                    $clause = $this->metaQueryClause($meta_key, $input_name, $input);
+                }
+                $clauses[] = $clause;
+            }
         }
 
-        // Disallow multiple input sources if not using BETWEEN comparison
-        // This is a (potentially) temporary restriction
-        $inputs = array(array_keys($inputs)[0] => $inputs[array_keys($inputs)[0]]);
-        //
-        //
-
-        foreach ($inputs as $input_name => $input) {
-            if (DataType::isArrayType($data_type)) {
-                $clause = $this->metaQueryClauseArray($meta_key, $input_name, $input);
-            } else {
-                $clause = $this->metaQueryClause($meta_key, $input_name, $input);
-            }
+        foreach ($clauses as $clause) {
             if (!empty($clause)) $group[] = $clause;
         }
 
@@ -60,11 +80,19 @@ class MetaQuery {
         return $group;
     }
 
+    /**
+     * Build a meta_query clause corresponding to a single input
+     *
+     * @param $meta_key
+     * @param $input_name
+     * @param $input
+     * @return array
+     */
     private function metaQueryClause($meta_key, $input_name, $input) {
-        if (empty($input)) return;
+        if (empty($input)) return array();
 
         $request_var = RequestVar::nameToVar($input_name, 'meta_key');
-        if (empty($this->request[$request_var])) return;
+        if (empty($this->request[$request_var])) return array();
 
         $clause = array();
         $clause['key'] = $meta_key;
@@ -75,15 +103,22 @@ class MetaQuery {
         return $clause;
     }
 
+    /**
+     * Build a meta_query clause for a BETWEEN relationship
+     *
+     * @param $meta_key
+     * @param array $inputs
+     * @param bool $limit
+     * @return array
+     */
     private function metaQueryClauseBetween($meta_key, array $inputs, $limit = false) {
-        if (empty($inputs)) return;
+        if (empty($inputs)) return array();
         $clause = array();
 
         $clause['key'] = $meta_key;
         $clause['type'] = reset($inputs)['data_type'];
         $clause['value'] = array();
         $clause['compare'] = Compare::between;
-
         $count = 1;
 
         foreach($inputs as $v => $input) {
@@ -107,14 +142,31 @@ class MetaQuery {
             $clause['compare'] = $compare;
         } else if (count($inputs) == 1) {
             $clause['compare'] = reset($inputs)['compare'];
+
+            // Support single-input BETWEEN fields using range values, i.e. ['0-10','11-25']
+            if (count($clause['value']) == 1) {
+                $clause = $this->adaptClauseForSingleInput($clause);
+            }
         }
+
+        if (empty($clause['value'])) return array();
 
         return $clause;
     }
 
+    /**
+     *  Build a meta_query clause for meta values which are stored as an array
+     *
+     *  Creates a separate sub-clause for each value being queried
+     *
+     * @param $meta_key
+     * @param $input_name
+     * @param $input
+     * @return array
+     */
     private function metaQueryClauseArray($meta_key, $input_name, $input) {
         $request_var = RequestVar::nameToVar($input_name, 'meta_key');
-        if (empty($this->request[$request_var])) return;
+        if (empty($this->request[$request_var])) return array();
 
         $clause = array();
         $data_type = DataType::isArrayType($input['data_type']);
@@ -138,6 +190,23 @@ class MetaQuery {
 
         if (count($clause) == 1) $clause = $clause[0];
 
+        return $clause;
+    }
+
+    /**
+     * Adapts meta_query clause for single-input fields using range values
+     * of the form ['0-10','11-24','25+']
+     *
+     * @param $clause
+     * @return array
+     */
+    private function adaptClauseForSingleInput($clause) {
+        if (!empty($clause['value']) && substr($clause['value'][0],-1) == '+') {
+            $clause['value'] = substr($clause['value'][0],0,-1);
+            $clause['compare'] = Compare::greq;
+            return $clause;
+        }
+        $clause['value'] = explode("-", $clause['value'][0]);
         return $clause;
     }
 

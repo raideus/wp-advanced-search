@@ -1,7 +1,6 @@
 <?php
 namespace WPAS;
 use WPAS\Enum\RequestVar;
-use WPAS\Enum\Operator;
 
 class TaxQuery {
 
@@ -14,6 +13,14 @@ class TaxQuery {
         $this->query = $this->build($fields, $relation, $request);
     }
 
+    /**
+     * Build and return a tax_query argument array
+     *
+     * @param array $fields
+     * @param string $relation
+     * @param $request
+     * @return array
+     */
     public function build(array $fields, $relation = 'AND', $request) {
         $query = array();
 
@@ -25,14 +32,19 @@ class TaxQuery {
 
         if (count($query) > 1) {
             $query['relation'] = $relation;
-        } else if (count($query) == 1) {
-            //$query = $query[0];
         }
 
         return $query;
     }
 
-
+    /**
+     *
+     * Build a tax_query group comprising query arguments and values related
+     * to a single taxonomy field
+     *
+     * @param $field
+     * @return array
+     */
     public function taxQueryGroup($field) {
         $group = array();
         $taxonomy = $field->getFieldId();
@@ -51,6 +63,14 @@ class TaxQuery {
         return $group;
     }
 
+    /**
+     * Build a tax_query clause corresponding to a single input
+     *
+     * @param $taxonomy
+     * @param $input_name
+     * @param $input
+     * @return array
+     */
     private function taxQueryClause($taxonomy, $input_name, $input) {
         if (empty($input)) return;
         $request_var = RequestVar::nameToVar($input_name, 'taxonomy');
@@ -65,7 +85,6 @@ class TaxQuery {
 
         return $clause;
     }
-
 
     /**
      * @return mixed

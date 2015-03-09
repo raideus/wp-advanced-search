@@ -59,8 +59,8 @@ class Input extends StdObject {
      *
      * @param string $input_name
      * @param array  $args
-     * @throws ValidationException
-     * @throws InvalidArgumentException
+     * @throws \Exception
+     * @throws \InvalidArgumentException
      * @return array
      */
     public function validate( $input_name, $args, $defaults ) {
@@ -68,7 +68,7 @@ class Input extends StdObject {
         if ($validation->fails()) {
             $errors = $validation->getErrors();
             $err_msg = $this->validationErrorMsg($errors);
-            throw new ValidationException($err_msg);
+            throw new \Exception($err_msg);
         }
         
         if (!is_string($input_name)) {
