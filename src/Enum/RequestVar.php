@@ -1,6 +1,5 @@
 <?php
-namespace WPAS;
-require_once('BasicEnum.php');
+namespace WPAS\Enum;
 
 class RequestVar extends BasicEnum {
     const search = 'search_query';

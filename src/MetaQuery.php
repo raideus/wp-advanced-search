@@ -1,6 +1,8 @@
 <?php
 namespace WPAS;
-require_once('Compare.php');
+use WPAS\Enum\RequestVar;
+use WPAS\Enum\Compare;
+use WPAS\Enum\DataType;
 
 class MetaQuery {
 

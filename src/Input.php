@@ -1,8 +1,5 @@
 <?php
 namespace WPAS;
-require_once('StdObject.php');
-require_once('Validator.php');
-require_once('Exceptions.php');
 
 class Input extends StdObject {
 

@@ -1,9 +1,6 @@
 <?php
 namespace WPAS;
-require_once('StdObject.php');
-require_once('DataType.php');
-require_once('Validator.php');
-require_once('Exceptions.php');
+use WPAS\Enum\DataType;
 
 class Field extends StdObject {
     private $field_id;

@@ -1,6 +1,5 @@
 <?php
-namespace WPAS;
-require_once('BasicEnum.php');
+namespace WPAS\Enum;
 
 class FormMethod extends BasicEnum {
     const POST = 'POST';

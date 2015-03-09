@@ -1,5 +1,7 @@
 <?php
 namespace WPAS;
+use WPAS\Enum\FieldType;
+use WPAS\Enum\InputFormat;
 require_once(dirname(__DIR__).'/wp-advanced-search.php');
 
 class TestInputBuilder extends \WP_UnitTestCase {

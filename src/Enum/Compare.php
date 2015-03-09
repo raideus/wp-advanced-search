@@ -1,7 +1,5 @@
 <?php
-
-namespace WPAS;
-require_once('BasicEnum.php');
+namespace WPAS\Enum;
 
 class Compare extends BasicEnum {
     const equal = '=';

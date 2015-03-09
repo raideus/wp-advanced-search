@@ -1,6 +1,6 @@
 <?php
-namespace WPAS;
-require_once('StdObject.php');
+namespace WPAS\Enum;
+use WPAS\StdObject;
 
 abstract class BasicEnum extends StdObject {
     private function __construct() {}

@@ -1,6 +1,7 @@
 <?php
 namespace WPAS;
-require_once('Operator.php');
+use WPAS\Enum\RequestVar;
+use WPAS\Enum\Operator;
 
 class TaxQuery {
 

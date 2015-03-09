@@ -1,9 +1,6 @@
 <?php
-
 namespace WPAS;
-require_once('StdObject.php');
-require_once('Input.php');
-require_once('TermsWalker.php');
+use WPAS\Enum\FieldType;
 
 class InputBuilder extends StdObject {
 

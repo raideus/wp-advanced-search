@@ -1,5 +1,5 @@
 <?php
-namespace WPAS;
+namespace WPAS\Enum;
 
 class FieldType extends BasicEnum {
     const taxonomy = "taxonomy";
@@ -18,5 +18,4 @@ class FieldType extends BasicEnum {
     public static function isQueryType($field_type) {
         return (!($field_type == self::submit || $field_type == self::generic || $field_type == self::html));
     }
-
 }

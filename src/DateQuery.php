@@ -1,5 +1,6 @@
 <?php
 namespace WPAS;
+use WPAS\Enum\RequestVar;
 
 class DateQuery {
 

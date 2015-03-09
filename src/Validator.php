@@ -1,8 +1,5 @@
 <?php
 namespace WPAS;
-require_once('StdObject.php');
-require_once('Type.php');
-
 
 class Validator extends StdObject {
 

@@ -4,15 +4,7 @@
  *
  *  Used for defining and validating data types
  */
-
 namespace WPAS;
-require_once('FormMethod.php');
-require_once('InputFormat.php');
-require_once('FieldType.php');
-require_once('RequestVar.php');
-require_once('Operator.php');
-require_once('Relation.php');
-require_once('Compare.php');
 
 class Type {
 
@@ -46,14 +38,14 @@ class Type {
         "scalar" => "is_scalar",
         "array" => "is_array",
         "object" => "is_object",
-        "FormMethod" => array("\WPAS\FormMethod", "isValid"),
-        "InputFormat" => array("\WPAS\InputFormat", "isValid"),
-        "FieldType" => array("\WPAS\FieldType", "isValid"),
-        "RequestVar" => array("\WPAS\RequestVar", "isValidValue"),
-        'Operator' => array("\WPAS\Operator", "isValidValue"),
-        'Compare' => array("\WPAS\Compare", "isValidValue"),
-        'Relation' => array("\WPAS\Relation", "isValidValue"),
-        'DataType' => array("\WPAS\DataType", "isValidValue")
+        "FormMethod" => array("\WPAS\Enum\FormMethod", "isValid"),
+        "InputFormat" => array("\WPAS\Enum\InputFormat", "isValid"),
+        "FieldType" => array("\WPAS\Enum\FieldType", "isValid"),
+        "RequestVar" => array("\WPAS\Enum\RequestVar", "isValidValue"),
+        'Operator' => array("\WPAS\Enum\Operator", "isValidValue"),
+        'Compare' => array("\WPAS\Enum\Compare", "isValidValue"),
+        'Relation' => array("\WPAS\Enum\Relation", "isValidValue"),
+        'DataType' => array("\WPAS\Enum\DataType", "isValidValue")
     );
 
     /**

@@ -1,17 +1,7 @@
 <?php
 namespace WPAS;
-require_once('StdObject.php');
-require_once('InputBuilder.php');
-require_once('FieldType.php');
-require_once('Field.php');
-require_once('Factory.php');
-require_once('Form.php');
-require_once('Validator.php');
-require_once('Exceptions.php');
-require_once('Compare.php');
-require_once('MetaQuery.php');
-require_once('TaxQuery.php');
-require_once('DateQuery.php');
+use WPAS\Enum\FieldType;
+use WPAS\Enum\RequestVar;
 
 class Factory extends StdObject
 {
