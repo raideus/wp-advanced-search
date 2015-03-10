@@ -1,6 +1,6 @@
 # WP Advanced Search v1.4 (beta)
 
-[![Build Status](https://travis-ci.org/growthspark/wp-advanced-search?branch=1.4-beta)](https://travis-ci.org/growthspark/wp-advanced-search)
+[![Build Status](https://travis-ci.org/growthspark/wp-advanced-search.svg?branch=1.4-beta)](https://travis-ci.org/growthspark/wp-advanced-search)
 
 This is a beta version of an upcoming release.  All features may not be stable.
 Use at your own risk!
