@@ -1,5 +1,6 @@
-# WP Advanced Search
-## v1.4 (beta)
+# WP Advanced Search v1.4 (beta)
+
+[![Build Status](https://travis-ci.org/jarednova/timber.png?branch=master)](https://travis-ci.org/jarednova/timber)
 
 This is a beta version of an upcoming release.  All features may not be stable.
 Use at your own risk!
