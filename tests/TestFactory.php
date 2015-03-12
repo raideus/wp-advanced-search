@@ -17,15 +17,15 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     public function testFactory() {
         $args = array();
 
-        $args['fields'][] = ['type' => 'search',
+        $args['fields'][] = array('type' => 'search',
             'label' => 'Search',
             'id' => 'hhh',
             'format' => 'text',
             'class' => 'testclass',
             'name' => 'my_search',
-            'attributes' => ['data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100],
+            'attributes' => array('data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100),
             'default' => 'something'
-        ];
+        );
 
         $args['fields'][] = array('type' => 'meta_key',
             'label' => 'Color',
@@ -110,7 +110,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testMetaQueryBetween() {
-        $args = [];
+        $args = array();
         $prefix = RequestVar::meta_key;
         $meta_key = 'price';
         $compare = 'BETWEEN';
@@ -119,20 +119,20 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $request = array($prefix.$meta_key.'1' => 10, $prefix.$meta_key.'2' => 25,
             $prefix.$meta_key.'3' => 30);
 
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => $compare,
             'data_type' => $type,
-            'inputs' => [
-                [
+            'inputs' => array(
+                array(
                     'format' => 'text',
-                ],
-                [
+                ),
+                array(
                     'format' => 'text'
-                ]
-            ]
-        ];
+                )
+            )
+        );
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
@@ -145,7 +145,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testMetaQueryBetweenSingleInput() {
-        $args = [];
+        $args = array();
         $prefix = RequestVar::meta_key;
         $meta_key = 'price';
         $compare = 'BETWEEN';
@@ -153,23 +153,23 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $request = array($prefix.$meta_key => '0-10');
 
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => $compare,
             'data_type' => $type,
-            'inputs' => [
-                [
+            'inputs' => array(
+                array(
                     'format' => 'select',
-                    'values' => [
+                    'values' => array(
                         '0-10' => '0 to 10',
                         '11-25' => '11 to 25',
                         '26+' => '26+'
-                    ]
-                ],
+                    )
+                ),
 
-            ]
-        ];
+                )
+        );
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
@@ -193,18 +193,18 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
     public function testMetaQueryWithOneKey()
     {
-        $args = [];
+        $args = array();
         $meta_key = 'color';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => 'LIKE',
             'relation' => 'AND',
             'data_type' => 'CHAR',
             'format' => 'checkbox'
-        ];
+        );
 
-        $request = array($meta_key => ['red','blue']);
+        $request = array($meta_key => array('red','blue'));
         $f = new Factory($args, $request);
         $q = $f->buildQuery();
 
@@ -214,27 +214,27 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
     public function testMetaQueryWithMultiKey()
     {
-        $args = [];
+        $args = array();
         $meta_key = 'color';
         $meta_key2 = 'shape';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => 'LIKE',
             'relation' => 'OR',
             'data_type' => 'CHAR',
             'format' => 'checkbox'
-        ];
-        $args['fields'][] = [
+        );
+        $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key2,
             'compare' => 'LIKE',
             'relation' => 'OR',
             'data_type' => 'ARRAY<CHAR>',
             'format' => 'checkbox'
-        ];
+        );
 
-        $request = array($meta_key => ['red','blue'], $meta_key2 => ['square','circle']);
+        $request = array($meta_key => array('red','blue'), $meta_key2 => array('square','circle'));
         $f = new Factory($args, $request);
         $q = $f->buildQuery();
 
@@ -244,18 +244,18 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
     public function testTaxQuery()
     {
-        $args = [];
+        $args = array();
         $tax = 'category';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'taxonomy',
             'taxonomy' => $tax,
             'operator' => 'IN',
             'format' => 'checkbox'
-        ];
+        );
 
         $expected_query = '[{"taxonomy":"category","operator":"IN","field":"slug","terms":["red","blue"]}]';
 
-        $request = array(RequestVar::taxonomy . $tax => ['red','blue']);
+        $request = array(RequestVar::taxonomy . $tax => array('red','blue'));
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
@@ -265,26 +265,26 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testTaxQueryMultiTax() {
-        $args = [];
+        $args = array();
         $tax = 'category';
         $tax2 = 'post_tag';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'taxonomy',
             'taxonomy' => $tax,
             'operator' => 'AND',
             'format' => 'checkbox'
-        ];
-        $args['fields'][] = [
+        );
+        $args['fields'][] = array(
             'type' => 'taxonomy',
             'taxonomy' => $tax2,
             'operator' => 'IN',
             'format' => 'checkbox'
-        ];
+        );
 
         $expected_query = '{"0":{"taxonomy":"category","operator":"AND","field":"slug","terms":["red","blue"]},"1":{"taxonomy":"post_tag","operator":"IN","field":"slug","terms":["square","circle"]},"relation":"AND"}';
 
-        $request = array(RequestVar::taxonomy . $tax => ['red','blue'],
-            RequestVar::taxonomy . $tax2 => ['square','circle']);
+        $request = array(RequestVar::taxonomy . $tax => array('red','blue'),
+            RequestVar::taxonomy . $tax2 => array('square','circle'));
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
@@ -294,25 +294,24 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testTaxQueryMultiInput() {
-        $args = [];
+        $args = array();
         $tax = 'category';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'taxonomy',
             'taxonomy' => $tax,
             'relation' => 'AND',
-            'inputs' => [
-                [
+            'inputs' => array(
+                array(
                     'format' => 'select',
                     'operator' => 'IN'
-                ],
-                [
+                ),
+                array(
                     'format' => 'select',
                     'operator' => 'NOT IN'
-                ]
-            ]
+                )
+            )
 
-
-        ];
+        );
 
         $expected_query = '[{"0":{"taxonomy":"category","operator":"IN","field":"slug","terms":"red"},"1":{"taxonomy":"category","operator":"NOT IN","field":"slug","terms":["blue","green"]},"relation":"AND"}]';
 
@@ -327,23 +326,23 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testTaxQueryMultiInputEmptyInput() {
-        $args = [];
+        $args = array();
         $tax = 'category';
-        $args['fields'][] = [
+        $args['fields'][] = array(
             'type' => 'taxonomy',
             'taxonomy' => $tax,
             'relation' => 'AND',
-            'inputs' => [
-                [
+            'inputs' => array(
+                array(
                     'format' => 'select',
                     'operator' => 'IN'
-                ],
-                [
+                ),
+                array(
                     'format' => 'select',
                     'operator' => 'NOT IN'
-                ]
-            ]
-        ];
+                )
+            )
+        );
 
         $expected_query = '[{"taxonomy":"category","operator":"IN","field":"slug","terms":"red"}]';
 
@@ -359,15 +358,15 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     public function testFactoryComplexRequest() {
         $args = array();
 
-        $args['fields'][] = ['type' => 'search',
+        $args['fields'][] = array('type' => 'search',
             'label' => 'Search',
             //'id' => 'hhh',
             'format' => 'text',
             'class' => 'testclass',
             'name' => 'my_search',
-            'attributes' => ['data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100],
+            'attributes' => array('data-src' => 12345, 'data-color' => 'red', 'min' => 0, 'max' => 100),
             'default' => 'something'
-        ];
+        );
 
         $args['fields'][] = array('type' => 'post_type',
             'label' => 'Post Type',
@@ -398,7 +397,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
             'attributes' => array('one' => 'five'),
         );
 
-        $request = ['order'=>'ASC', 'ptype'=>['post','page'], 'search_query' => 'testing', 'posts_per_page' => 12];
+        $request = array('order'=>'ASC', 'ptype'=>array('post','page'), 'search_query' => 'testing', 'posts_per_page' => 12);
         $expected_query = '{"post_type":["post","page"],"order":"ASC","posts_per_page":"12","s":"testing","paged":1}';
 
         $f = new Factory($args, $request);
@@ -409,12 +408,12 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testFactoryDateQuery() {
-        $args = [];
-        $args['fields'][] = [
+        $args = array();
+        $args['fields'][] = array(
             'type' => 'date',
             'format' => 'select',
             'date_type' => 'month'
-        ];
+        );
 
         $expected_query = '{"year":"2014","month":"01"}';
 
@@ -429,7 +428,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
     }
 
     public function testOrderbyValues() {
-        $args = [];
+        $args = array();
         $args['fields'][] = array(
             'type' => 'orderby',
             'format' => 'radio',

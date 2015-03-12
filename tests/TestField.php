@@ -7,13 +7,13 @@ class TestField extends \PHPUnit_Framework_TestCase
 
     public function testCanBuildField()
     {
-        $args = [
+        $args = array(
             'type' => 'meta_key',
             'format' => '',
             'meta_key' => 'color',
             'relation' => 'AND',
-            'values' => ['red' => 'Red', 'blue' => 'Blue', 'green' => 'Green'],
-        ];
+            'values' => array('red' => 'Red', 'blue' => 'Blue', 'green' => 'Green'),
+        );
 
         $f = new Field($args);
         $inputs = $f->getInputs();
@@ -25,21 +25,21 @@ class TestField extends \PHPUnit_Framework_TestCase
 
     public function testCanBuildMultiInput() {
         $meta_key = 'price';
-        $args = [
+        $args = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => 'BETWEEN',
             'data_type' => 'NUMERIC',
             'group_method' => 'merge',
-            'inputs' => [
-                [
+            'inputs' => array(
+                array(
                     'format' => 'text',
-                ],
-                [
+                ),
+                array(
                     'format' => 'text'
-                ]
-            ]
-        ];
+                )
+            )
+        );
 
         $f = new Field($args);
         $inputs = $f->getInputs();
@@ -49,11 +49,11 @@ class TestField extends \PHPUnit_Framework_TestCase
     }
 
     public function testCanOverrideInvalidRelation() {
-        $args = [
+        $args = array(
             'type' => 'taxonomy',
             'taxonomy' => 'category',
             'relation' => 'IN'
-        ];
+        );
         $f = new Field($args);
         $default_relation = $f->getDefaults()['relation'];
         $this->assertTrue($f->getRelation() == $default_relation);
@@ -63,10 +63,10 @@ class TestField extends \PHPUnit_Framework_TestCase
      * @expectedException     Exception
      */
     public function testThrowsExceptionOnMissingType() {
-        $args = [
+        $args = array(
             'taxonomy' => 'category',
             'relation' => 'IN'
-        ];
+        );
         $f = new Field($args);
     }
 
