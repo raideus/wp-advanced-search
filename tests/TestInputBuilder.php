@@ -136,24 +136,28 @@ class TestInputBuilder extends \WP_UnitTestCase {
 
         $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
-        $this->assertTrue(count(reset($values)['children']) == 2);
+        $value = reset($values);
+        $this->assertTrue(count($value['children']) == 2);
 
         $args['format'] = 'multi-select';
         $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
-        $this->assertTrue(count(reset($values)['children']) == 2);
+        $value = reset($values);
+        $this->assertTrue(count($value['children']) == 2);
         $input->toHTML();
 
         $args['format'] = 'radio';
         $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
-        $this->assertTrue(count(reset($values)['children']) == 2);
+        $value = reset($values);
+        $this->assertTrue(count($value['children']) == 2);
         $input->toHTML();
 
         $args['format'] = 'checkbox';
         $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
-        $this->assertTrue(count(reset($values)['children']) == 2);
+        $value = reset($values);
+        $this->assertTrue(count($value['children']) == 2);
         $input->toHTML();
 
     }

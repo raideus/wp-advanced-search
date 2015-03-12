@@ -80,25 +80,29 @@ class TestForm extends \PHPUnit_Framework_TestCase {
     public function testBadMethodInvokesDefault() {
         $args = array( 'method' => 'BADMETHOD' );
         $form = new Form($args);
-        $this->assertTrue($form->getMethod() == $form->getDefaults()['method']);
+        $defaults = $form->getDefaults();
+        $this->assertTrue($form->getMethod() == $defaults['method']);
     }
 
     public function testBadIdInvokesDefault() {
         $args = array( 'id' => 123 );
         $form = new Form($args);
-        $this->assertTrue($form->getID() == $form->getDefaults()['id']);
+        $defaults = $form->getDefaults();
+        $this->assertTrue($form->getID() == $defaults['id']);
     }
 
     public function testBadNameInvokesDefault() {
         $args = array( 'name' => 1.2 );
         $form = new Form($args);
-        $this->assertTrue($form->getName() == $form->getDefaults()['name']);
+        $defaults = $form->getDefaults();
+        $this->assertTrue($form->getName() == $defaults['name']);
     }
 
     public function testBadClassInvokesDefault() {
         $args = array( 'class' => array(1,2,3) );
         $form = new Form($args);
-        $this->assertTrue($form->getClass() == $form->getDefaults()['class']);
+        $defaults = $form->getDefaults();
+        $this->assertTrue($form->getClass() == $defaults['class']);
     }
 
 }

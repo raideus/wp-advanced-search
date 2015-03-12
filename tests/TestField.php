@@ -55,7 +55,8 @@ class TestField extends \PHPUnit_Framework_TestCase
             'relation' => 'IN'
         );
         $f = new Field($args);
-        $default_relation = $f->getDefaults()['relation'];
+        $defaults = $f->getDefaults();
+        $default_relation = $defaults['relation'];
         $this->assertTrue($f->getRelation() == $default_relation);
     }
 

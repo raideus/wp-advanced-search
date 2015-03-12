@@ -9,7 +9,7 @@ abstract class StdObject {
 
     public static function getConstants() {
         if (self::$constCacheArray == NULL) {
-            self::$constCacheArray = [];
+            self::$constCacheArray = array();
         }
         $calledClass = get_called_class();
         if (!array_key_exists($calledClass, self::$constCacheArray)) {
@@ -21,7 +21,7 @@ abstract class StdObject {
 
     protected static function getMethods() {
         if (self::$methodCacheArray == NULL) {
-            self::$methodCacheArray = [];
+            self::$methodCacheArray = array();
         }
         $calledClass = get_called_class();
         if (!array_key_exists($calledClass, self::$methodCacheArray)) {

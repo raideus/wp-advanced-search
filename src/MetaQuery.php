@@ -58,7 +58,8 @@ class MetaQuery {
         } else {
             // Disallow multiple input sources if not using BETWEEN comparison
             // This is a (potentially) temporary restriction
-            $inputs = array(array_keys($inputs)[0] => $inputs[array_keys($inputs)[0]]);
+            $keys = array_keys($inputs);
+            $inputs = array($keys[0] => $inputs[$keys[0]]);
             //
             //
 
@@ -113,10 +114,11 @@ class MetaQuery {
      */
     private function metaQueryClauseBetween($meta_key, array $inputs, $limit = false) {
         if (empty($inputs)) return array();
+        $first_input = reset($inputs);
         $clause = array();
 
         $clause['key'] = $meta_key;
-        $clause['type'] = reset($inputs)['data_type'];
+        $clause['type'] = $first_input['data_type'];
         $clause['value'] = array();
         $clause['compare'] = Compare::between;
         $count = 1;
@@ -141,7 +143,7 @@ class MetaQuery {
         if (!empty($compare)) {
             $clause['compare'] = $compare;
         } else if (count($inputs) == 1) {
-            $clause['compare'] = reset($inputs)['compare'];
+            $clause['compare'] = $first_input['compare'];
 
             // Support single-input BETWEEN fields using range values, i.e. ['0-10','11-25']
             if (count($clause['value']) == 1) {
