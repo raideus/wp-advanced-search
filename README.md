@@ -26,7 +26,7 @@ directory.
 
 2. Add the following to your theme's functions.php file:
 
-` require_once('wp-advanced-search/wpas-framework.php'); `
+` require_once('wp-advanced-search/wpas.php'); `
 
 ## Usage
 
