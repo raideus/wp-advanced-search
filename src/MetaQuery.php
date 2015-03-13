@@ -197,18 +197,24 @@ class MetaQuery {
 
     /**
      * Adapts meta_query clause for single-input fields using range values
-     * of the form ['0-10','11-24','25+']
+     * of the form ['0:10','11:24','25:']
      *
      * @param $clause
      * @return array
      */
     private function adaptClauseForSingleInput($clause) {
-        if (!empty($clause['value']) && substr($clause['value'][0],-1) == '+') {
+        if (empty($clause['value'])) return $clause;
+        if (substr($clause['value'][0],-1) == ':') {
             $clause['value'] = substr($clause['value'][0],0,-1);
             $clause['compare'] = Compare::greq;
             return $clause;
         }
-        $clause['value'] = explode("-", $clause['value'][0]);
+        if (substr($clause['value'][0],0,1) == ':') {
+            $clause['value'] = substr($clause['value'][0],1);
+            $clause['compare'] = Compare::leq;
+            return $clause;
+        }
+        $clause['value'] = explode(":", $clause['value'][0]);
         return $clause;
     }
 

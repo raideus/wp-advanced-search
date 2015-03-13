@@ -18,7 +18,8 @@ class Factory extends StdObject
     private $orderby_meta_keys;
     private $fields_ready;
 
-    private static $config_defaults = array('taxonomy_relation' => 'AND',
+    private static $config_defaults = array(
+        'taxonomy_relation' => 'AND',
         'meta_key_relation' => 'AND',
         'form' => array());
 
