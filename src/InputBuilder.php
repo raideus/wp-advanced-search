@@ -73,6 +73,10 @@ class InputBuilder extends StdObject {
             $args['class'] = explode(',', $args['class']);
         }
 
+        if (!isset($args['values']) && isset($args['value'])) {
+            $args['values'] = array($args['value']);
+        }
+
         $args['field_type'] = $field_type;
 
         return $args;

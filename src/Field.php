@@ -35,6 +35,7 @@ class Field extends StdObject {
     private static $input_args = array(
         'format' => 1,
         'values' => 1,
+        'value' => 1,
         'default' => 1,
         'default_all' => 1,
         'field_type' => 1,
