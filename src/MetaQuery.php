@@ -125,7 +125,9 @@ class MetaQuery {
 
         foreach($inputs as $v => $input) {
             $v =  RequestVar::nameToVar($v, 'meta_key');
-            if (empty($this->request[$v])) continue;
+            if (!isset($this->request[$v])) {
+                continue;
+            }
 
             $var = $this->request[$v];
 
