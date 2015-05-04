@@ -156,7 +156,7 @@ class InputBuilder extends StdObject {
         }
 
 
-        if (isset($args['default']) && !isset($request['wpas'])) {
+        if (isset($args['default']) && !isset($request['wpas_submit'])) {
             if (!is_array($args['default'])) {
                 return array($args['default']);
             }
@@ -185,7 +185,7 @@ class InputBuilder extends StdObject {
         $default_all = isset($args['default_all']) ? $args['default_all'] : false;
         $supports_multiple = ($format == 'checkbox' || $format == 'multi-select');
 
-        return ($default_all && $supports_multiple && !isset($request['wpas']));
+        return ($default_all && $supports_multiple && !isset($request['wpas_submit']));
     }
 
     /**

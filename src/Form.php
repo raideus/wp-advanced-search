@@ -67,6 +67,8 @@ class Form extends StdObject {
             }
         }
 
+        $output .= "<input type=\"hidden\" name=\"wpas_submit\" value=\"1\">";
+
         $output .= "</form>";
 
         return $output;
