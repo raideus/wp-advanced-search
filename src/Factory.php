@@ -66,6 +66,10 @@ class Factory extends StdObject
             $args['config'] = array();
         }
 
+        if (empty($args['wpas_id'])) {
+            $args['wpas_id'] = 'default';
+        }
+
         if (empty($args['config']['form'])) {
             $form_args = (empty($args['form'])) ? array() : $args['form'];
             $args['config']['form'] = $form_args;
@@ -202,7 +206,7 @@ class Factory extends StdObject
     private function buildForm() {
 
         try {
-            $this->form = new Form($this->args['config']['form']);
+            $this->form = new Form($this->args['wpas_id'], $this->args['config']['form']);
         } catch (\Exception $e) {
             $this->addExceptionError($e);
             return;

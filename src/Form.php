@@ -2,6 +2,7 @@
 namespace WPAS;
 
 class Form extends StdObject {
+    private $wpas_id;
     private $id;
     private $action;
     private $method;
@@ -26,7 +27,8 @@ class Form extends StdObject {
                                         'class' => array('wp-advanced-search'),
                                         'inputs' => array() );
 
-    function __construct( $args ) {
+    function __construct($wpas_id, $args) {
+        $this->wpas_id = $wpas_id;
         $args = $this->preProcessArgs($args);
         $args = $this->parseArgs($args, self::$defaults);
         $this->args = $this->validate($args, self::$defaults);
@@ -34,7 +36,6 @@ class Form extends StdObject {
         foreach($this->args as $key => $value) {
             $this->$key = $value;
         }
-
     }
 
     /**
@@ -67,6 +68,7 @@ class Form extends StdObject {
             }
         }
 
+        $output .= "<input type=\"hidden\" name=\"wpas_id\" value=\"".$this->wpas_id."\">";
         $output .= "<input type=\"hidden\" name=\"wpas_submit\" value=\"1\">";
 
         $output .= "</form>";

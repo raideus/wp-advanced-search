@@ -9,6 +9,11 @@ Author URI: http://seanbutze.com
 License: GPLv2 or later
 */
 
+define('WPAS_AJAX', true);
+
+$WPAS_FORMS = array();
+
+
 /**
  * Class Autoloader
  *
@@ -45,11 +50,75 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Ajax Stuff
+
+function wpas_scripts() {
+        wp_enqueue_script( 'ajax-scripts', plugins_url( 'js/ajax.js', __FILE__ ), array(), '1', false );
+        wp_enqueue_script( 'admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
+        wp_localize_script( 'admin-ajax', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+}
+//add_action('wp_enqueue_scripts', 'wpas_scripts');
+
+function load_template_part($request) {
+    global $wp_query;
+    $temp = $wp_query;
+    $wpas_id = $request['wpas_id'];
+    $wpas = new WP_Advanced_Search($wpas_id, $request);
+    $q = $wpas->query();
+//    ob_start();
+//    get_template_part('parts/case-study.'.$template_name);
+//    $var = ob_get_contents();
+//    ob_end_clean();
+    $wp_query = $temp;
+    return "<pre>". print_r($q,true) ."</pre>";
+    //return $var;
+}
+
+function wpas_ajax_load() {
+    global $post;
+
+    $request = array();
+
+    if (isset($_POST['form_data'])) {
+        parse_str($_POST['form_data'], $request);
+    }
+    $output = load_template_part($request);
+
+    die($output);
+}
+// creating Ajax call for WordPress
+add_action( 'wp_ajax_nopriv_wpas_ajax_load', 'wpas_ajax_load' );
+add_action( 'wp_ajax_wpas_ajax_load', 'wpas_ajax_load' );
+
+//
+
+
+function register_wpas_form($name, $args) {
+    global $WPAS_FORMS;
+    $args["wpas_id"] = $name;
+    $WPAS_FORMS[$name] = $args;
+}
+
+
 class WP_Advanced_Search {
     private $factory;
 
-    function __construct($args = '') {
-        $this->factory = new WPAS\Factory($args, $_REQUEST);
+    function __construct($id = '', $request = false) {
+        $args = $this->get_form_args($id);
+        $request = ($request) ? $request : $_REQUEST;
+        $this->factory = new WPAS\Factory($args, $request);
+    }
+
+    public function get_form_args($name) {
+        global $WPAS_FORMS;
+        if (empty($WPAS_FORMS)) return false;
+        if (empty($name)) {
+            if (!empty($WPAS_FORMS['default'])) return $WPAS_FORMS['default'];
+            else return reset($WPAS_FORMS);
+        } else if (empty($WPAS_FORMS[$name])) {
+            return false;
+        }
+        return $WPAS_FORMS[$name];
     }
 
     /**
@@ -201,6 +270,7 @@ class WP_Advanced_Search {
         $output = $this->create_debug_output($log_level);
         echo '<pre>' . $output . '</pre>';
     }
+
 
     /**
      * Get array of errors generated during setup/configuration of search
