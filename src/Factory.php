@@ -247,7 +247,7 @@ class Factory extends StdObject
         $query = array();
         if (!$this->fields_ready) {
             $this->addError('Method buildQuery called before initializing' .
-                'query fields.  Must call initFields first.');
+                ' query fields.  Must call initFields first.');
             return $query;
         }
 

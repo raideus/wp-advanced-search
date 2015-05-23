@@ -10,6 +10,7 @@ License: GPLv2 or later
 */
 
 define('WPAS_AJAX', true);
+require_once('config/form.default.php');
 
 $WPAS_FORMS = array();
 
@@ -57,21 +58,22 @@ function wpas_scripts() {
         wp_enqueue_script( 'admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
         wp_localize_script( 'admin-ajax', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
-//add_action('wp_enqueue_scripts', 'wpas_scripts');
+add_action('wp_enqueue_scripts', 'wpas_scripts');
 
-function load_template_part($request) {
+function load_template_part($query_object) {
     global $wp_query;
     $temp = $wp_query;
-    $wpas_id = $request['wpas_id'];
-    $wpas = new WP_Advanced_Search($wpas_id, $request);
-    $q = $wpas->query();
-//    ob_start();
-//    get_template_part('parts/case-study.'.$template_name);
-//    $var = ob_get_contents();
-//    ob_end_clean();
+    $wp_query = $query_object;
+    ob_start();
+    load_template(__DIR__.'/template-sample.php');
+    $var = ob_get_contents();
+    ob_end_clean();
+
+    //return "<pre>". print_r($q,true) ."</pre>";
+
     $wp_query = $temp;
-    return "<pre>". print_r($q,true) ."</pre>";
-    //return $var;
+    //return $query_object;
+    return $var;
 }
 
 function wpas_ajax_load() {
@@ -82,9 +84,22 @@ function wpas_ajax_load() {
     if (isset($_POST['form_data'])) {
         parse_str($_POST['form_data'], $request);
     }
-    $output = load_template_part($request);
 
-    die($output);
+    $wpas_id = $request['wpas_id'];
+    $wpas = new WP_Advanced_Search($wpas_id, $request);
+    $q = $wpas->query();
+    $pagination = $wpas->get_pagination($q);
+
+
+    $response = array();
+    $response["results"] = load_template_part($q);
+    $response["pagination"] = $pagination;
+
+    $log_level = (defined('WPAS_DEBUG_LEVEL')) ? WPAS_DEBUG_LEVEL : 'log';
+    $response["debug"] = "<pre>".$wpas->create_debug_output($log_level)."</pre>";
+
+    echo json_encode($response);
+    wp_die();
 }
 // creating Ajax call for WordPress
 add_action( 'wp_ajax_nopriv_wpas_ajax_load', 'wpas_ajax_load' );
@@ -102,21 +117,30 @@ function register_wpas_form($name, $args) {
 
 class WP_Advanced_Search {
     private $factory;
+    private $errors;
+    private $args;
+    private $request;
 
     function __construct($id = '', $request = false) {
-        $args = $this->get_form_args($id);
-        $request = ($request) ? $request : $_REQUEST;
-        $this->factory = new WPAS\Factory($args, $request);
+        $this->errors = array();
+        $this->args = $this->get_form_args($id);
+        $this->request = ($request) ? $request : $_REQUEST;
+        $this->factory = new WPAS\Factory($this->args, $this->request);
     }
 
     public function get_form_args($name) {
         global $WPAS_FORMS;
-        if (empty($WPAS_FORMS)) return false;
+
+        if (empty($WPAS_FORMS)) {
+            $this->errors[] = "No forms have been configured.";
+            return array();
+        }
         if (empty($name)) {
             if (!empty($WPAS_FORMS['default'])) return $WPAS_FORMS['default'];
             else return reset($WPAS_FORMS);
         } else if (empty($WPAS_FORMS[$name])) {
-            return false;
+            $this->errors[] = "WPAS form with ID \"".$name."\" is not registered.";
+            return array();
         }
         return $WPAS_FORMS[$name];
     }
@@ -135,7 +159,7 @@ class WP_Advanced_Search {
      */
     public function query() {
         $query = $this->factory->buildQueryObject();
-        $this->print_debug();
+        if (!$this->ajaxEnabled()) $this->print_debug();
         return $query;
     }
 
@@ -184,8 +208,19 @@ class WP_Advanced_Search {
     /**
      * Displays pagination links
      */
-    public function pagination( $args = '' ) {
+    public function pagination( $args = '', $return = false ) {
         global $wp_query;
+        echo $this->get_pagination($wp_query, $args);
+    }
+
+    public function get_pagination($query_object, $args = '') {
+        global $wp_query;
+        $temp = $wp_query;
+
+        $wp_query = $query_object;
+
+        $output = "";
+
         $current_page = max(1, get_query_var('paged'));
         $total_pages = $wp_query->max_num_pages;
 
@@ -202,11 +237,14 @@ class WP_Advanced_Search {
         $args = wp_parse_args($args, $defaults);
 
         if ($total_pages > 1){
-            echo '<div class="pagination">';
-            echo paginate_links($args);
-            echo '</div>';
+            $output .=  '<div class="pagination">';
+            $output .= paginate_links($args);
+            $output .=  '</div>';
         }
 
+        $wp_query = $temp;
+
+        return $output;
     }
 
     /**
@@ -221,8 +259,8 @@ class WP_Advanced_Search {
      * @param string $level
      * @return string
      */
-    private function create_debug_output($level = 'log') {
-        $errors = $this->factory->getErrors();
+    public function create_debug_output($level = 'log') {
+        $errors = $this->get_errors();
         $wp_query_obj = $this->factory->getWPQuery();
 
 
@@ -236,7 +274,7 @@ class WP_Advanced_Search {
             $output .= "No errors detected.\n";
         } else {
             $output .= count($errors) . " errors detected:\n";
-            $output .= print_r($this->factory->getErrors(), true) . "\n";
+            $output .= print_r($errors, true) . "\n";
         }
 
         $output .= "------------------------------------\n";
@@ -250,6 +288,12 @@ class WP_Advanced_Search {
         $output .= "------------------------------------\n";
 
         $output .= print_r($wp_query_obj->request, true) . "\n";
+
+        $output .= "------------------------------------\n";
+        $output .= "|| Request Data \n";
+        $output .= "------------------------------------\n";
+
+        $output .= print_r($this->request, true) . "\n";
 
         if ($level == 'verbose') {
             $output .= "------------------------------------\n";
@@ -278,8 +322,17 @@ class WP_Advanced_Search {
      *
      * @return array
      */
-    public function errors() {
-        return $this->factory->getErrors();
+    public function get_errors() {
+        $errors = $this->errors;
+        if (is_object($this->factory)) {
+            $errors = array_merge($this->errors, $this->factory->getErrors());
+        }
+        return $errors;
+    }
+
+    private function ajaxEnabled() {
+        $args = $this->args;
+        return (!empty($args) && !empty($args['ajax']) && $args['ajax']);
     }
 
 }

@@ -10,7 +10,9 @@ jQuery(document).ready(function($) {
 
 
     function setView(form_data) {
-            var container = "#wpas-load";
+        var container = "#wpas-load";
+        var pagination_container = "#wpas-pagination";
+        var debug_container = "#wpas-debug";
 
             jQuery.ajax({
                 type: 'POST',
@@ -22,7 +24,11 @@ jQuery(document).ready(function($) {
                     form_data: form_data
                 },
                 success: function(data, textStatus, XMLHttpRequest){
-                    $(container).html(data);
+                    response = JSON.parse(data);
+                    //console.log(JSON.parse(data));
+                    $(container).html(response.results);
+                    $(pagination_container).html(response.pagination);
+                    $(debug_container).html(response.debug);
                 },
                 error: function(MLHttpRequest, textStatus, errorThrown){
                     console.log(errorThrown);
