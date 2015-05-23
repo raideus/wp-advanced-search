@@ -74,7 +74,9 @@ class MetaQuery {
         }
 
         foreach ($clauses as $clause) {
-            if (!empty($clause)) $group[] = $clause;
+            if (!empty($clause) && !empty($clause['value'])) {
+               $group[] = $clause;
+            }
         }
 
         if (count($group) == 1) $group = $group[0];
@@ -153,7 +155,8 @@ class MetaQuery {
             }
         }
 
-        if (empty($clause['value'])) return array();
+        if ( empty($clause['value']) ) return '';
+        if ( empty($clause['value'][0]) && !is_numeric($clause['value'][0])) return '';
 
         return $clause;
     }
