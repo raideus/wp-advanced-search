@@ -226,7 +226,7 @@ class Factory extends StdObject
 
 
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-        if (!empty($_REQUEST['search_query']) && is_plugin_active('relevanssi/relevanssi.php')) {
+        if (!empty($_REQUEST['search_query']) && $this->relevanssiActive()) {
             relevanssi_do_query($query);
         }
 
@@ -444,11 +444,9 @@ class Factory extends StdObject
     /**
      * @return bool
      */
-    public function relevanssiEnabled() {
-        return ($this->config['relevanssi']) ? true : false;
+    public function relevanssiActive() {
+        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        return (is_plugin_active('relevanssi/relevanssi.php') || is_plugin_active('relevanssi-premium/relevanssi.php'));
     }
-
-
-
 
 }
