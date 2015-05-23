@@ -74,11 +74,10 @@ class MetaQuery {
         }
 
         foreach ($clauses as $clause) {
-            if (!empty($clause) && !empty($clause['value'])) {
+            if (!empty($clause)) {
                $group[] = $clause;
             }
         }
-
         if (count($group) == 1) $group = $group[0];
         return $group;
     }
