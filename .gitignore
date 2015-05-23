@@ -1,2 +1,6 @@
 .DS_Store
 demo/.DS_Store
+.idea/
+notes
+template-filter.php
+test.php
