@@ -46,11 +46,6 @@ class Form extends StdObject {
     public function toHTML() {
         global $post;
 
-        if (!is_array($this->class)) {
-            echo "Not an array!" . gettype($this->class);
-            die;
-        }
-
         $output = "
         <form id=\"".$this->id."\" name=\"".$this->name."\" 
                 class=\"".implode(" ",$this->class)."\"  
