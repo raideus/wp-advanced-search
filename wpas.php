@@ -9,11 +9,9 @@ Author URI: http://seanbutze.com
 License: GPLv2 or later
 */
 
-define('WPAS_AJAX', true);
 require_once('config/form.default.php');
 
 $WPAS_FORMS = array();
-
 
 /**
  * Class Autoloader
@@ -52,11 +50,10 @@ spl_autoload_register(function ($class) {
 });
 
 // Ajax Stuff
-
 function wpas_scripts() {
-        wp_enqueue_script( 'ajax-scripts', plugins_url( 'js/ajax.js', __FILE__ ), array(), '1', false );
-        wp_enqueue_script( 'admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
-        wp_localize_script( 'admin-ajax', 'MyAjax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
+    wp_enqueue_script( 'ajax-scripts', get_template_directory_uri() . '/' . basename(__DIR__) . '/js/ajax.js', array(), '1', false );
+    wp_enqueue_script( 'admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
+    wp_localize_script( 'admin-ajax', 'WPAS_Ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }
 add_action('wp_enqueue_scripts', 'wpas_scripts');
 
@@ -69,87 +66,104 @@ function load_template_part($query_object) {
     $var = ob_get_contents();
     ob_end_clean();
 
-    //return "<pre>". print_r($q,true) ."</pre>";
-
     $wp_query = $temp;
-    //return $query_object;
     return $var;
 }
 
 function wpas_ajax_load() {
-    global $post;
 
-    $request = array();
+        $request = array();
 
-    if (isset($_POST['form_data'])) {
-        parse_str($_POST['form_data'], $request);
-    }
+        if (isset($_POST['form_data'])) {
+            parse_str($_POST['form_data'], $request);
+        }
 
-    $wpas_id = $request['wpas_id'];
-    $wpas = new WP_Advanced_Search($wpas_id, $request);
-    $q = $wpas->query();
-    $pagination = $wpas->get_pagination($q);
+        $wpas_id = $request['wpas_id'];
+        $wpas = new WP_Advanced_Search($wpas_id, $request);
+        $q = $wpas->query();
+        //$pagination = $wpas->get_pagination($q, '', true);
 
+        $response = array();
+        $response["results"] = load_template_part($q);
+        //$response["pagination"] = $pagination;
+        $response["current_page"] = $q->query_vars['paged'];
+        $response["max_page"] = $q->max_num_pages;
 
-    $response = array();
-    $response["results"] = load_template_part($q);
-    $response["pagination"] = $pagination;
+        $response["debug"] = "";
 
-    $log_level = (defined('WPAS_DEBUG_LEVEL')) ? WPAS_DEBUG_LEVEL : 'log';
-    $response["debug"] = "<pre>".$wpas->create_debug_output($log_level)."</pre>";
+        if ($wpas->debug_enabled()) $response["debug"] = "<pre>". $wpas->create_debug_output() . "</pre>";
 
-    echo json_encode($response);
-    wp_die();
+        echo json_encode($response);
+        wp_die();
 }
+
 // creating Ajax call for WordPress
 add_action( 'wp_ajax_nopriv_wpas_ajax_load', 'wpas_ajax_load' );
 add_action( 'wp_ajax_wpas_ajax_load', 'wpas_ajax_load' );
-
 //
-
 
 function register_wpas_form($name, $args) {
     global $WPAS_FORMS;
+    if (!is_array($args)) return;
     $args["wpas_id"] = $name;
     $WPAS_FORMS[$name] = $args;
 }
 
+
+function get_wpas_url() {
+    return get_template_directory_uri() . '/' . basename(__DIR__);
+}
 
 class WP_Advanced_Search {
     private $factory;
     private $errors;
     private $args;
     private $request;
+    private $debug;
+    private $ajax;
+    public $debug_level;
 
     function __construct($id = '', $request = false) {
         $this->errors = array();
         $this->args = $this->get_form_args($id);
+        $this->args = $this->process_args($this->args);
+        $this->ajax = $this->args['form']['ajax'];
+        $this->debug = $this->args['debug'];
+        $this->debug_level = $this->args['debug_level'];
         $this->request = ($request) ? $request : $_REQUEST;
         $this->factory = new WPAS\Factory($this->args, $this->request);
     }
 
-    public function get_form_args($name) {
+    /**
+     * Get arguments for a form based on its registered ID
+     *
+     * @param $id
+     * @return array|mixed
+     */
+    public function get_form_args($id) {
         global $WPAS_FORMS;
 
         if (empty($WPAS_FORMS)) {
             $this->errors[] = "No forms have been configured.";
             return array();
         }
-        if (empty($name)) {
+        if (empty($id)) {
             if (!empty($WPAS_FORMS['default'])) return $WPAS_FORMS['default'];
             else return reset($WPAS_FORMS);
-        } else if (empty($WPAS_FORMS[$name])) {
-            $this->errors[] = "WPAS form with ID \"".$name."\" is not registered.";
+        } else if (empty($WPAS_FORMS[$id])) {
+            $this->errors[] = "WPAS form with ID \"".$id."\" is not registered.";
             return array();
         }
-        return $WPAS_FORMS[$name];
+        return $WPAS_FORMS[$id];
     }
 
     /**
      * Print HTML content of the search form
      */
     public function the_form() {
-        echo $this->factory->getForm()->toHTML();
+        $form = $this->factory->getForm();
+        if ($this->debug) $form->addClass('debug-enabled');
+        echo $form->toHTML();
     }
 
     /**
@@ -159,7 +173,7 @@ class WP_Advanced_Search {
      */
     public function query() {
         $query = $this->factory->buildQueryObject();
-        if (!$this->ajaxEnabled()) $this->print_debug();
+        if (!$this->ajax_enabled()) $this->print_debug();
         return $query;
     }
 
@@ -208,15 +222,21 @@ class WP_Advanced_Search {
     /**
      * Displays pagination links
      */
-    public function pagination( $args = '', $return = false ) {
+    public function pagination( $args = '', $ajax = false) {
         global $wp_query;
-        echo $this->get_pagination($wp_query, $args);
+        echo $this->get_pagination($wp_query, $args, $ajax);
     }
 
-    public function get_pagination($query_object, $args = '') {
+    /**
+     * Get HTML for pagination links
+     *
+     * @param $query_object
+     * @param string $args
+     * @return string
+     */
+    public function get_pagination($query_object, $args = '', $ajax = false) {
         global $wp_query;
         $temp = $wp_query;
-
         $wp_query = $query_object;
 
         $output = "";
@@ -224,8 +244,13 @@ class WP_Advanced_Search {
         $current_page = max(1, get_query_var('paged'));
         $total_pages = $wp_query->max_num_pages;
 
-        $big = '999999999';
-        $base = str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) );
+        $b = '999999999';
+
+        if ($this->ajax_enabled()) {
+            $base = "#";
+        } else {
+            $base = str_replace( $b, '%#%', esc_url( get_pagenum_link( $b ) ) );
+        }
 
         $defaults = array(
             'base' => $base,
@@ -233,6 +258,10 @@ class WP_Advanced_Search {
             'current' => $current_page,
             'total' => $total_pages
         );
+
+        if (empty($args) && !empty($this->args['pagination'])) {
+            $args = $this->args['pagination'];
+        }
 
         $args = wp_parse_args($args, $defaults);
 
@@ -248,10 +277,19 @@ class WP_Advanced_Search {
     }
 
     /**
+     * Get full WP Query object
+     *
+     * @return object
+     */
+    public function get_wp_query_object() {
+        return $this->factory->getWPQuery();
+    }
+
+    /**
      * Create string of debug information
      *
      * For use when WPAS_DEBUG is enabled, or when calling the
-     * debug() method.
+     * print_debug() method.
      *
      * When $log is set to 'verbose', the output will contain a full var dump
      * of the generated WP_Query object.
@@ -259,7 +297,8 @@ class WP_Advanced_Search {
      * @param string $level
      * @return string
      */
-    public function create_debug_output($level = 'log') {
+    public function create_debug_output() {
+        $level = $this->debug_level;
         $errors = $this->get_errors();
         $wp_query_obj = $this->factory->getWPQuery();
 
@@ -309,12 +348,17 @@ class WP_Advanced_Search {
      * Print debug information
      */
     public function print_debug() {
-        if (!defined('WPAS_DEBUG') || !WPAS_DEBUG) return;
-        $log_level = (defined('WPAS_DEBUG_LEVEL')) ? WPAS_DEBUG_LEVEL : 'log';
-        $output = $this->create_debug_output($log_level);
+        if ($this->debug == false) return;
+        $output = $this->create_debug_output();
         echo '<pre>' . $output . '</pre>';
     }
 
+    /**
+     * @return bool
+     */
+    public function debug_enabled() {
+       return $this->debug;
+    }
 
     /**
      * Get array of errors generated during setup/configuration of search
@@ -330,9 +374,61 @@ class WP_Advanced_Search {
         return $errors;
     }
 
-    private function ajaxEnabled() {
-        $args = $this->args;
-        return (!empty($args) && !empty($args['ajax']) && $args['ajax']);
+    /**
+     * Get Ajax configuration
+     *
+     * @return mixed
+     */
+    public function get_ajax() {
+        return $this->ajax;
+    }
+
+    /**
+     * Returns true if ajax is enabled for the current search instance
+     *
+     * @return bool
+     */
+    public function ajax_enabled() {
+        return $this->ajax->isEnabled();
+    }
+
+    /**
+     * Pre process arguments, translate argument blocks into config objects
+     *
+     * @param $args
+     * @return mixed
+     */
+    private function process_args($args) {
+
+        // Establish AJAX configuration
+        $ajax_args = array();
+        if (!isset($args['form'])) $args['form'] = array();
+
+        if (isset($args['form']['ajax'])) {
+            $ajax_args = $args['form']['ajax'];
+        }
+        $args['form']['ajax'] = new WPAS\AjaxConfig($ajax_args);
+
+        // Set debug mode and debug level
+        $debug = false;
+        if (defined('WPAS_DEBUG') && WPAS_DEBUG) {
+            $debug = true;
+        } else if (!empty($args['debug']) && $args['debug']) {
+            $debug = true;
+        }
+
+        $debug_level = 'log';
+
+        if (defined('WPAS_DEBUG_LEVEL') && WPAS_DEBUG_LEVEL) {
+            $debug_level = WPAS_DEBUG_LEVEL;
+        } else if (!empty($args['debug_level']) && $args['debug_level']) {
+            $debug_level = $args['debug_level'];
+        }
+
+        $args['debug'] = $debug;
+        $args['debug_level'] = $debug_level;
+
+        return $args;
     }
 
 }

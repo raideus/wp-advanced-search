@@ -4,4 +4,4 @@ demo/.DS_Store
 test.php
 template-*
 notes
-config/form.test.php
+config/form.test*.php

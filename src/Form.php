@@ -9,6 +9,7 @@ class Form extends StdObject {
     private $name;
     private $class;
     private $inputs;
+    private $ajax;
     protected $args;
 
     static protected $rules = array(
@@ -17,6 +18,7 @@ class Form extends StdObject {
                                     'id' => 'string',
                                     'name' => 'string',
                                     'class' => 'array<string>',
+                                    'ajax' => 'object',
                                     'inputs' => 'array' );
 
     static protected $defaults = array(  
@@ -48,9 +50,10 @@ class Form extends StdObject {
 
         $output = "
         <form id=\"".$this->id."\" name=\"".$this->name."\" 
-                class=\"".implode(" ",$this->class)."\"  
-                method=\"".$this->method."\"  
-                action=\"".$this->action."\"> ";
+                class=\"".$this->getClassString()."\"
+                method=\"".$this->method."\" ";
+        $output .= $this->dataAttributesString();
+        $output .= "action=\"".$this->action."\"> ";
 
         // URL fix if "pretty permalinks" are not enabled
         if ( get_option('permalink_structure') == '' && is_object($post) ) {
@@ -61,6 +64,10 @@ class Form extends StdObject {
             if ($input instanceof Input) {
                 $output .= $input->toHTML();
             }
+        }
+
+        if ($this->ajax->isEnabled()) {
+            $output .= "<input type=\"hidden\" id=\"wpas-paged\" name=\"paged\" value=\"1\">";
         }
 
         $output .= "<input type=\"hidden\" name=\"wpas_id\" value=\"".$this->wpas_id."\">";
@@ -109,7 +116,29 @@ class Form extends StdObject {
         if (!empty($args['class']) && is_string($args['class'])) {
             $args['class'] = explode(' ', $args['class']);
         }
+        if (empty($args['ajax'])) $args['ajax'] = new AjaxConfig();
         return $args;
+    }
+
+    /**
+     * Generates string of data attributes
+     *
+     * @return string
+     */
+    private function dataAttributesString() {
+        $output = "";
+        if ($this->ajax->isEnabled() == false) return $output;
+
+        $output .= "data-ajax-mode=\"".$this->ajax->mode()."\" ";
+        $output .= "data-ajax-button=\"".$this->ajax->buttonText()."\" ";
+        $output .= "data-ajax-loading=\"".$this->ajax->loadingImage()."\" ";
+
+        return $output;
+    }
+
+    public function addClass($class) {
+        if (!is_string($class)) return;
+        $this->class[] = $class;
     }
 
     public function getID() {
@@ -130,6 +159,14 @@ class Form extends StdObject {
 
     public function getClass() {
         return $this->class;
+    }
+
+    public function getClassString() {
+        $str = implode(" ",$this->class);
+        if ($this->ajax->isEnabled()) {
+            $str .= " ajax-enabled";
+        }
+        return $str;
     }
 
     public function getInputs() {

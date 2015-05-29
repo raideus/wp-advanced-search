@@ -226,7 +226,7 @@ class Factory extends StdObject
     public function buildQueryObject() {
         $query_args = $this->buildQuery();
         $query = new \WP_Query($query_args);
-        $query->query_vars['post_type'] = $query_args['post_type'];
+        $query->query_vars['post_type'] = (empty($query_args['post_type'])) ? 'post' : $query_args['post_type'];
 
 
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -339,7 +339,10 @@ class Factory extends StdObject
     }
 
     private function addPaginationArg(array $query) {
-        if ( get_query_var('paged') ) {
+        if (!empty($this->request['paged'])) {
+            $paged = $this->request['paged'];
+        }
+        else if ( get_query_var('paged') ) {
             $paged = get_query_var('paged');
         } else if ( get_query_var('page') ) {
             $paged = get_query_var('page');

@@ -1,6 +1,5 @@
 <?php
 namespace WPAS;
-require_once('StdObject.php');
 
 /**
  *  Class for building hierarchical lists of taxonomy terms
