@@ -57,12 +57,12 @@ function wpas_scripts() {
 }
 add_action('wp_enqueue_scripts', 'wpas_scripts');
 
-function load_template_part($query_object) {
+function load_template_part($template, $query_object) {
     global $wp_query;
     $temp = $wp_query;
     $wp_query = $query_object;
     ob_start();
-    load_template(__DIR__.'/template-sample.php');
+    load_template(__DIR__.'/demo/'.$template);
     $var = ob_get_contents();
     ob_end_clean();
 
@@ -81,10 +81,11 @@ function wpas_ajax_load() {
         $wpas_id = $request['wpas_id'];
         $wpas = new WP_Advanced_Search($wpas_id, $request);
         $q = $wpas->query();
+        $template_name = 'template-results.php';
         //$pagination = $wpas->get_pagination($q, '', true);
 
         $response = array();
-        $response["results"] = load_template_part($q);
+        $response["results"] = load_template_part($template_name,$q);
         //$response["pagination"] = $pagination;
         $response["current_page"] = $q->query_vars['paged'];
         $response["max_page"] = $q->max_num_pages;
@@ -107,11 +108,6 @@ function register_wpas_form($name, $args) {
     if (!is_array($args)) return;
     $args["wpas_id"] = $name;
     $WPAS_FORMS[$name] = $args;
-}
-
-
-function get_wpas_url() {
-    return get_template_directory_uri() . '/' . basename(__DIR__);
 }
 
 class WP_Advanced_Search {

@@ -1,25 +1,83 @@
 jQuery(document).ready(function($) {
 
     var FORM = "#wp-advanced-search.ajax-enabled";
-    if ($(FORM).length == 0) return;
-
-
     var CONTAINER = "#wpas-results";
-    var LOAD_BUTTON = "#wpas-load-more-btn";
+    var INNER = "#wpas-results-inner";
     var DEBUG_CONTAINER = "#wpas-debug";
     var PAGE_FIELD = "#wpas-paged";
-    var AJAX_MODE = $(FORM).data('ajax-mode');
-    var BUTTON_TEXT = $(FORM).data('ajax-button');
-    var LOADING_IMG = "#wpas-loading-img";
-    var LOADING_IMG_URL = $(FORM).data('ajax-loading');
+
+    if ($(FORM).length == 0) {
+        log("No WPAS search form detected on page.");
+        return;
+    }
+
+    if ($(CONTAINER).length == 0) {
+        log("No container with ID #wpas-results found on page.  Results cannot be shown");
+        return;
+    }
+
     var CURRENT_PAGE = 1;
-    var DEBUG_ON = ($(FORM).length != 0 && $(FORM).hasClass('debug-enabled')) ? true : false;
+    var DEBUG_ON = ($(FORM).hasClass('debug-enabled')) ? true : false;
+    var SHOW_DEFAULT = ($(FORM).data('ajax-show-default')) ? true : false;
+
+
     var T = (DEBUG_ON) ? 500 : 0;
 
-    initLoading();
+    if (DEBUG_ON && $(DEBUG_CONTAINER).length == 0) {
+        log("WPAS_DEBUG is enabled but no container with ID #wpas-debug was found " +
+        "on this page.  Debug information cannot be shown.");
+        return;
+    }
+
+    var ajaxLoader = {
+        container: "wpas-load",
+        load_btn: "wpas-load-btn",
+        load_btn_text: "",
+        load_img: "wpas-loading-img",
+        load_img_url: "",
+        mode: "lazy",
+        init : function(form) {
+            console.log(form);
+            this.mode = $(form).data('ajax-mode');
+            this.load_btn_text = $(form).data('ajax-button');
+            this.load_img_url = $(form).data('ajax-loading');
+            $(CONTAINER).append(this.create());
+        },
+
+        create: function() {
+            var html = "<div id='wpas-load'>";
+            html += "<div><img id='"+this.load_img+"' style='display:none;' src='"+this.load_img_url+"'></div>";
+
+            if (this.mode == "lazy") {
+                html += "<div><button id='"+this.load_btn+"' style='display:none;'>"+this.load_btn_text+"</button></div>";
+            }
+            html += "</div>";
+            return html;
+        },
+
+        showButton: function() {
+            $('#'+this.load_btn).addClass('active').show();
+        },
+
+        hideButton: function() {
+            $('#'+this.load_btn).removeClass('active').hide();
+        },
+
+        showImage: function() {
+            $('#'+this.load_img).show();
+        },
+
+        hideImage: function() {
+            $('#'+this.load_img).hide();
+        }
+
+    };
+
+    $(CONTAINER).append("<div id='wpas-results-inner'></div>");
+    ajaxLoader.init(FORM);
 
     // Show results by default if attribute is set
-    if ($(CONTAINER).length != 0 && $(CONTAINER).data('default-show')) {
+    if ($(CONTAINER).length != 0 && SHOW_DEFAULT) {
         sendRequest($(FORM).serialize());
     }
 
@@ -30,7 +88,7 @@ jQuery(document).ready(function($) {
     });
 
     // Event trigger for "load more" button
-    $(document).on('click', LOAD_BUTTON+'.active', function(e){
+    $(document).on('click', '#'+ajaxLoader.load_btn+'.active', function(e){
         setPage(parseInt(CURRENT_PAGE) + 1)
         sendRequest($(FORM).serialize());
     });
@@ -40,7 +98,7 @@ jQuery(document).ready(function($) {
     function submitForm(form, clear) {
         setPage(1);
         var form_data = $(form).serialize();
-        $(CONTAINER).empty();
+        $(INNER).empty();
         console.log(form_data);
         sendRequest(form_data);
     }
@@ -48,7 +106,8 @@ jQuery(document).ready(function($) {
     // Set AJAX request to fetch results
     // Appends results to the container
     function sendRequest(data) {
-        showLoading();
+        ajaxLoader.hideButton();
+        ajaxLoader.showImage();
         jQuery.ajax({
             type: 'POST',
             url: WPAS_Ajax.ajaxurl,
@@ -61,16 +120,18 @@ jQuery(document).ready(function($) {
             success: function(data, textStatus, XMLHttpRequest) {
                 response = JSON.parse(data);
                 setTimeout(function() {
-                    appendHTML(CONTAINER, response.results);
-                    hideLoading();
+                    appendHTML(INNER, response.results);
+                    ajaxLoader.hideImage();
                     updateHTML(DEBUG_CONTAINER,response.debug);
                     CURRENT_PAGE = response.current_page;
                     var max_page = response.max_page;
 
-                    if (CURRENT_PAGE == max_page) {
-                        hideLoadButton();
+                    log("Current Page: "+CURRENT_PAGE+", Max Page: "+max_page);
+
+                    if (max_page == 0 || CURRENT_PAGE == max_page) {
+                        ajaxLoader.hideButton();
                     } else {
-                        showLoadButton();
+                        ajaxLoader.showButton();
                     }
 
                 }, T);
@@ -82,39 +143,11 @@ jQuery(document).ready(function($) {
         });
     }
 
-    function showLoadButton() {
-        $(LOAD_BUTTON).text(BUTTON_TEXT).addClass('active').show();
-    }
-
-    function hideLoadButton() {
-        $(LOAD_BUTTON).removeClass('active').hide();
-    }
-
-    function initLoading() {
-        $(CONTAINER).append("<div id='wpas-loading-img' style='display:none;'><img src='"+LOADING_IMG_URL+"'></div>");
-    }
-
-    function showLoading() {
-        $(LOADING_IMG).detach().appendTo(CONTAINER).show();
-    }
-
-    function hideLoading() {
-        $(LOADING_IMG).hide();
-    }
-
     function appendHTML(el, content) {
-        if ($(el).length == 0) {
-            log("Element " + el + " not found.");
-            return;
-        }
         $(el).append(content);
     }
 
     function updateHTML(el, content) {
-        if ($(el).length == 0) {
-            log("Element " + el + " not found.");
-            return;
-        }
         $(el).html(content);
     }
 

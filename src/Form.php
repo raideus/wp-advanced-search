@@ -133,6 +133,9 @@ class Form extends StdObject {
         $output .= "data-ajax-button=\"".$this->ajax->buttonText()."\" ";
         $output .= "data-ajax-loading=\"".$this->ajax->loadingImage()."\" ";
 
+        $show_default = ($this->ajax->showDefaultResults()) ? "1" : "0";
+        $output .= "data-ajax-show-default=\"".$show_default."\" ";
+
         return $output;
     }
 

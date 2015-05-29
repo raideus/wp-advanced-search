@@ -6,6 +6,9 @@ class AjaxConfig extends StdObject
     private $enabled;
     private $loading_img;
     private $button_text;
+    private $mode;
+    private $show_default_results;
+    private $results_template;
     protected $args;
 
     static protected $rules = array(
@@ -13,13 +16,14 @@ class AjaxConfig extends StdObject
         'loading_img' => 'string',
         'mode' => 'string',
         'button_text' => 'string',
+        'show_default_results' => 'bool'
     );
 
     static protected $defaults = array(
         'enabled' => false,
-        'loading_img' => 'default',
         'mode' => 'lazy-load',
         'button_text' => 'LOAD MORE RESULTS',
+        'show_default_results' => true
     );
 
     function __construct($args = array())
@@ -30,11 +34,10 @@ class AjaxConfig extends StdObject
             $this->$key = $value;
         }
 
-        if ($this->loading_img == 'default') {
+        if (empty($this->loading_img)) {
             $this->loading_img = get_template_directory_uri() . '/' . basename(dirname(dirname(__FILE__))) . '/img/loading.gif';
-        } else {
-            die($this->loading_img);
         }
+
     }
 
     /**
@@ -67,5 +70,13 @@ class AjaxConfig extends StdObject
     public function buttonText()
     {
         return $this->button_text;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function showDefaultResults()
+    {
+        return $this->show_default_results;
     }
 }
