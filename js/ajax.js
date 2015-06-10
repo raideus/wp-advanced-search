@@ -35,10 +35,8 @@ jQuery(document).ready(function($) {
         load_btn_text: "",
         load_img: "wpas-loading-img",
         load_img_url: "",
-        mode: "lazy",
         init : function(form) {
             console.log(form);
-            this.mode = $(form).data('ajax-mode');
             this.load_btn_text = $(form).data('ajax-button');
             this.load_img_url = $(form).data('ajax-loading');
             $(CONTAINER).append(this.create());
@@ -47,10 +45,7 @@ jQuery(document).ready(function($) {
         create: function() {
             var html = "<div id='wpas-load'>";
             html += "<div><img id='"+this.load_img+"' style='display:none;' src='"+this.load_img_url+"'></div>";
-
-            if (this.mode == "lazy") {
-                html += "<div><button id='"+this.load_btn+"' style='display:none;'>"+this.load_btn_text+"</button></div>";
-            }
+            html += "<div><button id='"+this.load_btn+"' style='display:none;'>"+this.load_btn_text+"</button></div>";
             html += "</div>";
             return html;
         },

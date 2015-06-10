@@ -14,14 +14,12 @@ class AjaxConfig extends StdObject
     static protected $rules = array(
         'enabled' => 'bool',
         'loading_img' => 'string',
-        'mode' => 'string',
         'button_text' => 'string',
         'show_default_results' => 'bool'
     );
 
     static protected $defaults = array(
         'enabled' => false,
-        'mode' => 'lazy-load',
         'button_text' => 'LOAD MORE RESULTS',
         'show_default_results' => true
     );
@@ -54,14 +52,6 @@ class AjaxConfig extends StdObject
     public function loadingImage()
     {
         return $this->loading_img;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function mode()
-    {
-        return $this->mode;
     }
 
     /**
