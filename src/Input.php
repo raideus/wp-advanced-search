@@ -17,7 +17,7 @@ class Input extends StdObject {
     private $ctr;
     private $pre_html;
     private $post_html;
-    private $include_wrappers;
+    private $disable_wrapper;
 
     protected static $rules = array(
                             'id' => 'string',
@@ -45,6 +45,7 @@ class Input extends StdObject {
                             'nested' => false,
                             'allow_null' => false,
                             'default_all' => false,
+                            'disable_wrapper' => false,
                             'pre_html' => '',
                             'post_html' => '' );
 
@@ -104,9 +105,6 @@ class Input extends StdObject {
             $this->class = implode(' ', $this->class);
         }
 
-        $this->include_wrappers = (!defined('WPAS_DISABLE_WRAPPERS')
-                                                    || !WPAS_DISABLE_WRAPPERS);
-
         $this->id = $this->input_name;
         $this->ctr = 1;
     }
@@ -124,7 +122,7 @@ class Input extends StdObject {
 
             $output .= $this->pre_html;
 
-            if ($this->include_wrappers) {
+            if ($this->disable_wrapper == false) {
                 $output .= '<div id="wpas-'.$this->id.'"  class="wpas-'
                     .$this->id.' wpas-'.$this->field_type.'-field wpas-field">';
             }
@@ -138,7 +136,7 @@ class Input extends StdObject {
         $output .= $this->getInputInnerHTML();
 
         if ($this->format != 'hidden') {
-            if ($this->include_wrappers) {
+            if ($this->disable_wrapper == false) {
                 $output .= '</div>';
             }
             $output .= $this->post_html;
@@ -474,6 +472,10 @@ class Input extends StdObject {
         $arr[''] = $null_option;
         $arr = array_reverse($arr, true);
         $this->values = $arr;
+    }
+
+    public function disableWrapper() {
+        $this->disable_wrapper = true;
     }
 
     /**

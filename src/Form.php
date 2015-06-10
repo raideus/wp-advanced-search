@@ -10,6 +10,7 @@ class Form extends StdObject {
     private $class;
     private $inputs;
     private $ajax;
+    private $disable_wrappers;
     protected $args;
 
     static protected $rules = array(
@@ -19,6 +20,7 @@ class Form extends StdObject {
                                     'name' => 'string',
                                     'class' => 'array<string>',
                                     'ajax' => 'object',
+                                    'disable_wrappers' => 'bool',
                                     'inputs' => 'array' );
 
     static protected $defaults = array(  
@@ -27,6 +29,7 @@ class Form extends StdObject {
                                         'id' => 'wp-advanced-search',
                                         'name' => 'wp-advanced-search',
                                         'class' => array('wp-advanced-search'),
+                                        'disable_wrappers' => false,
                                         'inputs' => array() );
 
     function __construct($wpas_id, $args) {
@@ -84,6 +87,7 @@ class Form extends StdObject {
      * @param Input $input
      */
     public function addInput( Input $input ) {
+        if ($this->disableWrappers()) $input->disableWrapper();
         $this->inputs[] = $input;
     }
 
@@ -129,7 +133,6 @@ class Form extends StdObject {
         $output = "";
         if ($this->ajax->isEnabled() == false) return $output;
 
-        $output .= "data-ajax-mode=\"".$this->ajax->mode()."\" ";
         $output .= "data-ajax-button=\"".$this->ajax->buttonText()."\" ";
         $output .= "data-ajax-loading=\"".$this->ajax->loadingImage()."\" ";
 
@@ -142,6 +145,10 @@ class Form extends StdObject {
     public function addClass($class) {
         if (!is_string($class)) return;
         $this->class[] = $class;
+    }
+
+    public function disableWrappers() {
+        return ((defined('WPAS_DISABLE_WRAPPERS') && WPAS_DISABLE_WRAPPERS) || ($this->disable_wrappers));
     }
 
     public function getID() {
