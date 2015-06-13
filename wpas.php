@@ -9,106 +9,11 @@ Author URI: http://seanbutze.com
 License: GPLv2 or later
 */
 
-require_once('config/form.default.php');
-
 $WPAS_FORMS = array();
 
-/**
- * Class Autoloader
- *
- * Adapted from PHP-FIG:
- * http://www.php-fig.org/psr/psr-4/examples/
- *
- */
-spl_autoload_register(function ($class) {
-
-    // project-specific namespace prefix
-    $prefix = 'WPAS\\';
-
-    // base directory for the namespace prefix
-    $base_dir = __DIR__ . '/src/';
-
-    // does the class use the namespace prefix?
-    $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        // no, move to the next registered autoloader
-        return;
-    }
-
-    // get the relative class name
-    $relative_class = substr($class, $len);
-
-    // replace the namespace prefix with the base directory, replace namespace
-    // separators with directory separators in the relative class name, append
-    // with .php
-    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
-
-    // if the file exists, require it
-    if (file_exists($file)) {
-        require $file;
-    }
-});
-
-// Ajax Stuff
-function wpas_scripts() {
-    wp_enqueue_script( 'ajax-scripts', get_template_directory_uri() . '/' . basename(__DIR__) . '/js/ajax.js', array(), '1', false );
-    wp_enqueue_script( 'admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
-    wp_localize_script( 'admin-ajax', 'WPAS_Ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
-}
-add_action('wp_enqueue_scripts', 'wpas_scripts');
-
-function load_template_part($template, $query_object) {
-    global $wp_query;
-    $temp = $wp_query;
-    $wp_query = $query_object;
-    ob_start();
-    load_template(__DIR__.'/demo/'.$template);
-    $var = ob_get_contents();
-    ob_end_clean();
-
-    $wp_query = $temp;
-    return $var;
-}
-
-function wpas_ajax_load() {
-
-        $request = array();
-
-        if (isset($_POST['form_data'])) {
-            parse_str($_POST['form_data'], $request);
-        }
-
-        $wpas_id = $request['wpas_id'];
-        $wpas = new WP_Advanced_Search($wpas_id, $request);
-        $q = $wpas->query();
-        $template_name = 'template-results.php';
-        //$pagination = $wpas->get_pagination($q, '', true);
-
-        $response = array();
-        $response["results"] = load_template_part($template_name,$q);
-        //$response["pagination"] = $pagination;
-        $response["current_page"] = $q->query_vars['paged'];
-        $response["max_page"] = $q->max_num_pages;
-
-        $response["debug"] = "";
-
-        if ($wpas->debug_enabled()) $response["debug"] = "<pre>". $wpas->create_debug_output() . "</pre>";
-
-        echo json_encode($response);
-        wp_die();
-}
-
-// creating Ajax call for WordPress
-add_action( 'wp_ajax_nopriv_wpas_ajax_load', 'wpas_ajax_load' );
-add_action( 'wp_ajax_wpas_ajax_load', 'wpas_ajax_load' );
-//
-
-function register_wpas_form($name, $args) {
-    global $WPAS_FORMS;
-    if (!is_array($args)) return;
-    $args["wpas_id"] = $name;
-    $WPAS_FORMS[$name] = $args;
-}
+require_once('lib.php');
+require_once('init.php');
+require_once('config/form.default.php');
 
 class WP_Advanced_Search {
     private $factory;
