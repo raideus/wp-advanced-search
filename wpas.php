@@ -63,7 +63,7 @@ class WP_Advanced_Search {
      */
     public function the_form() {
         $form = $this->factory->getForm();
-        if ($this->debug) $form->addClass('debug-enabled');
+        if ($this->debug) $form->addClass('wpas-debug-enabled');
         echo $form->toHTML();
     }
 

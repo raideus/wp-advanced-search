@@ -6,7 +6,6 @@ class AjaxConfig extends StdObject
     private $enabled;
     private $loading_img;
     private $button_text;
-    private $mode;
     private $show_default_results;
     private $results_template;
     protected $args;
@@ -26,16 +25,28 @@ class AjaxConfig extends StdObject
 
     function __construct($args = array())
     {
-        $this->args = $this->parseArgs($args, self::$defaults);
+        $args = $this->parseArgs($args, self::$defaults);
+        $args = $this->processArgs($args);
+        $this->args = $args;
 
         foreach ($this->args as $key => $value) {
             $this->$key = $value;
         }
 
-        if (empty($this->loading_img)) {
-            $this->loading_img = get_template_directory_uri() . '/' . basename(dirname(dirname(__FILE__))) . '/img/loading.gif';
+    }
+
+    private function processArgs(array $args) {
+        $dir = basename(dirname(dirname(__FILE__)));
+
+        if (empty($args['loading_img'])) {
+            $args['loading_img'] = get_template_directory_uri() . '/' . $dir . '/img/loading.gif';
         }
 
+        if (empty($args['results_template'])) {
+            $args['results_template'] = $dir . '/templates/template-ajax-results.php';
+        }
+
+        return $args;
     }
 
     /**
@@ -65,8 +76,17 @@ class AjaxConfig extends StdObject
     /**
      * @return mixed
      */
+    public function resultsTemplate()
+    {
+        return $this->results_template;
+    }
+
+    /**
+     * @return mixed
+     */
     public function showDefaultResults()
     {
         return $this->show_default_results;
     }
+
 }

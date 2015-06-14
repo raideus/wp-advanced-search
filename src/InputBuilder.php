@@ -215,6 +215,30 @@ class InputBuilder extends StdObject {
     }
 
     /**
+     * Generates a reset button
+     */
+    public static function reset($input_name, $args, $request) {
+        $defaults = array(
+            'values' => array('Reset')
+        );
+        $args = self::parseArgs($args, $defaults);
+        $args['format'] = 'reset';
+        return $args;
+    }
+
+    /**
+     * Generates a clear button
+     */
+    public static function clear($input_name, $args, $request) {
+        $defaults = array(
+            'values' => array('Clear')
+        );
+        $args = self::parseArgs($args, $defaults);
+        $args['format'] = 'clear';
+        return $args;
+    }
+
+    /**
      * Configure a meta_key input
      *
      * @param $input_name

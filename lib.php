@@ -13,14 +13,16 @@ function wpas_build_ajax_response(array $post) {
         parse_str($post['form_data'], $request);
     }
 
+    $page = (isset($post['page'])) ? $post['page'] : 0;
+    $request['paged'] = $page;
+
     $wpas_id = $request['wpas_id'];
     $wpas = new WP_Advanced_Search($wpas_id, $request);
     $q = $wpas->query();
     $template = $wpas->get_ajax()->resultsTemplate();
 
     $response = array();
-    $response["results"] = load_template_part($template,$q);
-    //$response["pagination"] = $pagination;
+    $response["results"] = wpas_load_template_part($template,$q);
     $response["current_page"] = $q->query_vars['paged'];
     $response["max_page"] = $q->max_num_pages;
 
@@ -39,7 +41,7 @@ function wpas_build_ajax_response(array $post) {
  * @param $query_object
  * @return string
  */
-function load_template_part($template, $query_object) {
+function wpas_load_template_part($template, $query_object) {
     global $wp_query;
 
     $template = ltrim($template,'/');
@@ -66,4 +68,17 @@ function register_wpas_form($name, $args) {
     if (!is_array($args)) return;
     $args["wpas_id"] = $name;
     $WPAS_FORMS[$name] = $args;
+}
+
+/**
+ * Deregisters a search form, making it unavailable for use
+ *
+ * @param $name  Unique identifier for the search form
+ * @return bool  True if form successfully deregistered, false if form did not exist
+ */
+function deregister_wpas_form($name) {
+    global $WPAS_FORMS;
+    if (!isset($WPAS_FORMS[$name])) return false;
+    unset($WPAS_FORMS[$name]);
+    return true;
 }

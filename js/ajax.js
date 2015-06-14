@@ -1,29 +1,27 @@
+/**
+ * AJAX search functionality
+ */
 jQuery(document).ready(function($) {
 
-    var FORM = "#wp-advanced-search.ajax-enabled";
-    var CONTAINER = "#wpas-results";
-    var INNER = "#wpas-results-inner";
-    var DEBUG_CONTAINER = "#wpas-debug";
-    var PAGE_FIELD = "#wpas-paged";
+    var REQUEST_DATA = $(__WPAS.FORM).serialize();
 
-    if ($(FORM).length == 0) {
+    if ($(__WPAS.FORM).length == 0) {
         log("No WPAS search form detected on page.");
         return;
     }
 
-    if ($(CONTAINER).length == 0) {
+    if ($(__WPAS.CONTAINER).length == 0) {
         log("No container with ID #wpas-results found on page.  Results cannot be shown");
         return;
     }
 
     var CURRENT_PAGE = 1;
-    var DEBUG_ON = ($(FORM).hasClass('debug-enabled')) ? true : false;
-    var SHOW_DEFAULT = ($(FORM).data('ajax-show-default')) ? true : false;
-
+    var DEBUG_ON = ($(__WPAS.FORM).hasClass('wpas-debug-enabled')) ? true : false;
+    var SHOW_DEFAULT = ($(__WPAS.FORM).data('ajax-show-default')) ? true : false;
 
     var T = (DEBUG_ON) ? 500 : 0;
 
-    if (DEBUG_ON && $(DEBUG_CONTAINER).length == 0) {
+    if (DEBUG_ON && $(__WPAS.DEBUG_CONTAINER).length == 0) {
         log("WPAS_DEBUG is enabled but no container with ID #wpas-debug was found " +
         "on this page.  Debug information cannot be shown.");
         return;
@@ -36,10 +34,9 @@ jQuery(document).ready(function($) {
         load_img: "wpas-loading-img",
         load_img_url: "",
         init : function(form) {
-            console.log(form);
             this.load_btn_text = $(form).data('ajax-button');
             this.load_img_url = $(form).data('ajax-loading');
-            $(CONTAINER).append(this.create());
+            $(__WPAS.CONTAINER).append(this.create());
         },
 
         create: function() {
@@ -68,24 +65,35 @@ jQuery(document).ready(function($) {
 
     };
 
-    $(CONTAINER).append("<div id='wpas-results-inner'></div>");
-    ajaxLoader.init(FORM);
+    $(__WPAS.CONTAINER).append("<div id='wpas-results-inner'></div>");
+    ajaxLoader.init(__WPAS.FORM);
 
-    // Show results by default if attribute is set
-    if ($(CONTAINER).length != 0 && SHOW_DEFAULT) {
-        sendRequest($(FORM).serialize());
+    var storage = JSON.parse(localStorage.getItem("wpasInstance_"+__WPAS.FORM_ID));
+    //var storage = null;
+    if (storage != null) {
+        loadInstance();
+    }
+
+    if ($(__WPAS.CONTAINER).length != 0) {
+        if (storage != null) {
+            $(__WPAS.CONTAINER).html(storage.results);
+        } else if (SHOW_DEFAULT) { // Show results by default if attribute is set
+            sendRequest($(__WPAS.FORM).serialize(), CURRENT_PAGE);
+        }
     }
 
     // Event trigger to submit the form
-    $(FORM).submit(function(e) {
+    $(__WPAS.FORM).submit(function(e) {
         e.preventDefault();
+        if (formLocked()) return;
+        lockForm();
         submitForm(this);
     });
 
     // Event trigger for "load more" button
     $(document).on('click', '#'+ajaxLoader.load_btn+'.active', function(e){
         setPage(parseInt(CURRENT_PAGE) + 1)
-        sendRequest($(FORM).serialize());
+        sendRequest(REQUEST_DATA,CURRENT_PAGE);
     });
 
     // Submits the form
@@ -93,14 +101,13 @@ jQuery(document).ready(function($) {
     function submitForm(form, clear) {
         setPage(1);
         var form_data = $(form).serialize();
-        $(INNER).empty();
-        console.log(form_data);
-        sendRequest(form_data);
+        $(__WPAS.INNER).empty();
+        sendRequest(form_data, CURRENT_PAGE);
     }
 
     // Set AJAX request to fetch results
     // Appends results to the container
-    function sendRequest(data) {
+    function sendRequest(data, page) {
         ajaxLoader.hideButton();
         ajaxLoader.showImage();
         jQuery.ajax({
@@ -108,16 +115,15 @@ jQuery(document).ready(function($) {
             url: WPAS_Ajax.ajaxurl,
             data: {
                 action: 'wpas_ajax_load',
-                template: 0,
-                post_id: 0,
+                page: page,
                 form_data: data
             },
             success: function(data, textStatus, XMLHttpRequest) {
                 response = JSON.parse(data);
                 setTimeout(function() {
-                    appendHTML(INNER, response.results);
+                    appendHTML(__WPAS.INNER, response.results);
                     ajaxLoader.hideImage();
-                    updateHTML(DEBUG_CONTAINER,response.debug);
+                    updateHTML(__WPAS.DEBUG_CONTAINER,response.debug);
                     CURRENT_PAGE = response.current_page;
                     var max_page = response.max_page;
 
@@ -129,6 +135,9 @@ jQuery(document).ready(function($) {
                         ajaxLoader.showButton();
                     }
 
+                    storeInstance();
+                    unlockForm();
+
                 }, T);
 
             },
@@ -136,6 +145,82 @@ jQuery(document).ready(function($) {
                 console.log(errorThrown);
             }
         });
+    }
+
+    function storeInstance() {
+        var instance = { form: getFormValues(), results : getResults() };
+        instance = JSON.stringify(instance);
+        localStorage.setItem(__WPAS.STORAGE_KEY(), instance);
+    }
+
+    function addArrayValues(values, input) {
+        var name = $(input).attr('name');
+        var value = $(input).val();
+
+        if (typeof values[name] == 'undefined') {
+            values[name] = [];
+        }
+
+        if ($(input).is(":checked")) values[name].push(value);
+
+        return values;
+    }
+
+    function getFormValues() {
+        var values = {};
+        $(__WPAS.FORM).find(':input').not(':button, :submit, :reset').each(function() {
+            if ($(this).attr('type') == 'checkbox') {
+                values = addArrayValues(values, this)
+            } else {
+                values[$(this).attr('name')] = $(this).val();
+            }
+        });
+        return values;
+    }
+
+    function getResults() {
+        return $(__WPAS.CONTAINER).html();
+    }
+
+    function loadInstance() {
+        var instance = localStorage.getItem(__WPAS.STORAGE_KEY());
+        instance = JSON.parse(instance);
+        if (instance == null) return;
+        if (instance.form) loadForm(instance.form);
+        if (instance.results) loadResults(instance.results);
+    }
+
+    function loadForm(form_values) {
+        $(__WPAS.FORM).find(':input').not(':button, :submit, :reset').each(function() {
+            var value = form_values[$(this).attr('name')];
+            if ($(this).attr('type') == 'checkbox') {
+                if (value.indexOf( $(this).val() ) >= 0) {
+                    $(this).prop('checked',true);
+                } else {
+                    $(this).prop('checked',false);
+                }
+            } else {
+                $(this).val(value);
+            }
+        });
+    }
+
+    function loadResults(results) {
+        $(__WPAS.CONTAINER).html(results);
+    }
+
+    function lockForm() {
+        $(__WPAS.FORM).addClass('wpas-locked');
+        $(__WPAS.FORM).find(':submit').attr('disabled', 'disabled');
+    }
+
+    function formLocked() {
+        return $(__WPAS.FORM).hasClass('wpas-locked');
+    }
+
+    function unlockForm() {
+        $(__WPAS.FORM).removeClass('wpas-locked');
+        $(__WPAS.FORM).find(':submit').removeAttr('disabled');
     }
 
     function appendHTML(el, content) {
@@ -148,10 +233,11 @@ jQuery(document).ready(function($) {
 
     function setPage(pagenum) {
         CURRENT_PAGE = pagenum;
-        $(PAGE_FIELD).val(pagenum);
+        $(__WPAS.PAGE_FIELD).val(pagenum);
     }
 
     function log(msg) {
         if (DEBUG_ON) console.log("WPAS: " + msg);
     }
+
 });

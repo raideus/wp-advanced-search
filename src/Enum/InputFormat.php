@@ -19,5 +19,7 @@ class InputFormat extends BasicEnum {
     const time = "time";
     const week = "week";
     const submit = "submit";
+    const reset = "reset";
+    const clear = "clear";
     const html = "html";
 }

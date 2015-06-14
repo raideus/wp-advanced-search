@@ -151,18 +151,10 @@ class Input extends StdObject {
      * @return string
      */
     private function getInputInnerHTML() {
-        switch($this->format) {
-            case 'select':
-                return $this->select();
-                break;
+        $format = $this->format;
+        switch($format) {
             case 'multi-select':
                 return $this->select(true);
-                break;
-            case 'checkbox':
-                return $this->checkbox();
-                break;
-            case 'radio':
-                return $this->radio();
                 break;
             case 'text':
                 return $this->input();
@@ -182,20 +174,9 @@ class Input extends StdObject {
             case 'week':
                 return $this->input( $this->format );
                 break;
-            case 'textarea':
-                return $this->textarea();
-                break;
-            case 'html':
-                return $this->html();
-                break;
-            case 'hidden':
-                return $this->hidden();
-                break;
-            case 'submit':
-                return $this->submit();
-                break;
+            default :
+                return $this->$format();
         }
-        return "";
     }
 
     /**
@@ -310,6 +291,28 @@ class Input extends StdObject {
     private function submit() {
         $value = reset($this->values);
         $output = '<input type="submit" class="wpas-submit '.$this->class.'" value="'.$value.'" '.$this->attributesString().'>';
+        return $output;
+    }
+
+    /**
+     * Generates a reset button
+     *
+     * @since 1.4
+     */
+    private function reset() {
+        $value = reset($this->values);
+        $output = '<input type="reset" class="wpas-reset '.$this->class.'" value="'.$value.'" '.$this->attributesString().'>';
+        return $output;
+    }
+
+    /**
+     * Generates a clear button
+     *
+     * @since 1.4
+     */
+    private function clear() {
+        $value = reset($this->values);
+        $output = '<button class="wpas-clear '.$this->class.'" '.$this->attributesString().'>'.$value.'</button>';
         return $output;
     }
 

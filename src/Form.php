@@ -11,6 +11,7 @@ class Form extends StdObject {
     private $inputs;
     private $ajax;
     private $disable_wrappers;
+    private $auto_submit;
     protected $args;
 
     static protected $rules = array(
@@ -21,6 +22,7 @@ class Form extends StdObject {
                                     'class' => 'array<string>',
                                     'ajax' => 'object',
                                     'disable_wrappers' => 'bool',
+                                    'auto_submit' => 'bool',
                                     'inputs' => 'array' );
 
     static protected $defaults = array(  
@@ -30,6 +32,7 @@ class Form extends StdObject {
                                         'name' => 'wp-advanced-search',
                                         'class' => array('wp-advanced-search'),
                                         'disable_wrappers' => false,
+                                        'auto_submit' => false,
                                         'inputs' => array() );
 
     function __construct($wpas_id, $args) {
@@ -73,7 +76,7 @@ class Form extends StdObject {
             $output .= "<input type=\"hidden\" id=\"wpas-paged\" name=\"paged\" value=\"1\">";
         }
 
-        $output .= "<input type=\"hidden\" name=\"wpas_id\" value=\"".$this->wpas_id."\">";
+        $output .= "<input type=\"hidden\" id=\"wpas-id\" name=\"wpas_id\" value=\"".$this->wpas_id."\">";
         $output .= "<input type=\"hidden\" name=\"wpas_submit\" value=\"1\">";
 
         $output .= "</form>";
@@ -174,7 +177,10 @@ class Form extends StdObject {
     public function getClassString() {
         $str = implode(" ",$this->class);
         if ($this->ajax->isEnabled()) {
-            $str .= " ajax-enabled";
+            $str .= " wpas-ajax-enabled";
+        }
+        if ($this->auto_submit) {
+            $str .= " wpas-autosubmit";
         }
         return $str;
     }
