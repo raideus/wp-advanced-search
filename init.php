@@ -38,8 +38,7 @@ spl_autoload_register(function ($class) {
  * Enqueue JavaScripts
  */
 function wpas_scripts() {
-    wp_enqueue_script( 'wpas-globals', get_template_directory_uri() . '/' . basename(__DIR__) . '/js/global.js', array('jquery'), '1', false );
-    wp_enqueue_script( 'wpas-ajax-scripts', get_template_directory_uri() . '/' . basename(__DIR__) . '/js/ajax.js', array('jquery','wpas-globals'), '1', false );
+    wp_enqueue_script( 'wpas-scripts', get_template_directory_uri() . '/' . basename(__DIR__) . '/js/scripts.js', array('jquery'), '1', false );
     wp_enqueue_script( 'wpas-admin-ajax', admin_url( 'admin-ajax.php' ), array(), '1', false );
     wp_localize_script( 'wpas-admin-ajax', 'WPAS_Ajax', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );
 }

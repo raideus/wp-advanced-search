@@ -1,12 +1,57 @@
-/**
- * AJAX search functionality
- */
+// Global constants
+var __WPAS = {
+    FORM : "#wp-advanced-search.wpas-ajax-enabled",
+    CONTAINER : "#wpas-results",
+    INNER : "#wpas-results-inner",
+    DEBUG_CONTAINER : "#wpas-debug",
+    PAGE_FIELD : "#wpas-paged",
+    FORM_ID: "",
+    KEY_PREFIX: "wpasInstance_",
+    STORAGE_KEY: function() {
+        return this.KEY_PREFIX + this.FORM_ID;
+    }
+};
+
 jQuery(document).ready(function($) {
 
-    var REQUEST_DATA = $(__WPAS.FORM).serialize();
+    __WPAS.FORM_ID = $('#wpas-id').val();
+
+    /**
+     *  Event listeners
+     */
+
+    $('form.wpas-autosubmit :input').change(function() {
+        $(this).submit();
+    });
+
+    $('button.wpas-clear').click(function(e) {
+        e.preventDefault();
+        $(this).parents('form').find(':input')
+            .not(':button, :submit, :reset, :hidden')
+            .val('')
+            .removeAttr('checked')
+            .removeAttr('selected');
+        $(this).parents('form.wpas-autosubmit').each(function() {
+            $(this).submit();
+            return false;
+        });
+    });
+
+    $('input.wpas-reset').click(function(e){
+        e.preventDefault();
+        $(this).parents('form')[0].reset();
+        $(this).parents('form.wpas-autosubmit').each(function() {
+            $(this).submit();
+            return false;
+        });
+    });
+
+    /**
+     *  AJAX Functionality
+     */
 
     if ($(__WPAS.FORM).length == 0) {
-        log("No WPAS search form detected on page.");
+        log("No AJAX-enabled WPAS search form detected on page.");
         return;
     }
 
@@ -15,7 +60,6 @@ jQuery(document).ready(function($) {
         return;
     }
 
-    var CURRENT_PAGE = 1;
     var DEBUG_ON = ($(__WPAS.FORM).hasClass('wpas-debug-enabled')) ? true : false;
     var SHOW_DEFAULT = ($(__WPAS.FORM).data('ajax-show-default')) ? true : false;
 
@@ -69,9 +113,12 @@ jQuery(document).ready(function($) {
     ajaxLoader.init(__WPAS.FORM);
 
     var storage = JSON.parse(localStorage.getItem("wpasInstance_"+__WPAS.FORM_ID));
-    //var storage = null;
     if (storage != null) {
+        console.log("storage found");
         loadInstance();
+    } else {
+        setPage(1);
+        setRequest($(__WPAS.FORM).serialize());
     }
 
     if ($(__WPAS.CONTAINER).length != 0) {
@@ -82,25 +129,12 @@ jQuery(document).ready(function($) {
         }
     }
 
-    // Event trigger to submit the form
-    $(__WPAS.FORM).submit(function(e) {
-        e.preventDefault();
-        if (formLocked()) return;
-        lockForm();
-        submitForm(this);
-    });
-
-    // Event trigger for "load more" button
-    $(document).on('click', '#'+ajaxLoader.load_btn+'.active', function(e){
-        setPage(parseInt(CURRENT_PAGE) + 1)
-        sendRequest(REQUEST_DATA,CURRENT_PAGE);
-    });
-
     // Submits the form
     // Reset current page to 1
-    function submitForm(form, clear) {
+    function submitForm(form) {
         setPage(1);
         var form_data = $(form).serialize();
+        setRequest(form_data);
         $(__WPAS.INNER).empty();
         sendRequest(form_data, CURRENT_PAGE);
     }
@@ -148,7 +182,7 @@ jQuery(document).ready(function($) {
     }
 
     function storeInstance() {
-        var instance = { form: getFormValues(), results : getResults() };
+        var instance = { request: REQUEST_DATA, form: getFormValues(), results : getResults(), page: CURRENT_PAGE  };
         instance = JSON.stringify(instance);
         localStorage.setItem(__WPAS.STORAGE_KEY(), instance);
     }
@@ -188,6 +222,8 @@ jQuery(document).ready(function($) {
         if (instance == null) return;
         if (instance.form) loadForm(instance.form);
         if (instance.results) loadResults(instance.results);
+        if (instance.page) setPage(instance.page);
+        if (instance.request) setRequest(instance.request);
     }
 
     function loadForm(form_values) {
@@ -211,7 +247,7 @@ jQuery(document).ready(function($) {
 
     function lockForm() {
         $(__WPAS.FORM).addClass('wpas-locked');
-        $(__WPAS.FORM).find(':submit').attr('disabled', 'disabled');
+        $(__WPAS.FORM).find('input:submit').attr('disabled', 'disabled');
     }
 
     function formLocked() {
@@ -220,7 +256,7 @@ jQuery(document).ready(function($) {
 
     function unlockForm() {
         $(__WPAS.FORM).removeClass('wpas-locked');
-        $(__WPAS.FORM).find(':submit').removeAttr('disabled');
+        $(__WPAS.FORM).find('input:submit').removeAttr('disabled');
     }
 
     function appendHTML(el, content) {
@@ -236,8 +272,26 @@ jQuery(document).ready(function($) {
         $(__WPAS.PAGE_FIELD).val(pagenum);
     }
 
+    function setRequest(request) {
+        REQUEST_DATA = request;
+    }
+
     function log(msg) {
         if (DEBUG_ON) console.log("WPAS: " + msg);
     }
+
+    // AJAX Event Listeners
+
+    $(__WPAS.FORM).submit(function(e) {
+        e.preventDefault();
+        if (formLocked()) return;
+        lockForm();
+        submitForm(this);
+    });
+
+    $(document).on('click', '#'+ajaxLoader.load_btn+'.active', function(e){
+        setPage(parseInt(CURRENT_PAGE) + 1)
+        sendRequest(REQUEST_DATA,CURRENT_PAGE);
+    });
 
 });
