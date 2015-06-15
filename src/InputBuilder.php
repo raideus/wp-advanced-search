@@ -27,25 +27,11 @@ class InputBuilder extends StdObject {
     }
 
     /**
-     * Initializes and returns an Input object according to the
-     * given field type and arguments
-     *
-     * @param string $input_name
-     * @param string $field_type
-     * @param array  $args
-     * @return object
-     */
-    public static function makeDate($input_name, $args, array $post_types, $request = false) {
-        $args = self::addDateValues($args, $post_types);
-        return self::make($input_name, 'date', $args, $request);
-    }
-
-    /**
      * Validate the input arguments
      *
      * @param $field_type
      */
-    public static function validate($field_type) {
+    protected static function validate($field_type) {
         if (FieldType::isValid($field_type)) return;
         $err_msg = self::validationErrorMsg(
             array('Argument 1 `$field_type` ' .
@@ -62,7 +48,7 @@ class InputBuilder extends StdObject {
      * @param $request
      * @return mixed
      */
-    public static function preProcess($input_name, $field_type, $args,
+    protected static function preProcess($input_name, $field_type, $args,
                                        $request) {
 
         if (isset($args['exclude']) && is_scalar($args['exclude'])) {
@@ -91,14 +77,13 @@ class InputBuilder extends StdObject {
      * @param $request
      * @return mixed
      */
-    private static function postProcess($input_name, $field_type, $args,
+    protected static function postProcess($input_name, $field_type, $args,
                                             $request) {
         $args['selected'] = self::getSelected($input_name, $field_type, $args,
                                               $request);
         $args = self::removeExcludedValues($args);
         return $args;
     }
-
 
     /**
      * Removes values from the 'values' array which are flagged under the
@@ -107,7 +92,7 @@ class InputBuilder extends StdObject {
      * @param $args
      * @return mixed
      */
-    public static function removeExcludedValues($args) {
+    protected static function removeExcludedValues($args) {
         if (empty($args['values']) || empty($args['exclude'])) return $args;
 
         if (isset($args['exclude']) && is_scalar($args['exclude'])) {
@@ -134,7 +119,7 @@ class InputBuilder extends StdObject {
      * @param $request
      * @return array
      */
-    public static function getSelected($input_name, $field_type, $args,
+    protected static function getSelected($input_name, $field_type, $args,
                                        $request) {
         $request_var = $input_name;
 
@@ -166,7 +151,7 @@ class InputBuilder extends StdObject {
         return array();
     }
 
-    public static function getRequestVar($input_name, $args) {
+    protected static function getRequestVar($input_name, $args) {
         if (!empty($args['type'])) {
 
         }
@@ -180,7 +165,7 @@ class InputBuilder extends StdObject {
      * @param $request
      * @return bool
      */
-    public static function canApplyDefaultAll($args, $request) {
+    protected static function canApplyDefaultAll($args, $request) {
         $format = isset($args['format']) ? $args['format'] : false;
         $default_all = isset($args['default_all']) ? $args['default_all'] : false;
         $supports_multiple = ($format == 'checkbox' || $format == 'multi-select');
@@ -383,33 +368,6 @@ class InputBuilder extends StdObject {
     }
 
     /**
-     * Configure a date input
-     *
-     * @param $input_name
-     * @param $args
-     * @param $request
-     * @return array
-     */
-    public static function date($input_name, $args, $request) {
-        $default_date_type = 'year';
-        $defaults = array(
-            'label' => '',
-            'format' => 'select',
-            'date_type' => $default_date_type,
-            'date_format' => false,
-            'values' => array() );
-        $disallowed_formats = array('multi-select', 'checkbox');
-
-        $args = self::parseArgs($args, $defaults);
-
-        if (in_array($args['format'], $disallowed_formats)) {
-            throw new \Exception("Date field does not currently support multi-select or checkbox formats");
-        }
-
-        return $args;
-    }
-
-    /**
      * Configure an html input
      *
      * @param $input_name
@@ -456,7 +414,6 @@ class InputBuilder extends StdObject {
         $args = self::parseArgs($args, $defaults);
         return $args;
     }
-
 
     /**
      * Configure a taxonomy input
@@ -547,56 +504,6 @@ class InputBuilder extends StdObject {
         }
 
         return $args;
-    }
-
-    private static function addDateValues($args, array $post_types) {
-        if (!empty($args['values'])) return $args;
-
-        $date_format = (empty($args['date_format'])) ? false : $args['date_format'];
-        $date_type = (empty($args['date_type'])) ? 'year' : $args['date_type'];
-
-        $args['values'] = self::getDates($date_type, $date_format, $post_types);
-        return $args;
-    }
-
-    /**
-     *  Returns an array of dates in which content has been published
-     *
-     *  @since 1.0
-     */
-    private static function getDates($date_type = 'year', $format = false, array $post_types) {
-
-        $display_format = "Y";
-        $compare_format = "Y";
-
-        if ($date_type == 'month') {
-            $display_format = "M Y";
-            $compare_format = "Y-m";
-        } else if ($date_type == 'day') {
-            $display_format = "M j, Y";
-            $compare_format = "Y-m-d";
-        }
-
-        if ($format) $display_format = $format;
-
-        $post_status = 'publish';
-        $posts = get_posts(array('numberposts' => 1000, 'post_type' => $post_types, 'post_status' => $post_status));
-
-        $previous_value = "";
-        $dates = array();
-
-        foreach($posts as $post) {
-            $post_date = strtotime($post->post_date);
-            $current_display = date_i18n($display_format, $post_date);
-            $current_value = date($compare_format, $post_date);
-
-            if ($previous_value != $current_value) {
-                $dates[$current_value] = $current_display;
-            }
-            $previous_value = $current_value;
-
-        }
-        return $dates;
     }
 
 }

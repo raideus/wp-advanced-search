@@ -184,7 +184,7 @@ class Factory extends StdObject
                     $date_type = (empty($input_args['date_type'])) ? $input_args['date_type'] : false;
                     $post_types = $this->selectedPostTypes($request);
                     $name = RequestVar::nameToVar($name, $field_type, $date_type);
-                    $input = InputBuilder::makeDate($name, $input_args, $post_types, $request);
+                    $input = DateInputBuilder::make($name, $input_args, $post_types, $request);
                 } else {
                     $name = RequestVar::nameToVar($name, $field_type);
                     $input = InputBuilder::make($name, $field_type, $input_args, $request);

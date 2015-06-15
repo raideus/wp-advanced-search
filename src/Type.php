@@ -6,7 +6,7 @@ namespace WPAS;
  *
  *  Used for defining and validating data types
  */
-class Type {
+class Type extends StdObject {
 
     private function __construct() {}
 
