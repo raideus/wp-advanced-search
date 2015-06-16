@@ -90,10 +90,12 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         );
 
         $f = new Factory($args);
+        print_r($f->getErrors());
         $this->assertFalse($f->hasErrors());
         $inputs = $f->getInputs();
         $this->assertTrue(count($inputs) == 8);
-        $q = $f->buildQuery();
+
+        $q = $f->buildQueryObject()->query;
     }
 
     public function testCanGetRequest() {
@@ -136,7 +138,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(!empty($q));
         $this->assertTrue(!empty($q['meta_query']));
         $expected_query = '[{"key":"price","type":"NUMERIC","value":["10","25"],"compare":"BETWEEN"}]';
@@ -173,7 +175,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(!empty($q));
         $this->assertTrue(!empty($q['meta_query']));
 
@@ -183,7 +185,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $request = array($prefix.$meta_key => '26:');
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(!empty($q));
         $this->assertTrue(!empty($q['meta_query']));
         $expected_query = '[{"key":"price","type":"NUMERIC","value":"26","compare":">="}]';
@@ -206,7 +208,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $request = array($meta_key => array('red','blue'));
         $f = new Factory($args, $request);
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
 
         //print_r($q['meta_query']);
 
@@ -236,7 +238,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $request = array($meta_key => array('red','blue'), $meta_key2 => array('square','circle'));
         $f = new Factory($args, $request);
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
 
         //print_r($q['meta_query']);
     }
@@ -259,7 +261,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(json_encode($q['tax_query']) == $expected_query);
 
     }
@@ -288,7 +290,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(json_encode($q['tax_query']) == $expected_query);
 
     }
@@ -320,7 +322,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
 
         $this->assertTrue(json_encode($q['tax_query']) == $expected_query);
     }
@@ -351,7 +353,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(json_encode($q['tax_query']) == $expected_query);
     }
 
@@ -402,7 +404,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue(json_encode($q) == $expected_query);
 
     }
@@ -421,7 +423,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
 
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
 
         $this->assertTrue(json_encode($q['date_query']) == $expected_query);
 
@@ -449,7 +451,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $request = array(RequestVar::orderby  => 'event_price');
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue($q['orderby'] == 'meta_value_num');
         $this->assertTrue($q['meta_key'] == 'event_price');
 
@@ -457,7 +459,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $request = array(RequestVar::orderby  => 'event_date');
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue($q['orderby'] == 'meta_value');
         $this->assertTrue($q['meta_key'] == 'event_date');
 
@@ -465,7 +467,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $request = array(RequestVar::orderby  => 'title');
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());
-        $q = $f->buildQuery();
+        $q = $f->buildQueryObject()->query;
         $this->assertTrue($q['orderby'] == 'title');
         $this->assertTrue(!isset($q['meta_key']));
 

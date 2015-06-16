@@ -1,7 +1,7 @@
 <?php
 namespace WPAS\Enum;
 
-class FormMethod extends BasicEnum {
+class RequestMethod extends BasicEnum {
     const POST = 'POST';
     const GET = 'GET';
 }

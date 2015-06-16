@@ -4,6 +4,7 @@ namespace WPAS;
 abstract class StdObject {
 
     protected static $rules;
+    protected static $defaults;
     private static $constCacheArray = NULL;
     private static $methodCacheArray = NULL;
 
@@ -29,6 +30,24 @@ abstract class StdObject {
             self::$methodCacheArray[$calledClass] = $reflect->getMethods();
         }
         return self::$methodCacheArray[$calledClass];
+    }
+
+    /**
+     * Validate form arguments
+     *
+     * @param $args
+     * @param $defaults
+     * @return array
+     * @throws \Exception
+     */
+    protected static function validate($args) {
+        $validation = new Validator(static::$rules, $args, static::$defaults);
+        if ($validation->fails()) {
+            $errors = $validation->getErrors();
+            $err_msg = self::validationErrorMsg($errors);
+            throw new \Exception($err_msg);
+        }
+        return $validation->getArgs();
     }
 
     protected static function validationErrorMsg( array $errors ) {

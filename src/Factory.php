@@ -119,7 +119,6 @@ class Factory extends StdObject
      * Populate fields table
      */
     private function initFields() {
-        $i = 0;
         if (empty($this->args['fields'])) return;
         foreach ($this->args['fields'] as $f) {
             try {
@@ -130,7 +129,6 @@ class Factory extends StdObject
             }
             $this->fields[$field->getFieldType()][] = $field;
             $this->addInputs($field, $this->request);
-            $i++;
         }
         $this->fields_ready = true;
     }
@@ -142,7 +140,7 @@ class Factory extends StdObject
      * and whether they are character-based or numeric values
      */
     private function initOrderBy() {
-        if ($this->fields_ready == false) return;
+        if ($this->fields_ready === false) return;
         if (empty($this->fields[FieldType::orderby])) return;
 
         $this->orderby_meta_keys = array();
@@ -243,7 +241,7 @@ class Factory extends StdObject
      *
      * @return array
      */
-    public function buildQuery() {
+    private function buildQuery() {
         $query = array();
         if (!$this->fields_ready) {
             $this->addError('Method buildQuery called before initializing' .

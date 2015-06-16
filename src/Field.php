@@ -24,7 +24,7 @@ class Field extends StdObject {
         'compare' => array('type'=>'Compare','required' => true),
     );
 
-    private static $defaults = array(
+    protected static $defaults = array(
         'relation' => 'AND',
         'group_method' => 'distinct',
         'operator' => 'AND',
@@ -59,7 +59,7 @@ class Field extends StdObject {
 
     public function __construct($args) {
         $args = $this->parseArgs($args,self::$defaults);
-        $args = $this->validate($args);
+        $args = self::validate($args);
         $args = $this->postProcessArgs($args);
         $this->inputs = array();
         $this->field_id = $this->setFieldId($args);
@@ -99,16 +99,6 @@ class Field extends StdObject {
         }
 
         return $input_args;
-    }
-
-
-    private function validate($args) {
-        $validation = new Validator(self::$rules, $args, self::$defaults);
-        if ($validation->fails()) {
-            $msg = self::validationErrorMsg($validation->getErrors());
-            throw new \Exception($msg);
-        }
-        return $validation->getArgs();
     }
 
     private function setFieldId($args) {

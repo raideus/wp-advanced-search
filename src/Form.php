@@ -16,7 +16,7 @@ class Form extends StdObject {
 
     static protected $rules = array(
                                     'action' => 'string',
-                                    'method' => 'FormMethod',
+                                    'method' => 'RequestMethod',
                                     'id' => 'string',
                                     'name' => 'string',
                                     'class' => 'array<string>',
@@ -39,7 +39,7 @@ class Form extends StdObject {
         $this->wpas_id = $wpas_id;
         $args = $this->preProcessArgs($args);
         $args = $this->parseArgs($args, self::$defaults);
-        $this->args = $this->validate($args, self::$defaults);
+        $this->args = self::validate($args);
 
         foreach($this->args as $key => $value) {
             $this->$key = $value;
@@ -92,25 +92,6 @@ class Form extends StdObject {
     public function addInput( Input $input ) {
         if ($this->disableWrappers()) $input->disableWrapper();
         $this->inputs[] = $input;
-    }
-
-    /**
-     * Validate form arguments
-     *
-     * @param $args
-     * @param $defaults
-     * @return array
-     * @throws \Exception
-     */
-    public function validate($args, $defaults) {
-        $validation = new Validator(self::$rules, $args, $defaults);
-        if ($validation->fails()) {
-            $errors = $validation->getErrors();
-            $err_msg = $this->validationErrorMsg($errors);
-            throw new \Exception($err_msg);
-        }
-
-        return $validation->getArgs();
     }
 
     /**

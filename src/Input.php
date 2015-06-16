@@ -37,7 +37,7 @@ class Input extends StdObject {
                             'pre_html' => 'string',
                             'post_html' => 'string');
 
-    private static $defaults = array(
+    protected static $defaults = array(
                             'label' => '',
                             'placeholder' => false,
                             'values' => array(),
@@ -51,7 +51,7 @@ class Input extends StdObject {
 
     public function __construct($input_name, $args = array()) {
         $args = $this->parseArgs($args,self::$defaults);
-        $args = $this->validate($input_name, $args, self::$defaults);
+        $args = $this->validateInput($input_name, $args, self::$defaults);
         $this->initMembers($input_name, $args);
     }
 
@@ -64,14 +64,9 @@ class Input extends StdObject {
      * @throws \InvalidArgumentException
      * @return array
      */
-    private function validate( $input_name, $args, $defaults ) {
-        $validation = new Validator(self::$rules, $args, $defaults);
-        if ($validation->fails()) {
-            $errors = $validation->getErrors();
-            $err_msg = $this->validationErrorMsg($errors);
-            throw new \Exception($err_msg);
-        }
-        
+    private function validateInput( $input_name, $args, $defaults ) {
+        $args = self::validate($args);
+
         if (!is_string($input_name)) {
             $err_msg = $this->validationErrorMsg(
                 array('Argument 1 `$field_name` ' .
@@ -79,7 +74,7 @@ class Input extends StdObject {
             throw new \InvalidArgumentException($err_msg);
         }
 
-        return $validation->getArgs();
+        return $args;
     }
 
     /**

@@ -71,9 +71,9 @@ class TestType extends \PHPUnit_Framework_TestCase {
          $this->assertTrue(Type::matches("bool", true));
          $this->assertTrue(Type::matches("numeric", 134));
          $this->assertTrue(Type::matches("object", $this));
-         $this->assertTrue(Type::matches("FormMethod", "GET"));
-         $this->assertTrue(Type::matches("FormMethod", "get"));
-         $this->assertTrue(Type::matches("FormMethod", "POST"));
+         $this->assertTrue(Type::matches("RequestMethod", "GET"));
+         $this->assertTrue(Type::matches("RequestMethod", "get"));
+         $this->assertTrue(Type::matches("RequestMethod", "POST"));
          $this->assertTrue(Type::matches("InputFormat", "multi-select"));
          $this->assertTrue(Type::matches("array", array(1, "five")));
          $this->assertTrue(Type::matches("array<string>", array("one", "five")));
@@ -86,7 +86,7 @@ class TestType extends \PHPUnit_Framework_TestCase {
          $this->assertFalse(Type::matches("bool", "hello"));
          $this->assertFalse(Type::matches("numeric", array(123)));
          $this->assertFalse(Type::matches("array", 1));
-         $this->assertFalse(Type::matches("FormMethod", "BADMETHOD"));
+         $this->assertFalse(Type::matches("RequestMethod", "BADMETHOD"));
          $this->assertFalse(Type::matches("InputFormat", "notaformat"));
          $this->assertFalse(Type::matches("array<string>", array(1, "five", $this)));
          $this->assertFalse(Type::matches("array<bool>", array("hi", false)));

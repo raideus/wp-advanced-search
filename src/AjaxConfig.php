@@ -26,6 +26,7 @@ class AjaxConfig extends StdObject
     function __construct($args = array())
     {
         $args = $this->parseArgs($args, self::$defaults);
+        $args = self::validate($args);
         $args = $this->processArgs($args);
         $this->args = $args;
 

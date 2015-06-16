@@ -18,7 +18,7 @@ class InputBuilder extends StdObject {
     public static function make($input_name, $field_type, $args,
                                 $request = false) {
 
-        self::validate($field_type);
+        self::validateFieldType($field_type);
         $args = self::preProcess($input_name, $field_type, $args, $request);
         $args = call_user_func("self::$field_type", $input_name, $args,$request);
         $args = self::postProcess($input_name, $field_type, $args, $request);
@@ -31,7 +31,7 @@ class InputBuilder extends StdObject {
      *
      * @param $field_type
      */
-    protected static function validate($field_type) {
+    protected static function validateFieldType($field_type) {
         if (FieldType::isValid($field_type)) return;
         $err_msg = self::validationErrorMsg(
             array('Argument 1 `$field_type` ' .
