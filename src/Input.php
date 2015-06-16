@@ -64,7 +64,7 @@ class Input extends StdObject {
      * @throws \InvalidArgumentException
      * @return array
      */
-    public function validate( $input_name, $args, $defaults ) {
+    private function validate( $input_name, $args, $defaults ) {
         $validation = new Validator(self::$rules, $args, $defaults);
         if ($validation->fails()) {
             $errors = $validation->getErrors();
@@ -88,7 +88,7 @@ class Input extends StdObject {
      * @param string $input_name
      * @param array  $args
      */
-    public function initMembers($input_name, $args) {
+    private function initMembers($input_name, $args) {
         $this->input_name = $input_name;
 
         foreach($args as $key => $value) {
@@ -216,19 +216,7 @@ class Input extends StdObject {
      * @since 1.0
      */
     private function checkbox() {
-        $output = '<div class="wpas-'.$this->id.'-checkboxes wpas-checkboxes field-container">';
-
-        if ($this->nested) {
-            $output .= $this->buildOptionsList($this->values, array($this, 'checkboxOption'), 0, '<ul>', '</ul>');
-            return $output;
-        }
-
-        foreach ($this->values as $value => $label) {
-            $output .= $this->checkboxOption($value, $label);
-        }
-
-        $output .= '</div>';
-        return $output;
+        return $this->listField(true);
     }
 
     /**
@@ -237,16 +225,28 @@ class Input extends StdObject {
      * @since 1.0
      */
     private function radio() {
-        $output = '<div class="wpas-'.$this->id.'-radio-buttons wpas-radio-buttons field-container">';
+        return $this->listField(false);
+    }
+
+    /**
+     * Generates a list-style field (either checkboxes or radio buttons)
+     *
+     * @param bool $is_checkbox
+     * @return string
+     */
+    private function listField($is_checkbox = true) {
+        $group_label = ($is_checkbox) ? 'checkboxes' : 'radio-buttons';
+        $option_func = ($is_checkbox) ? 'checkboxOption' : 'radioOption';
+
+        $output = '<div class="wpas-'.$this->id.'-'.$group_label.' wpas-'.$group_label.' field-container">';
 
         if ($this->nested) {
-            $output .= $this->buildOptionsList($this->values, array($this, 'radioOption'), 0, '<ul>', '</ul>');
+            $output .= $this->buildOptionsList($this->values, array($this, $option_func), 0, '<ul>', '</ul>');
             return $output;
         }
 
-
         foreach ($this->values as $value => $label) {
-            $output .= $this->radioOption($value, $label);
+            $output .= call_user_func(array($this,$option_func), $value, $label);
         }
         $output .= '</div>';
         return $output;
@@ -402,20 +402,8 @@ class Input extends StdObject {
      * @since 1.3
      */
     private function checkboxOption($value, $label, $level = 0) {
-        $ctr = $this->ctr;
-        $el = ($this->nested) ? 'li' : 'div';
-        $output = '';
-        $output .= '<'.$el.' class="wpas-'.$this->id.'-checkbox-'.$ctr.'-container wpas-'.$this->id.'-checkbox-container wpas-checkbox-container">';
-        $output .= '<input type="checkbox" id="wpas-'.$this->id.'-checkbox-'.$ctr.'" class="wpas-'.$this->id.'-checkbox wpas-checkbox '.$this->class.'" name="'.$this->input_name.'[]" value="'.$value.'"';
-        if (in_array($value, $this->selected, true)) {
-            $output .= ' checked="checked"';
-        }
-        $output .= '>';
-        $output .= '<label for="wpas-'.$this->id.'-checkbox-'.$ctr.'"> '.$label.'</label></'.$el.'>';
-        $this->ctr++;
-        return $output;
+        return $this->listOption($value, $label, 'checkbox');
     }
-
 
     /**
      * Generates a single option for a radio field
@@ -423,16 +411,29 @@ class Input extends StdObject {
      * @since 1.3
      */
     private function radioOption($value, $label, $level = 0) {
+        return $this->listOption($value, $label, 'radio');
+    }
+
+    /**
+     * Generates a single field option for a checkbox or radio field
+     *
+     * @param $value
+     * @param $label
+     * @param int $level
+     * @param string $type "checkbox" or "radio"
+     * @return string
+     */
+    private function listOption($value, $label, $type = 'checkbox') {
         $ctr = $this->ctr;
         $el = ($this->nested) ? 'li' : 'div';
         $output = '';
-        $output .= '<div class="wpas-'.$this->id.'-radio-'.$ctr.'-container wpas-'.$this->id.'-radio-container wpas-radio-container">';
-        $output .= '<input type="radio" id="wpas-'.$this->id.'-radio-'.$ctr.'" class="wpas-'.$this->id.'-radio wpas-radio '.$this->class.'" name="'.$this->input_name.'" value="'.$value.'"';
-        if (in_array($value, $this->selected)) {
+        $output .= '<'.$el.' class="wpas-'.$this->id.'-'.$type.'-'.$ctr.'-container wpas-'.$this->id.'-'.$type.'-container wpas-'.$type.'-container">';
+        $output .= '<input type="'.$type.'" id="wpas-'.$this->id.'-'.$type.'-'.$ctr.'" class="wpas-'.$this->id.'-'.$type.' wpas-'.$type.' '.$this->class.'" name="'.$this->input_name.'[]" value="'.$value.'"';
+        if (in_array($value, $this->selected, true)) {
             $output .= ' checked="checked"';
         }
         $output .= '>';
-        $output .= '<label for="wpas-'.$this->id.'-radio-'.$ctr.'"> '.$label.'</label></div>';
+        $output .= '<label for="wpas-'.$this->id.'-'.$type.'-'.$ctr.'"> '.$label.'</label></'.$el.'>';
         $this->ctr++;
         return $output;
     }

@@ -93,7 +93,6 @@ class DateInputBuilder extends InputBuilder {
             $post_date = strtotime($post->post_date);
             $current_display = date_i18n($display_format, $post_date);
             $current_value = date($compare_format, $post_date);
-
             if ($previous_value != $current_value) {
                 $dates[$current_value] = $current_display;
             }
