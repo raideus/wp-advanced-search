@@ -174,14 +174,35 @@ class TestInputBuilder extends \WP_UnitTestCase {
             'taxonomy' => 'category',
             'format' => 'select',
             'nested' => 'true',
-            'exclude' => array('category-one'),
+            'exclude' => array('category-one'), // By excluding category-one, its two
+                                                // children should also be excluded
             'term_format' => 'slug'
         );
 
         $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
         $values = $input->getValues();
-        $this->assertTrue(count($values) == 1);
-        $input->toHTML();
+        $this->assertTrue(count($values) == 1); // count = 1 due to "Uncategorized"
+    }
+
+    public function testTaxonomyWithManualTermsList() {
+        $t = array();
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Category One"));
+        $t[] = $this->factory->category->create_and_get(array('name' => "Category Two", 'parent' => $t[0]->term_id));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Z Category", 'parent' => $t[0]->term_id));
+        $t[] = $this->factory->category->create_and_get(array('name' =>  "Y Category", 'parent' => $t[0]->term_id));
+
+        $args = array(
+            'field_type' => 'taxonomy',
+            'taxonomy' => 'category',
+            'format' => 'select',
+            'terms' => array($t[0]->term_id, $t[1]->term_id, $t[2]->term_id),
+            'term_format' => 'ID'
+        );
+
+        $input = InputBuilder::make('tax_category', FieldType::taxonomy, $args);
+        $values = $input->getValues();
+
+        $this->assertTrue(count($values) == 3);
     }
 
 

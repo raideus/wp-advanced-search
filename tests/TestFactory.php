@@ -178,7 +178,6 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $this->assertTrue(!empty($q['meta_query']));
 
         $expected_query = '[{"key":"price","type":"NUMERIC","value":["0","10"],"compare":"BETWEEN"}]';
-        echo json_encode($q['meta_query']);
         $this->assertTrue(json_encode($q['meta_query']) == $expected_query);
 
         $request = array($prefix.$meta_key => '26:');

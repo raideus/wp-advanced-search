@@ -151,12 +151,6 @@ class InputBuilder extends StdObject {
         return array();
     }
 
-    protected static function getRequestVar($input_name, $args) {
-        if (!empty($args['type'])) {
-
-        }
-    }
-
     /**
      * Determine whether the default_all option should be invoked under
      * the given arguments and request data
@@ -421,6 +415,7 @@ class InputBuilder extends StdObject {
      * @param $input_name
      * @param $args
      * @param $request
+     * @throws \Exception
      * @return array
      */
     public static function taxonomy($input_name, $args, $request) {
@@ -449,51 +444,23 @@ class InputBuilder extends StdObject {
             throw new \Exception($msg);
         }
 
-        if (!$the_tax) return; // No taxonomy found
-
         if (isset($term_args) && is_array($term_args)) {
             $term_args = self::parseArgs($term_args, $term_defaults);
         }
 
-        $term_values = array();
-        $walker = new TermsWalker(array('taxonomy' => $taxonomy,
-                                        'term_format' => $term_format),
-                                  $term_args);
-        $max_depth = ($nested) ? 0 : -1;
-
         if (isset($terms) && is_array($terms) && (count($terms) < 1)) {
             // No terms specified; populate with all terms
+            $walker = new TermsWalker(array('taxonomy' => $taxonomy,
+                'term_format' => $term_format),
+                $term_args);
             if ($nested) {
-                $term_values = $walker->build_nested_terms_array( $max_depth );
+                $term_values = $walker->build_nested_terms_array(0);
             } else {
                 $term_values = $walker->build_basic_terms_array();
             }
-
         } else { // Custom term list
             $args['nested'] = false; // Disallow nesting for custom term lists
-            foreach ($terms as $term_identifier) {
-                $term = get_term_by($term_format, $term_identifier, $taxonomy);
-                if ($term) {
-                    $term_objects[] = $term;
-                }
-            }
-
-            foreach ($term_objects as $term) {
-                switch($term_format) {
-                    case 'id' :
-                    case 'ID' :
-                        $term_values[$term->term_id] = $term->name;
-                        break;
-                    case 'Name' :
-                    case 'name' :
-                        $term_values[$term->name] = $term->name;
-                        break;
-                    default :
-                        $term_values[$term->slug] = $term->name;
-                        break;
-                }
-            }
-
+            $term_values = self::customTermsList($terms, $taxonomy, $term_format);
         }
 
         if (empty($values)) {
@@ -504,6 +471,32 @@ class InputBuilder extends StdObject {
         }
 
         return $args;
+    }
+
+    private static function customTermsList($terms, $taxonomy, $term_format) {
+        $term_objects = array();
+        $term_values = array();
+        foreach ($terms as $term_identifier) {
+            $term = get_term_by($term_format, $term_identifier, $taxonomy);
+            if ($term) {
+                $term_objects[] = $term;
+            }
+        }
+        foreach ($term_objects as $term) {
+            $term_values[self::termValue($term,$term_format)] = $term->name;
+        }
+        return $term_values;
+    }
+
+    private static function termValue($term, $format) {
+        switch(strtolower($format)) {
+            case 'id' :
+                return $term->term_id;
+            case 'name' :
+                return $term->name;
+            default :
+                return $term->slug;
+        }
     }
 
 }
