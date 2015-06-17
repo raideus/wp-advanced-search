@@ -7,7 +7,7 @@ class DateQuery {
     private $request;
     private $query;
 
-    function __construct($field, $request) {
+    function __construct($field, HttpRequest $request) {
         $this->query = $this->build($field, $request);
     }
 
@@ -80,10 +80,10 @@ class DateQuery {
     }
 
     private function getRequestVar($var, $request) {
-        if (empty($request[$var])) return false;
-        $value = $request[$var];
-        if (is_array($value)) implode(",",$value);
-        return $value;
+        $val = $request->get($var, null);
+        if ($val === null) return false;
+        if (is_array($val)) implode(",",$val);
+        return $val;
     }
 
 

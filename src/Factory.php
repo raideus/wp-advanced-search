@@ -14,18 +14,20 @@ class Factory extends StdObject
     private $errors;
     private $wp_query_args;
     private $wp_query_obj;
-    private $config;
     private $orderby_meta_keys;
     private $fields_ready;
 
-    private static $config_defaults = array(
+    private static $arg_defaults = array(
+        'form' => array(),
+        'fields' => array(),
         'taxonomy_relation' => 'AND',
         'meta_key_relation' => 'AND',
-        'form' => array());
+        'debug' => false,
+        'debug_level' => 'log'
+    );
 
     public function __construct($args, $request = null) {
         $this->args = $this->preProcessArgs($args);
-        $this->config = $this->args['config'];
         $this->wp_query_args = $this->args['wp_query'];
         $this->errors = array();
         $this->inputs = array();
@@ -62,26 +64,21 @@ class Factory extends StdObject
 
         if (!is_array($args)) return array();
 
-        if (empty($args['config'])) {
-            $args['config'] = array();
-        }
-
         if (empty($args['wpas_id'])) {
             $args['wpas_id'] = 'default';
         }
 
-        if (empty($args['config']['form'])) {
-            $form_args = (empty($args['form'])) ? array() : $args['form'];
-            $args['config']['form'] = $form_args;
+        if (empty($args['form'])) {
+            $args['form'] = (empty($args['config']['form'])) ? array() : $args['form'];
         }
 
         if (empty($args['form']['action']) && is_object($post) && isset($post->ID)) {
-            $args['config']['form']['action'] = get_permalink($post->ID);
+            $args['form']['action'] = get_permalink($post->ID);
         }
 
         if (!isset($args['wp_query'])) $args['wp_query'] = array();
 
-        $args['config'] = self::parseArgs($args['config'], self::$config_defaults);
+        $args = self::parseArgs($args, self::$arg_defaults);
 
         return $args;
     }
@@ -93,12 +90,8 @@ class Factory extends StdObject
      * @return mixed
      */
     private function processRequest($request) {
-        $request = (empty($request)) ? $_REQUEST : $request;
-        if (empty($request)) return $request;
-        foreach ($request as $k => $v) {
-            $request[$k] = $this->sanitizeRequestVar($v);
-        }
-        return $request;
+        $data = (empty($request)) ? $this->getRequestGlobal($this->args['form']) : $request;
+        return new HttpRequest($data);
     }
 
     /**
@@ -204,7 +197,7 @@ class Factory extends StdObject
     private function buildForm() {
 
         try {
-            $this->form = new Form($this->args['wpas_id'], $this->args['config']['form']);
+            $this->form = new Form($this->args['wpas_id'], $this->args['form']);
         } catch (\Exception $e) {
             $this->addExceptionError($e);
             return;
@@ -228,7 +221,8 @@ class Factory extends StdObject
 
 
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-        if (!empty($_REQUEST['search_query']) && $this->relevanssiActive()) {
+        $search_query = $this->request->get(RequestVar::search);
+        if (!empty($search_query) && $this->relevanssiActive()) {
             relevanssi_do_query($query);
         }
 
@@ -256,11 +250,11 @@ class Factory extends StdObject
             if (empty($fields)) continue;
             switch ($type) {
                 case 'meta_key' :
-                    $meta_query = new MetaQuery($fields,$this->config['meta_key_relation'], $this->request);
+                    $meta_query = new MetaQuery($fields,$this->args['meta_key_relation'], $this->request);
                     $meta_query = $meta_query->getQuery();
                     break;
                 case 'taxonomy' :
-                    $tax_query = new TaxQuery($fields, $this->config['taxonomy_relation'], $this->request);
+                    $tax_query = new TaxQuery($fields, $this->args['taxonomy_relation'], $this->request);
                     $tax_query = $tax_query->getQuery();
                     break;
                 case 'date' :
@@ -289,14 +283,15 @@ class Factory extends StdObject
      * Takes an array of query arguments and adds an orderby argument
      *
      * @param array $query
-     * @param array $request
+     * @param HttpRequest $request
      * @return array
      */
-    private function addOrderbyArg(array $query, array $request) {
+    private function addOrderbyArg(array $query, HttpRequest $request) {
         $var = RequestVar::orderby;
+        $val = $request->get($var);
 
-        if (empty($request[$var])) return $query;
-        $orderby_val = $request[$var];
+        if (empty($val)) return $query;
+        $orderby_val = $val;
         $orderby_val = (is_array($orderby_val)) ? implode(" ",$orderby_val) : $orderby_val;
 
         if (array_key_exists($orderby_val, $this->orderby_meta_keys)) {
@@ -314,11 +309,11 @@ class Factory extends StdObject
      *
      * @param array $query
      * @param array $fields
-     * @param array $request
+     * @param HttpRequest $request
      * @param bool $wp_var
      * @return array
      */
-    private function addQueryArg(array $query, array $fields, array $request,
+    private function addQueryArg(array $query, array $fields, HttpRequest $request,
                                  $wp_var = false) {
         if (empty($fields)) return $query;
         $field = reset($fields); // As of v1.4, only one field allowed per
@@ -330,15 +325,18 @@ class Factory extends StdObject
         $wp_var = RequestVar::wpQueryVar($field_id);
         $wp_var = (!$wp_var) ? $var : $wp_var;
 
-        if (empty($request[$var])) return $query;
+        $val = $request->get($var);
 
-        $query[$wp_var] = $request[$var];
+        if (empty($val)) return $query;
+
+        $query[$wp_var] = $val;
         return $query;
     }
 
     private function addPaginationArg(array $query) {
-        if (!empty($this->request['paged'])) {
-            $paged = $this->request['paged'];
+        $page_num = $this->request->get('paged');
+        if (!empty($page_num)) {
+            $paged = $page_num;
         }
         else if ( get_query_var('paged') ) {
             $paged = get_query_var('paged');
@@ -367,13 +365,15 @@ class Factory extends StdObject
     /**
      * Returns an array containing the post types currently being queried
      *
-     * @param array $request
+     * @param HttpRequest $request
      * @return array
      */
-    private function selectedPostTypes(array $request) {
+    private function selectedPostTypes(HttpRequest $request) {
         $wp_query = $this->wp_query_args;
-        if (!empty($request) && !empty($request[RequestVar::post_type])) {
-            $post_types = $request[RequestVar::post_type];
+        $val = $request->get(RequestVar::post_type);
+
+        if (!empty($request) && !empty($val)) {
+            $post_types = $val;
         } else if (!empty($wp_query) && !empty($wp_query['post_type'])) {
             $post_types = $wp_query['post_type'];
         } else {
@@ -381,6 +381,13 @@ class Factory extends StdObject
         }
         if (!is_array($post_types)) $post_types = array($post_types);
         return $post_types;
+    }
+
+    private function getRequestGlobal($form_args) {
+        if (!empty($form_args['method']) && $form_args['method'] == 'POST') {
+            return $_POST;
+        }
+        return $_GET;
     }
 
     /**

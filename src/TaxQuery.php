@@ -74,14 +74,15 @@ class TaxQuery {
     private function taxQueryClause($taxonomy, $input_name, $input) {
         if (empty($input)) return;
         $request_var = RequestVar::nameToVar($input_name, 'taxonomy');
+        $terms = $this->request->get($request_var);
 
-        if (empty($this->request[$request_var])) return;
+        if (empty($terms)) return;
 
         $clause = array();
         $clause['taxonomy'] = $taxonomy;
         $clause['operator'] = $input['operator'];
         $clause['field'] = (empty($inputs['term_format'])) ? self::$default_format : $inputs['term_format'];
-        $clause['terms'] = $this->request[$request_var];
+        $clause['terms'] = $terms;
 
         return $clause;
     }

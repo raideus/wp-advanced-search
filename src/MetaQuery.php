@@ -94,12 +94,13 @@ class MetaQuery {
         if (empty($input)) return array();
 
         $request_var = RequestVar::nameToVar($input_name, 'meta_key');
-        if (empty($this->request[$request_var])) return array();
+        $val = $this->request->get($request_var);
+        if (empty($val)) return array();
 
         $clause = array();
         $clause['key'] = $meta_key;
         $clause['compare'] = $input['compare'];
-        $clause['value'] = $this->request[$request_var];
+        $clause['value'] = $val;
         $clause['type'] = $input['data_type'];
 
         return $clause;
@@ -126,11 +127,10 @@ class MetaQuery {
 
         foreach($inputs as $v => $input) {
             $v =  RequestVar::nameToVar($v, 'meta_key');
-            if (!isset($this->request[$v])) {
+            $var = $this->request->get($v, null);
+            if ($var === null) {
                 continue;
             }
-
-            $var = $this->request[$v];
 
             // Disallow multi-value inputs
             // Reason: Doing a BETWEEN comparison between two multi-value
@@ -172,12 +172,12 @@ class MetaQuery {
      */
     private function metaQueryClauseArray($meta_key, $input_name, $input) {
         $request_var = RequestVar::nameToVar($input_name, 'meta_key');
-        if (empty($this->request[$request_var])) return array();
+        $var = $this->request->get($request_var);
+        if (empty($var)) return array();
 
         $clause = array();
         $data_type = DataType::isArrayType($input['data_type']);
 
-        $var = $this->request[$request_var];
         if (!is_array($var)) $var = array($var);
 
         foreach($var as $value) {

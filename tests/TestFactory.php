@@ -90,7 +90,6 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         );
 
         $f = new Factory($args);
-        print_r($f->getErrors());
         $this->assertFalse($f->hasErrors());
         $inputs = $f->getInputs();
         $this->assertTrue(count($inputs) == 8);
@@ -108,7 +107,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $r = $f->getRequest();
         $this->assertTrue(!empty($r));
-        $this->assertTrue($r['search_query'] == 'hello');
+        $this->assertTrue($r->get('search_query') == 'hello');
     }
 
     public function testMetaQueryBetween() {
@@ -401,6 +400,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
         $request = array('order'=>'ASC', 'ptype'=>array('post','page'), 'search_query' => 'testing', 'posts_per_page' => 12);
         $expected_query = '{"post_type":["post","page"],"order":"ASC","posts_per_page":"12","s":"testing","paged":1}';
+        $e =              '{"post_type":["post","page"],"order":"ASC","posts_per_page":12,"s":"testing","paged":1}';
 
         $f = new Factory($args, $request);
         $this->assertFalse($f->hasErrors());

@@ -20,6 +20,9 @@ class InputBuilder extends StdObject {
 
         self::validateFieldType($field_type);
         $args = self::preProcess($input_name, $field_type, $args, $request);
+        if (($request instanceof HttpRequest) == false) {
+            $request = new HttpRequest();
+        }
         $args = call_user_func("self::$field_type", $input_name, $args,$request);
         $args = self::postProcess($input_name, $field_type, $args, $request);
 
@@ -119,11 +122,10 @@ class InputBuilder extends StdObject {
      * @param $request
      * @return array
      */
-    protected static function getSelected($input_name, $field_type, $args,
-                                       $request) {
+    protected static function getSelected($input_name, $field_type, $args, HttpRequest $request) {
         $request_var = $input_name;
 
-        $request_val = isset( $request[$request_var] ) ? $request[$request_var] : null;
+        $request_val = $request->get($request_var);
 
         if (isset($request_val)) {
             if (is_array($request_val)) {
@@ -140,8 +142,7 @@ class InputBuilder extends StdObject {
             return $selected;
         }
 
-
-        if (isset($args['default']) && !isset($request['wpas_submit'])) {
+        if (isset($args['default']) && self::isFormSubmitted($request) == false) {
             if (!is_array($args['default'])) {
                 return array($args['default']);
             }
@@ -164,7 +165,7 @@ class InputBuilder extends StdObject {
         $default_all = isset($args['default_all']) ? $args['default_all'] : false;
         $supports_multiple = ($format == 'checkbox' || $format == 'multi-select');
 
-        return ($default_all && $supports_multiple && !isset($request['wpas_submit']));
+        return ($default_all && $supports_multiple && self::isFormSubmitted($request) == false);
     }
 
     /**
@@ -497,6 +498,11 @@ class InputBuilder extends StdObject {
             default :
                 return $term->slug;
         }
+    }
+
+    private static function isFormSubmitted(HttpRequest $request) {
+        $val = $request->get('wpas_submit');
+        return isset($val);
     }
 
 }

@@ -212,7 +212,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
         $t[] = $this->factory->category->create_and_get(array('name' =>  "Category Two"));
         $t[] = $this->factory->category->create_and_get(array('name' =>  "Z Category"));
 
-        $request = array('tax_category' => array('category-two'));
+        $request = new HttpRequest(array('tax_category' => array('category-two')));
         $args = array(
             'field_type' => 'taxonomy',
             'taxonomy' => 'category',
@@ -223,7 +223,6 @@ class TestInputBuilder extends \WP_UnitTestCase {
 
         // Selected value is present
         $selected = $input->getSelected();
-
         $this->assertTrue(count($selected) == 1);
         $this->assertTrue($selected[0] == 'category-two');
 
@@ -256,7 +255,7 @@ class TestInputBuilder extends \WP_UnitTestCase {
 
     public function testGenericFieldSelected() {
         $inputname = 'myfield';
-        $request = array($inputname => array('blue','green'));
+        $request = new HttpRequest(array($inputname => array('blue','green')));
 
         $args = array(
             'field_type' => 'generic',
