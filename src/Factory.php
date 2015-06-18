@@ -332,10 +332,11 @@ class Factory extends StdObject
     private function getSubQuery($class, $fields, $relation, HttpRequest $request) {
         $class = 'WPAS\\'.$class;
         if ($class == 'WPAS\DateQuery') {
-            return (new $class($fields[0], $request))->getQuery(); // Allow only 1 field for DateQuery
+            $query = new $class($fields[0], $request); // Allow only 1 field for DateQuery
         } else {
-            return (new $class($fields, $this->args[$relation], $request))->getQuery();
+            $query = new $class($fields, $this->args[$relation], $request);
         }
+        return $query->getQuery();
     }
 
     /**
