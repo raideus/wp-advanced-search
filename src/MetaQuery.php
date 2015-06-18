@@ -208,7 +208,7 @@ class MetaQuery {
         if (!is_array($var)) $var = array($var);
 
         foreach($var as $value) {
-            $clause[] = $this->subClause($meta_key, $input['compare'], $value);
+            $clause[] = $this->subClause($meta_key, $input, $value);
         }
 
         if (count($clause) > 1) {
@@ -220,12 +220,12 @@ class MetaQuery {
         return $clause;
     }
 
-    private function subClause($meta_key, $compare, $value) {
+    private function subClause($meta_key, $input, $value) {
         return array(
             'key' => $meta_key,
             'type' => DataType::isArrayType($input['data_type']),
             'value' => $value,
-            'compare' => $compare
+            'compare' => $input['compare']
         );
     }
 
