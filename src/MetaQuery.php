@@ -9,7 +9,7 @@ class MetaQuery {
     private $request;
     private $query;
 
-    function __construct(array $fields, $relation = 'AND', $request) {
+    function __construct(array $fields, $relation = 'AND', HttpRequest $request) {
         $this->query = $this->build($fields, $relation, $request);
     }
 
@@ -21,7 +21,7 @@ class MetaQuery {
      * @param $request
      * @return array
      */
-    public function build(array $fields, $relation = 'AND', $request) {
+    public function build(array $fields, $relation = 'AND', HttpRequest $request) {
         $query = array();
         $this->request = $request;
 
@@ -44,7 +44,7 @@ class MetaQuery {
      * @param $request
      * @return array
      */
-    public function metaQueryGroup($field, $request) {
+    public function metaQueryGroup($field, HttpRequest $request) {
         $group = array();
         $meta_key = $field->getFieldId();
         $inputs = $field->getInputs();

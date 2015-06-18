@@ -424,7 +424,7 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $this->assertFalse($f->hasErrors());
 
         $q = $f->buildQueryObject()->query;
-
+        $this->assertFalse(empty($q['date_query']));
         $this->assertTrue(json_encode($q['date_query']) == $expected_query);
 
     }

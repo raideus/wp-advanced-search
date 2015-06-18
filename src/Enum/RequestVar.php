@@ -19,7 +19,10 @@ class RequestVar extends BasicEnum {
     private static $wp_query_vars = array(
         'search' => 's',
         'post_type' => 'post_type',
-        'author' => 'author'
+        'author' => 'author',
+        'meta_key' => 'meta_query',
+        'taxonomy' => 'tax_query',
+        'date' => 'date_query'
     );
 
     /**

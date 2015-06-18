@@ -95,20 +95,6 @@ class Factory extends StdObject
     }
 
     /**
-     * Sanitize a request variable
-     *
-     * @param $var
-     * @return string|void
-     */
-    private function sanitizeRequestVar($var) {
-        if (is_scalar($var)) return esc_attr($var);
-        foreach ($var as $i => $el) {
-            $var[$i] = esc_attr($el);
-        }
-        return $var;
-    }
-
-    /**
      * Populate fields table
      */
     private function initFields() {
@@ -237,43 +223,23 @@ class Factory extends StdObject
      */
     private function buildQuery() {
         $query = array();
+        $skip = array('meta_key'=> 1, 'taxonomy'=> 1, 'date'=> 1, 'orderby'=> 1);
+
         if (!$this->fields_ready) {
             $this->addError('Method buildQuery called before initializing' .
                 ' query fields.  Must call initFields first.');
             return $query;
         }
 
-        $meta_query = array();
-        $tax_query = array();
-
         foreach ($this->fields as $type => $fields) {
-            if (empty($fields)) continue;
-            switch ($type) {
-                case 'meta_key' :
-                    $meta_query = new MetaQuery($fields,$this->args['meta_key_relation'], $this->request);
-                    $meta_query = $meta_query->getQuery();
-                    break;
-                case 'taxonomy' :
-                    $tax_query = new TaxQuery($fields, $this->args['taxonomy_relation'], $this->request);
-                    $tax_query = $tax_query->getQuery();
-                    break;
-                case 'date' :
-                    $field = reset($fields); // Only one field permitted for date query
-                    $date_query = new DateQuery($field, $this->request);
-                    $date_query = $date_query->getQuery();
-                    break;
-                case 'orderby' :
-                    $query = $this->addOrderbyArg($query, $this->request);
-                    break;
-                default :
-                    $query = $this->addQueryArg($query, $fields, $this->request);
-            }
+            if (empty($fields) || isset($skip[$type])) continue;
+            $query = $this->addQueryArg($query, $fields, $this->request);
         }
 
-        if (!empty($meta_query)) $query['meta_query'] = $meta_query;
-        if (!empty($tax_query))  $query['tax_query'] = $tax_query;
-        if (!empty($date_query)) $query['date_query'] = $date_query;
-
+        $query = $this->addOrderbyArg($query, $this->request);
+        $query = $this->addSubQuery($query, $this->fields, 'taxonomy', $this->request);
+        $query = $this->addSubQuery($query, $this->fields, 'meta_key', $this->request);
+        $query = $this->addSubQuery($query, $this->fields, 'date', $this->request);
         $query = $this->addPaginationArg($query);
 
         return self::parseArgs($query, $this->wp_query_args);
@@ -313,8 +279,7 @@ class Factory extends StdObject
      * @param bool $wp_var
      * @return array
      */
-    private function addQueryArg(array $query, array $fields, HttpRequest $request,
-                                 $wp_var = false) {
+    private function addQueryArg(array $query, array $fields, HttpRequest $request) {
         if (empty($fields)) return $query;
         $field = reset($fields); // As of v1.4, only one field allowed per
                                  // query var (other than taxonomy and meta_key)
@@ -333,6 +298,52 @@ class Factory extends StdObject
         return $query;
     }
 
+    /**
+     * Takes an array of query arguments and adds a sub-query
+     * (eg tax_query, meta_query, or date_query)
+     *
+     * @param array $query
+     * @param array $fields_table
+     * @param $field_type
+     * @param HttpRequest $request
+     * @return array
+     */
+    private function addSubQuery(array $query, array $fields_table, $field_type, HttpRequest $request) {
+        $classnames = array('taxonomy' => 'TaxQuery', 'meta_key' => 'MetaQuery', 'date' => 'DateQuery');
+        if (empty($classnames[$field_type]) || empty($fields_table[$field_type])) return $query;
+
+        $fields = $fields_table[$field_type];
+        $s_query = $this->getSubQuery($classnames[$field_type], $fields, $field_type.'_relation', $request );
+
+        if (!empty($s_query)) $query[RequestVar::wpQueryVar($field_type)] = $s_query;
+        return $query;
+    }
+
+    /**
+     * Creates and returns a sub-query
+     * (eg tax_query, meta_query, or date_query)
+     *
+     * @param $class
+     * @param $fields
+     * @param $relation
+     * @param HttpRequest $request
+     * @return mixed
+     */
+    private function getSubQuery($class, $fields, $relation, HttpRequest $request) {
+        $class = 'WPAS\\'.$class;
+        if ($class == 'WPAS\DateQuery') {
+            return (new $class($fields[0], $request))->getQuery(); // Allow only 1 field for DateQuery
+        } else {
+            return (new $class($fields, $this->args[$relation], $request))->getQuery();
+        }
+    }
+
+    /**
+     * Adds pagination argument to an array of query arguments
+     *
+     * @param array $query
+     * @return array
+     */
     private function addPaginationArg(array $query) {
         $page_num = $this->request->get('paged');
         if (!empty($page_num)) {
@@ -349,7 +360,11 @@ class Factory extends StdObject
         return $query;
     }
 
-
+    /**
+     * Adds information abou an exception-based error to the object's error list
+     *
+     * @param $exception
+     */
     private function addExceptionError($exception) {
         $error = array();
         $error['msg'] = $exception->getMessage();
@@ -358,6 +373,10 @@ class Factory extends StdObject
         $this->errors[] = $error;
     }
 
+    /**
+     * Adds a standard error message to the object's error list
+     * @param $msg
+     */
     private function addError($msg) {
         $this->errors[] = $msg;
     }
@@ -383,6 +402,13 @@ class Factory extends StdObject
         return $post_types;
     }
 
+    /**
+     * Returns the superglobal corresponding to the current form's specified
+     * method (eg POST or GET)
+     *
+     * @param $form_args
+     * @return mixed
+     */
     private function getRequestGlobal($form_args) {
         if (!empty($form_args['method']) && $form_args['method'] == 'POST') {
             return $_POST;
