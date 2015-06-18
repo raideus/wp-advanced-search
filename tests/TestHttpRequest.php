@@ -9,7 +9,7 @@ class TestHttpRequest extends \PHPUnit_Framework_TestCase {
         $vars = array(
             'one' => 5,
             'two' => 'two',
-            'three' => ['red','white','blue'],
+            'three' => array('red','white','blue'),
             'four' => '<script>alert("Hello!")</script>'
         );
 
