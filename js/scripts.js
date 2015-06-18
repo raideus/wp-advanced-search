@@ -15,6 +15,7 @@ var __WPAS = {
 jQuery(document).ready(function($) {
 
     __WPAS.FORM_ID = $('#wpas-id').val();
+    var CURRENT_PAGE = 1;
 
     /**
      *  Event listeners
