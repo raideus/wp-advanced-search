@@ -3,7 +3,21 @@ namespace WPAS\Enum;
 use WPAS\StdObject;
 
 abstract class BasicEnum extends StdObject {
+    private static $constCacheArray = NULL;
+
     private function __construct() {}
+
+    public static function getConstants() {
+        if (self::$constCacheArray == NULL) {
+            self::$constCacheArray = array();
+        }
+        $calledClass = get_called_class();
+        if (!array_key_exists($calledClass, self::$constCacheArray)) {
+            $reflect = new \ReflectionClass($calledClass);
+            self::$constCacheArray[$calledClass] = $reflect->getConstants();
+        }
+        return self::$constCacheArray[$calledClass];
+    }
 
     public static function isValidName($name, $strict = false) {
         $constants = self::getConstants();

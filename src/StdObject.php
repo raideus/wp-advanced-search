@@ -2,35 +2,8 @@
 namespace WPAS;
 
 abstract class StdObject {
-
     protected static $rules;
     protected static $defaults;
-    private static $constCacheArray = NULL;
-    private static $methodCacheArray = NULL;
-
-    public static function getConstants() {
-        if (self::$constCacheArray == NULL) {
-            self::$constCacheArray = array();
-        }
-        $calledClass = get_called_class();
-        if (!array_key_exists($calledClass, self::$constCacheArray)) {
-            $reflect = new \ReflectionClass($calledClass);
-            self::$constCacheArray[$calledClass] = $reflect->getConstants();
-        }
-        return self::$constCacheArray[$calledClass];
-    }
-
-    protected static function getMethods() {
-        if (self::$methodCacheArray == NULL) {
-            self::$methodCacheArray = array();
-        }
-        $calledClass = get_called_class();
-        if (!array_key_exists($calledClass, self::$methodCacheArray)) {
-            $reflect = new \ReflectionClass($calledClass);
-            self::$methodCacheArray[$calledClass] = $reflect->getMethods();
-        }
-        return self::$methodCacheArray[$calledClass];
-    }
 
     /**
      * Validate form arguments
