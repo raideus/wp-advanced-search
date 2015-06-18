@@ -158,7 +158,7 @@ class Factory extends StdObject
         foreach ($inputs as $name => $input_args) {
             try {
                 if ($field_type == FieldType::date) {
-                    $date_type = (empty($input_args['date_type'])) ? $input_args['date_type'] : false;
+                    $date_type = (!empty($input_args['date_type'])) ? $input_args['date_type'] : false;
                     $post_types = $this->selectedPostTypes($request);
                     $name = RequestVar::nameToVar($name, $field_type, $date_type);
                     $input = DateInputBuilder::make($name, $input_args, $post_types, $request);
