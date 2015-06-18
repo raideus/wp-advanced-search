@@ -464,6 +464,11 @@ class Factory extends StdObject
         return $this->wp_query_obj;
     }
 
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
     /**
      * @return bool
      */

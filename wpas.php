@@ -24,15 +24,15 @@ class WP_Advanced_Search {
     private $ajax;
     public $debug_level;
 
-    function __construct($id = '', $request = false) {
+    function __construct($id = '', $request = null) {
         $this->errors = array();
+        $this->request = array();
         $this->args = $this->get_form_args($id);
         $this->args = $this->process_args($this->args);
         $this->ajax = $this->args['form']['ajax'];
         $this->debug = $this->args['debug'];
         $this->debug_level = $this->args['debug_level'];
-        $this->request = ($request) ? $request : $_REQUEST;
-        $this->factory = new WPAS\Factory($this->args, $this->request);
+        $this->factory = new WPAS\Factory($this->args, $request);
     }
 
     /**
@@ -41,7 +41,7 @@ class WP_Advanced_Search {
      * @param $id
      * @return array|mixed
      */
-    public function get_form_args($id) {
+    private function get_form_args($id) {
         global $WPAS_FORMS;
 
         if (empty($WPAS_FORMS)) {
@@ -135,7 +135,7 @@ class WP_Advanced_Search {
      * @param string $args
      * @return string
      */
-    public function get_pagination($query_object, $args = '', $ajax = false) {
+    private function get_pagination($query_object, $args = '', $ajax = false) {
         global $wp_query;
         $temp = $wp_query;
         $wp_query = $query_object;
@@ -175,15 +175,6 @@ class WP_Advanced_Search {
         $wp_query = $temp;
 
         return $output;
-    }
-
-    /**
-     * Get full WP Query object
-     *
-     * @return object
-     */
-    public function get_wp_query_object() {
-        return $this->factory->getWPQuery();
     }
 
     /**
@@ -233,7 +224,7 @@ class WP_Advanced_Search {
         $output .= "|| Request Data \n";
         $output .= "------------------------------------\n";
 
-        $output .= print_r($this->request, true) . "\n";
+        $output .= print_r($this->get_request(), true) . "\n";
 
         if ($level == 'verbose') {
             $output .= "------------------------------------\n";
@@ -330,6 +321,12 @@ class WP_Advanced_Search {
         $args['debug_level'] = $debug_level;
 
         return $args;
+    }
+
+    private function get_request() {
+        $request = $this->factory->getRequest();
+        //die(print_r($request));
+        return $request->all();
     }
 
 }
