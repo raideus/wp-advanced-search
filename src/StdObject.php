@@ -31,13 +31,13 @@ abstract class StdObject {
 
     protected static function parseArgs(array $args, array $defaults) {
         if ( is_object( $args ) )
-            $r = get_object_vars( $args );
+            $args = get_object_vars( $args );
         else
-            $r =& $args;
+            $args =& $args;
 
         if ( is_array( $defaults ) )
-            return array_merge( $defaults, $r );
-        return $r;
+            return array_merge( $defaults, $args );
+        return $args;
     }
 
 }
