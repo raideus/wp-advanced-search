@@ -419,16 +419,9 @@ class Factory extends StdObject
     /**
      * @return bool
      */
-    public function hasErrors() {
-        return (!empty($this->errors));
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getRequest()
+    public function hasErrors()
     {
-        return $this->request;
+        return (!empty($this->errors));
     }
 
     /**
@@ -461,14 +454,6 @@ class Factory extends StdObject
     public function getInputs()
     {
         return $this->inputs;
-    }
-
-    /**
-     * @return array
-     */
-    public function getWPQueryArgs()
-    {
-        return $this->wp_query_args;
     }
 
     /**

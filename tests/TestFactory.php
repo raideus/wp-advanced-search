@@ -97,19 +97,6 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $q = $f->buildQueryObject()->query;
     }
 
-    public function testCanGetRequest() {
-        $args = array();
-        $request = array('search_query' => 'hello',
-                         'color' => array('blue' => 'Blue',
-                                        'red' => 'Red'));
-        $f = new Factory($args, $request);
-        $this->assertFalse($f->hasErrors());
-
-        $r = $f->getRequest();
-        $this->assertTrue(!empty($r));
-        $this->assertTrue($r->get('search_query') == 'hello');
-    }
-
     public function testMetaQueryBetween() {
         $args = array();
         $prefix = RequestVar::meta_key;
