@@ -44,34 +44,14 @@ class MetaQuery {
      * @param $request
      * @return array
      */
-    public function metaQueryGroup($field, HttpRequest $request) {
+    private function metaQueryGroup($field, HttpRequest $request) {
         $group = array();
         $meta_key = $field->getFieldId();
         $inputs = $field->getInputs();
         $data_type = $field->getDataType();
         $compare = $field->getCompare();
 
-        $clauses = array();
-
-        if ($compare == Compare::between) {
-            $clauses[] = $this->metaQueryClauseBetween($meta_key, $inputs, 2);
-        } else {
-            // Disallow multiple input sources if not using BETWEEN comparison
-            // This is a (potentially) temporary restriction
-            $keys = array_keys($inputs);
-            $inputs = array($keys[0] => $inputs[$keys[0]]);
-            //
-            //
-
-            foreach ($inputs as $input_name => $input) {
-                if (DataType::isArrayType($data_type)) {
-                    $clause = $this->metaQueryClauseArray($meta_key, $input_name, $input);
-                } else {
-                    $clause = $this->metaQueryClause($meta_key, $input_name, $input);
-                }
-                $clauses[] = $clause;
-            }
-        }
+        $clauses = $this->clauseList($inputs, $meta_key, $compare, $data_type);
 
         foreach ($clauses as $clause) {
             if (!empty($clause)) {
@@ -80,6 +60,42 @@ class MetaQuery {
         }
         if (count($group) == 1) $group = $group[0];
         return $group;
+    }
+
+    /**
+     * Construct array of meta_query clauses
+     *
+     * @param $inputs
+     * @param $meta_key
+     * @param $compare
+     * @param $data_type
+     * @return array
+     */
+    private function clauseList($inputs, $meta_key, $compare, $data_type) {
+        if ($compare == Compare::between) {
+            return array($this->metaQueryClauseBetween($meta_key, $inputs, 2));
+        }
+
+        $clauses = array();
+
+        // Disallow multiple input sources if not using BETWEEN comparison
+        // This is a (potentially) temporary restriction
+        $keys = array_keys($inputs);
+        $inputs = array($keys[0] => $inputs[$keys[0]]);
+        //
+        //
+
+        foreach ($inputs as $input_name => $input) {
+            if (DataType::isArrayType($data_type)) {
+                $clause = $this->metaQueryClauseArray($meta_key, $input_name, $input);
+            } else {
+                $clause = $this->metaQueryClause($meta_key, $input_name, $input);
+            }
+            $clauses[] = $clause;
+        }
+
+        return $clauses;
+
     }
 
     /**
@@ -125,20 +141,8 @@ class MetaQuery {
         $clause['compare'] = Compare::between;
         $count = 1;
 
-        foreach($inputs as $v => $input) {
-            $v =  RequestVar::nameToVar($v, 'meta_key');
-            $var = $this->request->get($v, null);
-            if ($var === null) {
-                continue;
-            }
-
-            // Disallow multi-value inputs
-            // Reason: Doing a BETWEEN comparison between two multi-value
-            // groups is undefined behavior
-            $var = (is_array($var) ) ? array(reset($var)) : array($var);
-
-            $clause['value'] = array_merge($clause['value'], $var);
-
+        foreach($inputs as $name => $input) {
+            $clause['value'] = $this->mergeRequestValues($clause['value'], $name);
             $count++;
             if ($limit && $count > $limit) break;
         }
@@ -161,6 +165,30 @@ class MetaQuery {
     }
 
     /**
+     * Appends a value from the HTTP request an array of values
+     * Used for constructing multi-input BETWEEN comparisons
+     *
+     * @param array $values  Existing values array
+     * @param $name          Request var name
+     * @return array
+     */
+    private function mergeRequestValues(array $values, $name) {
+        $name =  RequestVar::nameToVar($name, 'meta_key');
+        $val = $this->request->get($name, null);
+
+        if ($val === null) {
+            return $values;
+        }
+
+        // Disallow multi-value inputs
+        // Reason: Doing a BETWEEN comparison between two multi-value
+        // groups is undefined behavior
+        $val = (is_array($val) ) ? array(reset($val)) : array($val);
+
+        return array_merge($values, $val);
+    }
+
+    /**
      *  Build a meta_query clause for meta values which are stored as an array
      *
      *  Creates a separate sub-clause for each value being queried
@@ -176,18 +204,11 @@ class MetaQuery {
         if (empty($var)) return array();
 
         $clause = array();
-        $data_type = DataType::isArrayType($input['data_type']);
 
         if (!is_array($var)) $var = array($var);
 
         foreach($var as $value) {
-            $subclause = array();
-            $subclause['key'] = $meta_key;
-            $subclause['type'] = $data_type;
-            $subclause['value'] = $value;
-            $subclause['compare'] = $input['compare'];
-
-            $clause[] = $subclause;
+            $clause[] = $this->subClause($meta_key, $input['compare'], $value);
         }
 
         if (count($clause) > 1) {
@@ -197,6 +218,15 @@ class MetaQuery {
         if (count($clause) == 1) $clause = $clause[0];
 
         return $clause;
+    }
+
+    private function subClause($meta_key, $compare, $value) {
+        return array(
+            'key' => $meta_key,
+            'type' => DataType::isArrayType($input['data_type']),
+            'value' => $value,
+            'compare' => $compare
+        );
     }
 
     /**
