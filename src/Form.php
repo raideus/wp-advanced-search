@@ -17,7 +17,6 @@ class Form extends StdObject {
     static protected $rules = array(
                                     'action' => 'string',
                                     'method' => 'RequestMethod',
-                                    'id' => 'string',
                                     'name' => 'string',
                                     'class' => 'array<string>',
                                     'ajax' => 'object',
@@ -28,7 +27,6 @@ class Form extends StdObject {
     static protected $defaults = array(  
                                         'action' => '',
                                         'method' => 'GET',
-                                        'id' => 'wp-advanced-search',
                                         'name' => 'wp-advanced-search',
                                         'class' => array('wp-advanced-search'),
                                         'disable_wrappers' => false,
@@ -44,6 +42,8 @@ class Form extends StdObject {
         foreach($this->args as $key => $value) {
             $this->$key = $value;
         }
+
+        $this->id = "wp-advanced-search";
     }
 
     /**
@@ -56,7 +56,7 @@ class Form extends StdObject {
 
         $output = "
         <form id=\"".$this->id."\" name=\"".$this->name."\" 
-                class=\"".$this->getClassString()."\"
+                class=\"".$this->classString()."\"
                 method=\"".$this->method."\" ";
         $output .= $this->dataAttributesString();
         $output .= "action=\"".$this->action."\"> ";
@@ -126,36 +126,7 @@ class Form extends StdObject {
         return $output;
     }
 
-    public function addClass($class) {
-        if (!is_string($class)) return;
-        $this->class[] = $class;
-    }
-
-    public function disableWrappers() {
-        return ((defined('WPAS_DISABLE_WRAPPERS') && WPAS_DISABLE_WRAPPERS) || ($this->disable_wrappers));
-    }
-
-    public function getID() {
-        return $this->id;
-    }
-
-    public function getAction() {
-        return $this->action;
-    }
-
-    public function getMethod() {
-        return $this->method;
-    }
-
-    public function getName() {
-        return $this->name;
-    }
-
-    public function getClass() {
-        return $this->class;
-    }
-
-    public function getClassString() {
+    private function classString() {
         $str = implode(" ",$this->class);
         if ($this->ajax->isEnabled()) {
             $str .= " wpas-ajax-enabled";
@@ -166,6 +137,16 @@ class Form extends StdObject {
         return $str;
     }
 
+    public function addClass($class) {
+        if (!is_string($class)) return;
+        $this->class[] = $class;
+    }
+
+    public function disableWrappers() {
+        return ((defined('WPAS_DISABLE_WRAPPERS') && WPAS_DISABLE_WRAPPERS) || ($this->disable_wrappers));
+    }
+
+
     public function getInputs() {
         return $this->inputs;
     }
@@ -174,6 +155,12 @@ class Form extends StdObject {
         return self::$defaults;
     }
 
-
+    public function getAttributes() {
+        return array(   'id' => $this->id,
+                        'class' => $this->class,
+                        'method' => $this->method,
+                        'action' => $this->action,
+                        'name' => $this->name );
+    }
 
 }
