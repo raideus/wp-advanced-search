@@ -17,7 +17,7 @@ class DateInputBuilder extends InputBuilder {
      * @return object
      */
     public static function make($input_name, $args, $post_types, $request = false) {
-        $args = self::preProcess($input_name, FieldType::date, $args, $request);
+        $args = self::preProcess(FieldType::date, $args);
         $args = self::addDateValues($args, $post_types);
         $args = self::configure($input_name, $args,$request);
         $args = self::postProcess($input_name, FieldType::date, $args, $request);

@@ -267,6 +267,40 @@ class TestInputBuilder extends \WP_UnitTestCase {
         $this->assertTrue(count($input->getSelected()) == 2);
     }
 
+    public function testAuthor() {
+        $queried = array(2,4);
+        $request = new HttpRequest(array('a' => array(2,4)));
+
+        $users = array();
+        $users[] = $this->factory->user->create_and_get(array('display_name'=>'Sean', 'role' => 'administrator')); // id=2
+        $users[] = $this->factory->user->create_and_get(array('display_name'=>'Dave', 'role' => 'editor')); // id=3
+        $users[] = $this->factory->user->create_and_get(array('display_name'=>'Alex', 'role' => 'author')); // id=4
+        $users[] = $this->factory->user->create_and_get(array('display_name'=>'Jim', 'role' => 'subscriber')); // id=5
+        $users[] = $this->factory->user->create_and_get(array('display_name'=>'Rob', 'role' => 'contributor')); // id=6
+
+        $values = array();
+        foreach($users as $user) {
+            $values[] = $user->user_id;
+        }
+
+        $args = array(
+            'field_type' => 'author',
+            'format' => 'checkbox',
+            'values' => $values
+        );
+
+        $input = InputBuilder::make('a', FieldType::author, $args, $request);
+        $values = $input->getValues();
+        $selected = $input->getSelected();
+
+        $this->assertTrue(count($values) == 5); // 5 authors including "admin"
+        $this->assertFalse(isset($values[5])); // User 'Jim' should not be included
+
+        $this->assertTrue(count($selected) == 2);
+        $this->assertContains(2, $selected);
+        $this->assertContains(4,$selected);
+    }
+
 
 
 

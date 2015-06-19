@@ -1,5 +1,7 @@
 <?php
 namespace WPAS;
+use WPAS\Parser\TaxonomyArgParser;
+use WPAS\Parser\AuthorArgParser;
 use WPAS\Enum\FieldType;
 
 class InputBuilder extends StdObject {
@@ -19,11 +21,11 @@ class InputBuilder extends StdObject {
                                 $request = false) {
 
         self::validateFieldType($field_type);
-        $args = self::preProcess($input_name, $field_type, $args, $request);
-        if (($request instanceof HttpRequest) == false) {
+        $args = self::preProcess($field_type, $args);
+        if (($request instanceof HttpRequest) === false) {
             $request = new HttpRequest();
         }
-        $args = call_user_func("self::$field_type", $input_name, $args,$request);
+        $args = call_user_func("self::$field_type", $args);
         $args = self::postProcess($input_name, $field_type, $args, $request);
 
         return new Input($input_name, $args);
@@ -45,14 +47,11 @@ class InputBuilder extends StdObject {
     /**
      * Pre-processing of input arguments
      *
-     * @param $input_name
      * @param $field_type
      * @param $args
-     * @param $request
      * @return mixed
      */
-    protected static function preProcess($input_name, $field_type, $args,
-                                       $request) {
+    protected static function preProcess($field_type, $args) {
 
         if (isset($args['exclude']) && is_scalar($args['exclude'])) {
             $args['exclude'] = array($args['exclude']);
@@ -81,9 +80,9 @@ class InputBuilder extends StdObject {
      * @return mixed
      */
     protected static function postProcess($input_name, $field_type, $args,
-                                            $request) {
+                                          $request) {
         $args['selected'] = self::getSelected($input_name, $field_type, $args,
-                                              $request);
+            $request);
         $args = self::removeExcludedValues($args);
         return $args;
     }
@@ -142,7 +141,7 @@ class InputBuilder extends StdObject {
             return $selected;
         }
 
-        if (isset($args['default']) && self::isFormSubmitted($request) == false) {
+        if (isset($args['default']) && self::isFormSubmitted($request) === false) {
             if (!is_array($args['default'])) {
                 return array($args['default']);
             }
@@ -165,13 +164,13 @@ class InputBuilder extends StdObject {
         $default_all = isset($args['default_all']) ? $args['default_all'] : false;
         $supports_multiple = ($format == 'checkbox' || $format == 'multi-select');
 
-        return ($default_all && $supports_multiple && self::isFormSubmitted($request) == false);
+        return ($default_all && $supports_multiple && self::isFormSubmitted($request) === false);
     }
 
     /**
      * Generates a search field
      */
-    public static function search($input_name, $args, $request) {
+    public static function search($args) {
         $defaults = array(
             'label' => '',
             'format' => 'text',
@@ -185,7 +184,7 @@ class InputBuilder extends StdObject {
     /**
      * Generates a submit button
      */
-    public static function submit($input_name, $args, $request) {
+    public static function submit($args) {
         $defaults = array(
             'values' => array('Search')
         );
@@ -197,7 +196,7 @@ class InputBuilder extends StdObject {
     /**
      * Generates a reset button
      */
-    public static function reset($input_name, $args, $request) {
+    public static function reset($args) {
         $defaults = array(
             'values' => array('Reset')
         );
@@ -209,7 +208,7 @@ class InputBuilder extends StdObject {
     /**
      * Generates a clear button
      */
-    public static function clear($input_name, $args, $request) {
+    public static function clear($args) {
         $defaults = array(
             'values' => array('Clear')
         );
@@ -221,12 +220,10 @@ class InputBuilder extends StdObject {
     /**
      * Configure a meta_key input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function meta_key($input_name, $args, $request) {
+    public static function meta_key($args) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -241,12 +238,10 @@ class InputBuilder extends StdObject {
     /**
      * Configure an order input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function order($input_name, $args, $request) {
+    public static function order($args) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -260,25 +255,23 @@ class InputBuilder extends StdObject {
     /**
      * Configure an orderby input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function orderby($input_name, $args, $request) {
+    public static function orderby($args) {
         $defaults = array(
-                        'label' => '',
-                        'format' => 'select',
-                        'values' => array(  'ID' => 'ID',
-                                            'author' => 'Author',
-                                            'title' => 'Title',
-                                            'date' => 'Date',
-                                            'modified' => 'Modified',
-                                            'parent' => 'Parent ID',
-                                            'rand' => 'Random',
-                                            'comment_count' => 'Comment Count',
-                                            'menu_order' => 'Menu Order' )
-                        );
+            'label' => '',
+            'format' => 'select',
+            'values' => array(  'ID' => 'ID',
+                'author' => 'Author',
+                'title' => 'Title',
+                'date' => 'Date',
+                'modified' => 'Modified',
+                'parent' => 'Parent ID',
+                'rand' => 'Random',
+                'comment_count' => 'Comment Count',
+                'menu_order' => 'Menu Order' )
+        );
 
         if (isset($args['orderby_values']) && is_array($args['orderby_values'])) {
             $args['values'] = array(); // orderby_values overrides normal values
@@ -295,51 +288,20 @@ class InputBuilder extends StdObject {
     /**
      * Configure an author input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function author($input_name, $args, $request) {
-        $defaults = array(
-            'label' => '',
-            'format' => 'select',
-            'authors' => array()
-        );
-        $args = self::parseArgs($args, $defaults);
-
-
-        $authors_list = $args['authors'];
-
-        $the_authors_list = array();
-
-        if (count($authors_list) < 1) {
-            $authors = get_users(array('who' => 'authors'));
-            foreach ($authors as $author) {
-                $the_authors_list[$author->ID] = $author->display_name;
-            }
-        } else {
-            foreach ($authors_list as $author) {
-                if (get_userdata($author)) {
-                    $user = get_userdata($author);
-                    $the_authors_list[$author] = $user->display_name;
-                }
-            }
-        }
-
-        $args['values'] = $the_authors_list;
-        return $args;
+    public static function author($args) {
+        return AuthorArgParser::parse($args);
     }
 
     /**
      * Configure a post_type input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function post_type($input_name, $args, $request) {
+    public static function post_type($args) {
         $defaults = array(
             'label' => '',
             'format' => 'select',
@@ -365,12 +327,10 @@ class InputBuilder extends StdObject {
     /**
      * Configure an html input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function html($input_name, $args, $request) {
+    public static function html($args) {
         $defaults = array(
             'label' => '',
             'values' => array()
@@ -384,24 +344,20 @@ class InputBuilder extends StdObject {
     /**
      * Configure a generic input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function generic($input_name, $args, $request) {
+    public static function generic($args) {
         return $args;
     }
 
     /**
      * Configure a posts_per_page input
      *
-     * @param $input_name
      * @param $args
-     * @param $request
      * @return array
      */
-    public static function posts_per_page($input_name, $args, $request) {
+    public static function posts_per_page($args) {
         $defaults = array(
             'format' => 'select',
             'values' => array(10 => "10", 25 => "25", 50 => "50")
@@ -412,92 +368,11 @@ class InputBuilder extends StdObject {
 
     /**
      * Configure a taxonomy input
-     *
-     * @param $input_name
      * @param $args
-     * @param $request
-     * @throws \Exception
      * @return array
      */
-    public static function taxonomy($input_name, $args, $request) {
-        $defaults = array(
-            'label' => '',
-            'format' => 'select',
-            'term_format' => 'slug',
-            'operator' => 'AND',
-            'hide_empty' => false,
-            'terms' => array(),
-            'nested' => false,
-            'term_args' => array()
-        );
-
-        $term_defaults = array(
-            'hide_empty' => false
-        );
-
-        extract(self::parseArgs($args, $defaults));
-
-        $the_tax = get_taxonomy($taxonomy);
-
-        if (!is_object($the_tax)) {
-            $msg = "Taxonomy '". $taxonomy ."' not found in this WordPress
-            installation.";
-            throw new \Exception($msg);
-        }
-
-        if (isset($term_args) && is_array($term_args)) {
-            $term_args = self::parseArgs($term_args, $term_defaults);
-        }
-
-        if (isset($terms) && is_array($terms) && (count($terms) < 1)) {
-            // No terms specified; populate with all terms
-            $walker = new TermsWalker(array('taxonomy' => $taxonomy,
-                'term_format' => $term_format),
-                $term_args);
-            if ($nested) {
-                $term_values = $walker->build_nested_terms_array(0);
-            } else {
-                $term_values = $walker->build_basic_terms_array();
-            }
-        } else { // Custom term list
-            $args['nested'] = false; // Disallow nesting for custom term lists
-            $term_values = self::customTermsList($terms, $taxonomy, $term_format);
-        }
-
-        if (empty($values)) {
-            // Populate with values unless this is a text or textarea field
-            if (!($format == 'text' || $format == 'textarea')) {
-                $args['values'] = $term_values;
-            }
-        }
-
-        return $args;
-    }
-
-    private static function customTermsList($terms, $taxonomy, $term_format) {
-        $term_objects = array();
-        $term_values = array();
-        foreach ($terms as $term_identifier) {
-            $term = get_term_by($term_format, $term_identifier, $taxonomy);
-            if ($term) {
-                $term_objects[] = $term;
-            }
-        }
-        foreach ($term_objects as $term) {
-            $term_values[self::termValue($term,$term_format)] = $term->name;
-        }
-        return $term_values;
-    }
-
-    private static function termValue($term, $format) {
-        switch(strtolower($format)) {
-            case 'id' :
-                return $term->term_id;
-            case 'name' :
-                return $term->name;
-            default :
-                return $term->slug;
-        }
+    public static function taxonomy($args) {
+        return TaxonomyArgParser::parse($args);
     }
 
     private static function isFormSubmitted(HttpRequest $request) {
