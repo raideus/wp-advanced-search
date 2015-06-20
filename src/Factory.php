@@ -276,7 +276,6 @@ class Factory extends StdObject
      * @param array $query
      * @param array $fields
      * @param HttpRequest $request
-     * @param bool $wp_var
      * @return array
      */
     private function addQueryArg(array $query, array $fields, HttpRequest $request) {
@@ -420,13 +419,21 @@ class Factory extends StdObject
     /**
      * @return bool
      */
+    private function relevanssiActive() {
+        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        return (is_plugin_active('relevanssi/relevanssi.php') || is_plugin_active('relevanssi-premium/relevanssi.php'));
+    }
+
+    /**
+     * @return bool
+     */
     public function hasErrors()
     {
         return (!empty($this->errors));
     }
 
     /**
-     * @return mixed
+     * @return Form
      */
     public function getForm()
     {
@@ -434,7 +441,7 @@ class Factory extends StdObject
     }
 
     /**
-     * @return array
+     * @return array<Field>
      */
     public function getFields()
     {
@@ -450,7 +457,7 @@ class Factory extends StdObject
     }
 
     /**
-     * @return array
+     * @return array<Input>
      */
     public function getInputs()
     {
@@ -465,17 +472,12 @@ class Factory extends StdObject
         return $this->wp_query_obj;
     }
 
+    /**
+     * @return HttpRequest
+     */
     public function getRequest()
     {
         return $this->request;
-    }
-
-    /**
-     * @return bool
-     */
-    public function relevanssiActive() {
-        include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-        return (is_plugin_active('relevanssi/relevanssi.php') || is_plugin_active('relevanssi-premium/relevanssi.php'));
     }
 
 }

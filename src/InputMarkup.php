@@ -58,7 +58,7 @@ class InputMarkup extends StdObject {
     private function openWrapper() {
         $output = '';
         $id = $this->input->getId();
-        if ($this->input->wrappersDisabled() == false) {
+        if ($this->input->wrappersDisabled() === false) {
             $output .= '<div id="wpas-'.$id.'"  class="wpas-'
                 .$id.' wpas-'.$this->input->getFieldType().'-field wpas-field">';
         }
@@ -67,7 +67,7 @@ class InputMarkup extends StdObject {
 
     private function closeWrapper() {
         $output = '';
-        if ($this->input->wrappersDisabled() == false) {
+        if ($this->input->wrappersDisabled() === false) {
             $output .= '</div>';
         }
         return $output;
@@ -349,15 +349,16 @@ class InputMarkup extends StdObject {
      */
     private function listOption($value, $label, $type = 'checkbox') {
         $ctr = $this->ctr;
-        $el = ($this->input->isNested()) ? 'li' : 'div';
+        $element = ($this->input->isNested()) ? 'li' : 'div';
+        $id = $this->input->getId();
         $output = '';
-        $output .= '<'.$el.' class="wpas-'.$this->input->getId().'-'.$type.'-'.$ctr.'-container wpas-'.$this->input->getId().'-'.$type.'-container wpas-'.$type.'-container">';
-        $output .= '<input type="'.$type.'" id="wpas-'.$this->input->getId().'-'.$type.'-'.$ctr.'" class="wpas-'.$this->input->getId().'-'.$type.' wpas-'.$type.' '.$this->input->getClass().'" name="'.$this->input->getInputName().'[]" value="'.$value.'"';
+        $output .= '<'.$element.' class="wpas-'.$id.'-'.$type.'-'.$ctr.'-container wpas-'.$id.'-'.$type.'-container wpas-'.$type.'-container">';
+        $output .= '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.' '.$this->input->getClass().'" name="'.$this->input->getInputName().'[]" value="'.$value.'"';
         if (in_array($value, $this->input->getSelected(), true)) {
             $output .= ' checked="checked"';
         }
         $output .= '>';
-        $output .= '<label for="wpas-'.$this->input->getId().'-'.$type.'-'.$ctr.'"> '.$label.'</label></'.$el.'>';
+        $output .= '<label for="wpas-'.$id.'-'.$type.'-'.$ctr.'"> '.$label.'</label></'.$element.'>';
         $this->ctr++;
         return $output;
     }

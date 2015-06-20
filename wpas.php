@@ -84,97 +84,15 @@ class WP_Advanced_Search {
      * @return string
      */
     function results_range( $args = array() ) {
-        global $wp_query;
-
-        $defaults = array(
-            'pre' => '',
-            'marker' => '-',
-            'post' => ''
-        );
-
-        $args = wp_parse_args($args, $defaults);
-        extract($args);
-
-        $total = $wp_query->found_posts;
-        $count = $wp_query->post_count;
-        $query = $wp_query->query;
-        $ppp = (!empty($query['posts_per_page'])) ? $query['posts_per_page'] : get_option('posts_per_page');
-        $page = get_query_var('paged');
-
-        $range = $page;
-        if ($ppp > 1) {
-            $i = 1 + (($page - 1)*$ppp);
-            $j = $i + ($ppp - 1);
-            $range = sprintf('%d%s%d', $i, $marker, $j);
-            if ($j > $total) {
-                $range = $total;
-            }
-        }
-
-        if ($count < 1) {
-            $range = 0;
-        }
-
-        $output = sprintf('<span>%s</span> <span>%s</span> <span>%s</span>', $pre, $range, $post);
-
-        return $output;
+        return WPAS\Helper\ResultsRange::make($args);
     }
 
     /**
      * Displays pagination links
      */
-    public function pagination( $args = '', $ajax = false) {
+    public function pagination( $args = array() ) {
         global $wp_query;
-        echo $this->get_pagination($wp_query, $args, $ajax);
-    }
-
-    /**
-     * Get HTML for pagination links
-     *
-     * @param $query_object
-     * @param string $args
-     * @return string
-     */
-    private function get_pagination($query_object, $args = '', $ajax = false) {
-        global $wp_query;
-        $temp = $wp_query;
-        $wp_query = $query_object;
-
-        $output = "";
-
-        $current_page = max(1, get_query_var('paged'));
-        $total_pages = $wp_query->max_num_pages;
-
-        $b = '999999999';
-
-        if ($this->ajax_enabled()) {
-            $base = "#";
-        } else {
-            $base = str_replace( $b, '%#%', esc_url( get_pagenum_link( $b ) ) );
-        }
-
-        $defaults = array(
-            'base' => $base,
-            'format' => 'page/%#%',
-            'current' => $current_page,
-            'total' => $total_pages
-        );
-
-        if (empty($args) && !empty($this->args['pagination'])) {
-            $args = $this->args['pagination'];
-        }
-
-        $args = wp_parse_args($args, $defaults);
-
-        if ($total_pages > 1){
-            $output .=  '<div class="pagination">';
-            $output .= paginate_links($args);
-            $output .=  '</div>';
-        }
-
-        $wp_query = $temp;
-
-        return $output;
+        echo WPAS\Helper\Pagination::make($wp_query, $args, $this->ajax_enabled());
     }
 
     /**
@@ -240,7 +158,7 @@ class WP_Advanced_Search {
      * Print debug information
      */
     public function print_debug() {
-        if ($this->debug == false) return;
+        if ($this->debug === false) return;
         $output = $this->create_debug_output();
         echo '<pre>' . $output . '</pre>';
     }
@@ -291,9 +209,18 @@ class WP_Advanced_Search {
      * @return mixed
      */
     private function process_args($args) {
-
         // Establish AJAX configuration
+        $args = $this->set_ajax_config($args);
+
+        // Set debug mode and debug level
+        $args = $this->set_debug_args($args);
+
+        return $args;
+    }
+
+    private function set_ajax_config($args) {
         $ajax_args = array();
+
         if (!isset($args['form'])) $args['form'] = array();
 
         if (isset($args['form']['ajax'])) {
@@ -301,7 +228,10 @@ class WP_Advanced_Search {
         }
         $args['form']['ajax'] = new WPAS\AjaxConfig($ajax_args);
 
-        // Set debug mode and debug level
+        return $args;
+    }
+
+    private function set_debug_args($args) {
         $debug = false;
         if (defined('WPAS_DEBUG') && WPAS_DEBUG) {
             $debug = true;
@@ -325,7 +255,6 @@ class WP_Advanced_Search {
 
     private function get_request() {
         $request = $this->factory->getRequest();
-        //die(print_r($request));
         return $request->all();
     }
 
