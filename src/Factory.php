@@ -17,16 +17,29 @@ class Factory extends StdObject
     private $orderby_meta_keys;
     private $fields_ready;
 
-    private static $arg_defaults = array(
+    protected static $defaults = array(
+        'wpas_id' => 'default',
         'form' => array(),
         'fields' => array(),
+        'wp_query' => array(),
         'taxonomy_relation' => 'AND',
         'meta_key_relation' => 'AND',
         'debug' => false,
         'debug_level' => 'log'
     );
 
+    protected static $rules = array(
+        'form' => 'array',
+        'fields' => 'array',
+        'wp_query' => 'array',
+        'taxonomy_relation' => 'Relation',
+        'meta_key_relation' => 'Relation',
+        'debug' => 'bool',
+        'debug_level' => 'string'
+    );
+
     public function __construct($args, $request = null) {
+        $args = self::validate($args);
         $this->args = $this->preProcessArgs($args);
         $this->wp_query_args = $this->args['wp_query'];
         $this->errors = array();
@@ -64,21 +77,11 @@ class Factory extends StdObject
 
         if (!is_array($args)) return array();
 
-        if (empty($args['wpas_id'])) {
-            $args['wpas_id'] = 'default';
-        }
-
-        if (empty($args['form'])) {
-            $args['form'] = (empty($args['config']['form'])) ? array() : $args['form'];
-        }
-
         if (empty($args['form']['action']) && is_object($post) && isset($post->ID)) {
             $args['form']['action'] = get_permalink($post->ID);
         }
 
-        if (!isset($args['wp_query'])) $args['wp_query'] = array();
-
-        $args = self::parseArgs($args, self::$arg_defaults);
+        $args = self::parseArgs($args, self::$defaults);
 
         return $args;
     }

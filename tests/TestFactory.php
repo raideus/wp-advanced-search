@@ -1,6 +1,7 @@
 <?php
 namespace WPAS;
 use WPAS\Enum\RequestVar;
+use WPAS\Enum\Relation;
 require_once(dirname(__DIR__) . '/wpas.php');
 
 class TestFactory extends \PHPUnit_Framework_TestCase
@@ -186,17 +187,18 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
-            'compare' => 'LIKE',
+            'compare' => 'IN',
             'relation' => 'AND',
             'data_type' => 'CHAR',
             'format' => 'checkbox'
         );
 
-        $request = array($meta_key => array('red','blue'));
+        $request = array('meta_'.$meta_key => array('red','blue'));
         $f = new Factory($args, $request);
         $q = $f->buildQueryObject()->query;
 
-        //print_r($q['meta_query']);
+        $this->assertFalse(empty($q['meta_query']));
+        $this->assertTrue(count($q['meta_query']) == 1);
 
     }
 
@@ -205,12 +207,13 @@ class TestFactory extends \PHPUnit_Framework_TestCase
         $args = array();
         $meta_key = 'color';
         $meta_key2 = 'shape';
+
         $args['fields'][] = array(
             'type' => 'meta_key',
             'meta_key' => $meta_key,
             'compare' => 'LIKE',
             'relation' => 'OR',
-            'data_type' => 'CHAR',
+            'data_type' => 'ARRAY<CHAR>',
             'format' => 'checkbox'
         );
         $args['fields'][] = array(
@@ -222,11 +225,48 @@ class TestFactory extends \PHPUnit_Framework_TestCase
             'format' => 'checkbox'
         );
 
-        $request = array($meta_key => array('red','blue'), $meta_key2 => array('square','circle'));
+        $request = array('meta_'.$meta_key => array('red','blue'), 'meta_'.$meta_key2 => array('square','circle'));
         $f = new Factory($args, $request);
         $q = $f->buildQueryObject()->query;
 
-        //print_r($q['meta_query']);
+        $this->assertFalse(empty($q['meta_query']));
+        $this->assertTrue(count($q['meta_query']) == 3);
+        $this->assertTrue(count($q['meta_query'][0]) == 3);
+        $this->assertTrue(count($q['meta_query'][1]) == 3);
+
+    }
+
+    public function testBadMetaKeyRelation()
+    {
+        $args = array();
+        $meta_key = 'color';
+        $meta_key2 = 'shape';
+
+        $args['meta_key_relation'] = "BAD";
+
+        $args['fields'][] = array(
+            'type' => 'meta_key',
+            'meta_key' => $meta_key,
+            'compare' => 'LIKE',
+            'relation' => 'OR',
+            'data_type' => 'ARRAY<CHAR>',
+            'format' => 'checkbox'
+        );
+        $args['fields'][] = array(
+            'type' => 'meta_key',
+            'meta_key' => $meta_key2,
+            'compare' => 'LIKE',
+            'relation' => 'OR',
+            'data_type' => 'ARRAY<CHAR>',
+            'format' => 'checkbox'
+        );
+
+        $request = array('meta_'.$meta_key => array('red','blue'), 'meta_'.$meta_key2 => array('square','circle'));
+        $f = new Factory($args, $request);
+        $q = $f->buildQueryObject()->query;
+
+        $this->assertTrue($q['meta_query']['relation'] == Relation::_default);
+
     }
 
 
