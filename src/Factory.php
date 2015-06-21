@@ -2,6 +2,7 @@
 namespace WPAS;
 use WPAS\Enum\FieldType;
 use WPAS\Enum\RequestVar;
+use WPAS\Enum\Relation;
 
 class Factory extends StdObject
 {
@@ -22,8 +23,8 @@ class Factory extends StdObject
         'form' => array(),
         'fields' => array(),
         'wp_query' => array(),
-        'taxonomy_relation' => 'AND',
-        'meta_key_relation' => 'AND',
+        'taxonomy_relation' => Relation::_AND,
+        'meta_key_relation' => Relation::_AND,
         'debug' => false,
         'debug_level' => 'log'
     );
@@ -48,12 +49,12 @@ class Factory extends StdObject
         $this->request = $this->processRequest($request);
         $this->fields = $this->initFieldTable();
         $this->initFields();
-        $this->initOrderby();
+        //$this->initOrderby();
         $this->buildForm();
     }
 
     /**
-     * Creates empty table of fields as $field_type => array() pairs
+     * Creates empty table of fields as $field_type => FieldGroup pairs
      *
      * @return array
      */
@@ -61,9 +62,23 @@ class Factory extends StdObject
         $table = array();
         $field_types = FieldType::getConstants();
         foreach ($field_types as $type) {
-            $table[$type] = array();
+            $field_group = new FieldGroup();
+            $field_group->setRelation($this->getFieldRelation($type));
+            $table[$type] = $field_group;
         }
         return $table;
+    }
+
+    /**
+     * Get relation for a given field type
+     *
+     * @param $field_type
+     * @return string
+     */
+    private function getFieldRelation($field_type) {
+        $include = array('meta_key' => 1, 'taxonomy' => 1);
+        if (isset($include[$field_type])) return $this->args[$field_type.'_relation'];
+        return Relation::_default;
     }
 
     /**
@@ -109,42 +124,11 @@ class Factory extends StdObject
                 $this->addExceptionError($e);
                 continue;
             }
-            $this->fields[$field->getFieldType()][] = $field;
+            $field_group = $this->fields[$field->getFieldType()];
+            $field_group->addField($field);
             $this->addInputs($field, $this->request);
         }
         $this->fields_ready = true;
-    }
-
-    /**
-     * Populate orderby_meta_keys table
-     *
-     * Keeps track of which orderby options (if any) are meta_keys
-     * and whether they are character-based or numeric values
-     */
-    private function initOrderBy() {
-        if ($this->fields_ready === false) return;
-        if (empty($this->fields[FieldType::orderby])) return;
-
-        $this->orderby_meta_keys = array();
-
-        $field = $this->fields[FieldType::orderby][0];
-        $inputs = $field->getInputs();
-        if (empty($inputs[FieldType::orderby]) || empty($inputs[FieldType::orderby]['orderby_values'])) {
-            return;
-        }
-
-        $values = $inputs[FieldType::orderby]['orderby_values'];
-
-        foreach ($values as $k=>$v) {
-            if (isset($v['meta_key']) && $v['meta_key']) {
-                if (isset($v['orderby']) && $v['orderby'] == 'meta_value_num') {
-                    $type = $v['orderby'];
-                } else {
-                    $type = 'meta_value';
-                }
-                $this->orderby_meta_keys[$k] = $type;
-            }
-        }
     }
 
     /**
@@ -204,8 +188,9 @@ class Factory extends StdObject
      * @return \WP_Query
      */
     public function buildQueryObject() {
-        $query_args = $this->buildQuery();
-        $query = new \WP_Query($query_args);
+        //$query_args = $this->buildQuery();
+        $query = new Query($this->fields, $this->wp_query_args, $this->request);
+        $query = new \WP_Query($query->getArgs());
         $query->query_vars['post_type'] = (empty($query_args['post_type'])) ? 'post' : $query_args['post_type'];
 
 
@@ -220,150 +205,6 @@ class Factory extends StdObject
     }
 
     /**
-     * Assembles an array of WP_Query arguments
-     *
-     * @return array
-     */
-    private function buildQuery() {
-        $query = array();
-        $skip = array('meta_key'=> 1, 'taxonomy'=> 1, 'date'=> 1, 'orderby'=> 1);
-
-        if (!$this->fields_ready) {
-            $this->addError('Method buildQuery called before initializing' .
-                ' query fields.  Must call initFields first.');
-            return $query;
-        }
-
-        foreach ($this->fields as $type => $fields) {
-            if (empty($fields) || isset($skip[$type])) continue;
-            $query = $this->addQueryArg($query, $fields, $this->request);
-        }
-
-        $query = $this->addOrderbyArg($query, $this->request);
-        $query = $this->addSubQuery($query, $this->fields, 'taxonomy', $this->request);
-        $query = $this->addSubQuery($query, $this->fields, 'meta_key', $this->request);
-        $query = $this->addSubQuery($query, $this->fields, 'date', $this->request);
-        $query = $this->addPaginationArg($query);
-
-        return self::parseArgs($query, $this->wp_query_args);
-    }
-
-    /**
-     * Takes an array of query arguments and adds an orderby argument
-     *
-     * @param array $query
-     * @param HttpRequest $request
-     * @return array
-     */
-    private function addOrderbyArg(array $query, HttpRequest $request) {
-        $var = RequestVar::orderby;
-        $val = $request->get($var);
-
-        if (empty($val)) return $query;
-        $orderby_val = $val;
-        $orderby_val = (is_array($orderby_val)) ? implode(" ",$orderby_val) : $orderby_val;
-
-        if (array_key_exists($orderby_val, $this->orderby_meta_keys)) {
-            $query[$var] = $this->orderby_meta_keys[$orderby_val];
-            $query['meta_key'] = $orderby_val;
-        } else {
-            $query[$var] = $orderby_val;
-        }
-
-        return $query;
-    }
-
-    /**
-     * Adds and argument to an array of query arguments
-     *
-     * @param array $query
-     * @param array $fields
-     * @param HttpRequest $request
-     * @return array
-     */
-    private function addQueryArg(array $query, array $fields, HttpRequest $request) {
-        if (empty($fields)) return $query;
-        $field = reset($fields); // As of v1.4, only one field allowed per
-                                 // query var (other than taxonomy and meta_key)
-        $field_id = $field->getFieldId();
-
-        $var = RequestVar::nameToVar($field_id);
-
-        $wp_var = RequestVar::wpQueryVar($field_id);
-        $wp_var = (!$wp_var) ? $var : $wp_var;
-
-        $val = $request->get($var);
-
-        if (empty($val)) return $query;
-
-        $query[$wp_var] = $val;
-        return $query;
-    }
-
-    /**
-     * Takes an array of query arguments and adds a sub-query
-     * (eg tax_query, meta_query, or date_query)
-     *
-     * @param array $query
-     * @param array $fields_table
-     * @param $field_type
-     * @param HttpRequest $request
-     * @return array
-     */
-    private function addSubQuery(array $query, array $fields_table, $field_type, HttpRequest $request) {
-        $classnames = array('taxonomy' => 'TaxQuery', 'meta_key' => 'MetaQuery', 'date' => 'DateQuery');
-        if (empty($classnames[$field_type]) || empty($fields_table[$field_type])) return $query;
-
-        $fields = $fields_table[$field_type];
-        $s_query = $this->getSubQuery($classnames[$field_type], $fields, $field_type.'_relation', $request );
-
-        if (!empty($s_query)) $query[RequestVar::wpQueryVar($field_type)] = $s_query;
-        return $query;
-    }
-
-    /**
-     * Creates and returns a sub-query
-     * (eg tax_query, meta_query, or date_query)
-     *
-     * @param $class
-     * @param $fields
-     * @param $relation
-     * @param HttpRequest $request
-     * @return mixed
-     */
-    private function getSubQuery($class, $fields, $relation, HttpRequest $request) {
-        $class = 'WPAS\\'.$class;
-        if ($class == 'WPAS\DateQuery') {
-            $query = new $class($fields[0], $request); // Allow only 1 field for DateQuery
-        } else {
-            $query = new $class($fields, $this->args[$relation], $request);
-        }
-        return $query->getQuery();
-    }
-
-    /**
-     * Adds pagination argument to an array of query arguments
-     *
-     * @param array $query
-     * @return array
-     */
-    private function addPaginationArg(array $query) {
-        $page_num = $this->request->get('paged');
-        if (!empty($page_num)) {
-            $paged = $page_num;
-        }
-        else if ( get_query_var('paged') ) {
-            $paged = get_query_var('paged');
-        } else if ( get_query_var('page') ) {
-            $paged = get_query_var('page');
-        } else {
-            $paged = 1;
-        }
-        $query['paged' ] = $paged;
-        return $query;
-    }
-
-    /**
      * Adds information abou an exception-based error to the object's error list
      *
      * @param $exception
@@ -374,14 +215,6 @@ class Factory extends StdObject
         $error['trace'] = $exception->getTraceAsString();
 
         $this->errors[] = $error;
-    }
-
-    /**
-     * Adds a standard error message to the object's error list
-     * @param $msg
-     */
-    private function addError($msg) {
-        $this->errors[] = $msg;
     }
 
     /**
