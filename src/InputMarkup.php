@@ -351,9 +351,8 @@ class InputMarkup extends StdObject {
         $ctr = $this->ctr;
         $element = ($this->input->isNested()) ? 'li' : 'div';
         $id = $this->input->getId();
-        $output = '';
-        $output .= '<'.$element.' class="wpas-'.$id.'-'.$type.'-'.$ctr.'-container wpas-'.$id.'-'.$type.'-container wpas-'.$type.'-container">';
-        $output .= '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.' '.$this->input->getClass().'" name="'.$this->input->getInputName().'[]" value="'.$value.'"';
+        $output = '<'.$element.' class="wpas-'.$id.'-'.$type.'-'.$ctr.'-container wpas-'.$id.'-'.$type.'-container wpas-'.$type.'-container">'
+                   . '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.' '.$this->input->getClass().'" name="'.$this->input->getInputName().'[]" value="'.$value.'"';
         if (in_array($value, $this->input->getSelected(), true)) {
             $output .= ' checked="checked"';
         }
