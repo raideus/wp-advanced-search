@@ -500,5 +500,19 @@ class TestFactory extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testGenericFieldIdApplies() {
+        $args = array();
+        $args['fields'][] = array(
+          'type' => 'generic',
+            'format' => 'select',
+            'id' => 'bleep'
+        );
+        $f = new Factory($args);
+        $inputs = $f->getForm()->getInputs();
+        $input = $inputs[0];
+        $this->assertTrue($input->getId() == 'bleep');
+    }
+
+
 
 }

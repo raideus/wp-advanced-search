@@ -54,7 +54,8 @@ class Field extends StdObject {
         'relation' => 1,
         'data_type' => 1,
         'date_type' => 1,
-        'orderby_values' => 1
+        'orderby_values' => 1,
+        'id' => 1
     );
 
     public function __construct($args) {

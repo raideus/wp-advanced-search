@@ -49,7 +49,6 @@ class Factory extends StdObject
         $this->request = $this->processRequest($request);
         $this->fields = $this->initFieldTable();
         $this->initFields();
-        //$this->initOrderby();
         $this->buildForm();
     }
 
@@ -150,7 +149,10 @@ class Factory extends StdObject
                     $name = RequestVar::nameToVar($name, $field_type, $date_type);
                     $input = DateInputBuilder::make($name, $input_args, $post_types, $request);
                 } else {
-                    $name = RequestVar::nameToVar($name, $field_type);
+                    if ($field_type == FieldType::generic)
+                        $name = empty($input_args['id']) ? 'generic' : $input_args['id'];
+                    else
+                        $name = RequestVar::nameToVar($name, $field_type);
                     $input = InputBuilder::make($name, $field_type, $input_args, $request);
                 }
                 $this->inputs[] = $input;
