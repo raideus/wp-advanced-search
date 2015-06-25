@@ -5,3 +5,5 @@ test.php
 template-*
 notes
 config/form.test*.php
+
+!templates/template-ajax-results.php
