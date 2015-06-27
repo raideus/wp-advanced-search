@@ -6,7 +6,7 @@ class ResultsRange extends StdObject {
 
     private function __construct() {}
 
-    public static function make($args) {
+    public static function make($query_object, $args) {
         $defaults = array(
             'pre' => '',
             'marker' => '-',
@@ -14,19 +14,18 @@ class ResultsRange extends StdObject {
         );
 
         $args = self::parseArgs($args, $defaults);
-        $range = self::computeRange($args['marker']);
+        $range = self::computeRange($query_object, $args['marker']);
 
         return sprintf('<span>%s</span> <span>%s</span> <span>%s</span>', $args['pre'], $range, $args['post']);
     }
 
-    private static function computeRange( $marker ) {
-        global $wp_query;
+    private static function computeRange($query_object, $marker) {
+        if ($query_object->found_posts < 1) return 0;
 
-        if ($wp_query->found_posts < 1) return 0;
-
-        $query = $wp_query->query;
+        $query = $query_object->query;
         $posts_per_page = (!empty($query['posts_per_page'])) ? $query['posts_per_page'] : get_option('posts_per_page');
-        $current_page = get_query_var('paged');
+
+        $current_page = (empty($query['paged'])) ? get_query_var('paged') : $query['paged'];
 
         if ($posts_per_page <= 1) return $current_page;
 
@@ -34,8 +33,8 @@ class ResultsRange extends StdObject {
         $high = $low + ($posts_per_page - 1);
 
         $range = sprintf('%d%s%d', $low, $marker, $high);
-        if ($low > $wp_query->found_posts) {
-            $range = $wp_query->found_posts;
+        if ($low >= $query_object->found_posts) {
+            $range = $query_object->found_posts;
         }
 
         return $range;

@@ -22,6 +22,7 @@ class WP_Advanced_Search {
     private $request;
     private $debug;
     private $ajax;
+    private $query;
     public $debug_level;
 
     function __construct($id = '', $request = null) {
@@ -33,6 +34,7 @@ class WP_Advanced_Search {
         $this->debug = $this->args['debug'];
         $this->debug_level = $this->args['debug_level'];
         $this->factory = new WPAS\Factory($this->args, $request);
+        $this->query = $this->factory->buildQueryObject();
     }
 
     /**
@@ -73,9 +75,8 @@ class WP_Advanced_Search {
      * @return WP_Query
      */
     public function query() {
-        $query = $this->factory->buildQueryObject();
         if (!$this->ajax_enabled()) $this->print_debug();
-        return $query;
+        return $this->query;
     }
 
     /**
@@ -84,15 +85,14 @@ class WP_Advanced_Search {
      * @return string
      */
     function results_range( $args = array() ) {
-        return WPAS\Helper\ResultsRange::make($args);
+        return WPAS\Helper\ResultsRange::make($this->query, $args);
     }
 
     /**
      * Displays pagination links
      */
     public function pagination( $args = array() ) {
-        global $wp_query;
-        echo WPAS\Helper\Pagination::make($wp_query, $args, $this->ajax_enabled());
+        echo WPAS\Helper\Pagination::make($this->query, $args, $this->ajax_enabled());
     }
 
     /**
