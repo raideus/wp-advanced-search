@@ -11,6 +11,23 @@ class Query extends StdObject {
     private $orderby_meta_keys;
     private $query;
 
+    private static $filters = array(
+        'search' => 'toScalar',
+        'posts_per_page' => 'toScalar',
+        'order' => 'toScalar'
+    );
+
+    private static function filter($query_var, $value) {
+        if (empty(self::$filters[$query_var])) return $value;
+        $func = self::$filters[$query_var];
+        return call_user_func('self::'.$func,$value);
+    }
+
+    private static function toScalar($value) {
+        if (is_array($value)) return reset($value);
+        return $value;
+    }
+
     public function __construct(array $fields_table, array $wp_query_args, HttpRequest $request) {
         $this->wp_query_args = $wp_query_args;
         $this->fields = $fields_table;
@@ -118,7 +135,7 @@ class Query extends StdObject {
     private function addQueryArg(array $query, array $fields, HttpRequest $request) {
         if (empty($fields)) return $query;
         $field = reset($fields); // As of v1.4, only one field allowed per
-        // query var (other than taxonomy and meta_key)
+                                 // query var (other than taxonomy and meta_key)
         $field_id = $field->getFieldId();
 
         $var = RequestVar::nameToVar($field_id);
@@ -130,7 +147,7 @@ class Query extends StdObject {
 
         if (empty($val)) return $query;
 
-        $query[$wp_var] = $val;
+        $query[$wp_var] = self::filter($wp_var,$val);
         return $query;
     }
 

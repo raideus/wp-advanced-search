@@ -14,7 +14,8 @@ class AjaxConfig extends StdObject
         'enabled' => 'bool',
         'loading_img' => 'string',
         'button_text' => 'string',
-        'show_default_results' => 'bool'
+        'show_default_results' => 'bool',
+        'results_template' => 'string'
     );
 
     static protected $defaults = array(
