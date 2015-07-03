@@ -140,7 +140,7 @@ class InputMarkup extends StdObject {
         $group_label = ($is_checkbox) ? 'checkboxes' : 'radio-buttons';
         $option_func = ($is_checkbox) ? 'checkboxOption' : 'radioOption';
 
-        $output = '<div class="wpas-'.$this->input->getId().'-'.$group_label.' wpas-'.$group_label.' field-container">';
+        $output = '<div class="wpas-'.$this->input->getId().'-'.$group_label.' wpas-'.$group_label.' field-container '.$this->input->getClass().'">';
 
         if ($this->input->isNested()) {
             $output .= $this->buildOptionsList($this->input->getValues(), array($this, $option_func), 0, true);
@@ -355,7 +355,7 @@ class InputMarkup extends StdObject {
         $name = $this->input->getInputName();
         $name .= ($type == 'checkbox') ? '[]' : '';
         $output = '<'.$element.' class="wpas-'.$id.'-'.$type.'-'.$ctr.'-container wpas-'.$id.'-'.$type.'-container wpas-'.$type.'-container">'
-                   . '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.' '.$this->input->getClass().'" name="'.$name.'" value="'.$value.'"';
+                   . '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.'" name="'.$name.'" value="'.$value.'"';
         if (in_array($value, $this->input->getSelected(), true)) {
             $output .= ' checked="checked"';
         }
