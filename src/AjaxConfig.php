@@ -41,7 +41,7 @@ class AjaxConfig extends StdObject
         $dir = basename(dirname(dirname(__FILE__)));
 
         if (empty($args['loading_img'])) {
-            $args['loading_img'] = get_template_directory_uri() . '/' . $dir . '/img/loading.gif';
+            $args['loading_img'] = get_wpas_uri() . '/img/loading.gif';
         }
 
         if (empty($args['results_template'])) {

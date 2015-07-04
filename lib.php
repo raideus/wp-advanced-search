@@ -1,6 +1,18 @@
 <?php
 
 /**
+ * Returns full URI of the WPAS directory
+ *
+ * @return string
+ */
+function get_wpas_uri() {
+    if (defined('WPAS_PATH')) {
+        return rtrim(WPAS_PATH,'/');
+    }
+    return get_template_directory_uri() . '/' . basename(__DIR__);
+}
+
+/**
  * Constructs JSON-formatted response object for AJAX requests
  *
  * @param array $post
