@@ -1,18 +1,9 @@
-# WP Advanced Search v1.4 (beta)
+# WP Advanced Search
+#### A PHP framewok for building advanced search forms in WordPress
 
-[![Build Status](https://travis-ci.org/bootsz/wp-advanced-search.svg?branch=1.4-beta)](https://travis-ci.org/bootsz/wp-advanced-search)
+[![Build Status](https://travis-ci.org/bootsz/wp-advanced-search.svg?branch=master)](https://travis-ci.org/bootsz/wp-advanced-search)
+[![Code Climate](https://codeclimate.com/github/bootsz/wp-advanced-search/badges/gpa.svg)](https://codeclimate.com/github/bootsz/wp-advanced-search)
 
-This is a beta version of an upcoming release.  All features may not be stable.
-Use at your own risk!
+[View Documentation](http://wpadvancedsearch.com/docs/setup) | [Become a Contributor](http://wpadvancedsearch.com/beta/contributing)
 
-**Requirements:** PHP version 5.3 or higher, WordPress version 4.1 or higher
-
-## Installation
-
-1. Clone or copy the repository to a folder named 'wp-advanced-search' inside your theme directory.
-
-2. Add the following to your theme's functions.php file:
-
-` require_once('wp-advanced-search/wpas.php'); `
-
-
+**Technical Requirements:** PHP version 5.3 or higher, WordPress version 4.1 or higher
