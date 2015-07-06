@@ -2,7 +2,6 @@
 /*
 Plugin Name: WP Advanced Search Framework
 Plugin URI: http://wpadvancedsearch.com
-Description: 
 Version: 1.4
 Author: Sean Butze
 Author URI: http://seanbutze.com
@@ -257,5 +256,4 @@ class WP_Advanced_Search {
         $request = $this->factory->getRequest();
         return $request->all();
     }
-
 }
