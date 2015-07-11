@@ -1,5 +1,5 @@
 # WP Advanced Search
-#### A PHP framewok for building advanced search forms in WordPress
+#### A PHP framework for building advanced search forms in WordPress
 
 [![Build Status](https://travis-ci.org/bootsz/wp-advanced-search.svg?branch=master)](https://travis-ci.org/bootsz/wp-advanced-search)
 [![Code Climate](https://codeclimate.com/github/bootsz/wp-advanced-search/badges/gpa.svg)](https://codeclimate.com/github/bootsz/wp-advanced-search)
