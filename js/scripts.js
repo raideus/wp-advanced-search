@@ -7,6 +7,7 @@ var __WPAS = {
     PAGE_FIELD : "#wpas-paged",
     FORM_ID: "",
     KEY_PREFIX: "wpasInstance_",
+    HASH: "results",
     STORAGE_KEY: function() {
         return this.KEY_PREFIX + this.FORM_ID;
     }
@@ -113,9 +114,13 @@ jQuery(document).ready(function($) {
     $(__WPAS.CONTAINER).append("<div id='wpas-results-inner'></div>");
     ajaxLoader.init(__WPAS.FORM);
 
-    var storage = JSON.parse(localStorage.getItem("wpasInstance_"+__WPAS.FORM_ID));
+    var storage = null;
+    if (window.location.hash.slice(1) == __WPAS.HASH) {
+        storage = JSON.parse(localStorage.getItem("wpasInstance_"+__WPAS.FORM_ID));
+    }
+
     if (storage != null) {
-        console.log("storage found");
+        log("localStorage found");
         loadInstance();
     } else {
         setPage(1);
@@ -170,6 +175,7 @@ jQuery(document).ready(function($) {
                         ajaxLoader.showButton();
                     }
 
+                    window.location.hash = __WPAS.HASH;
                     storeInstance();
                     unlockForm();
 
