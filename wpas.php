@@ -183,6 +183,10 @@ class WP_Advanced_Search {
         return $errors;
     }
 
+    public function set_error($err_msg) {
+        $this->errors[] = $err_msg;
+    }
+
     /**
      * Get Ajax configuration
      *
@@ -230,7 +234,8 @@ class WP_Advanced_Search {
         return $args;
     }
 
-    private function set_debug_args($args) {
+    private function set_debug_args($args)
+    {
         $debug = false;
         if (defined('WPAS_DEBUG') && WPAS_DEBUG) {
             $debug = true;
