@@ -8,6 +8,7 @@ class AjaxConfig extends StdObject
     private $button_text;
     private $show_default_results;
     private $results_template;
+    private $url_hash;
     protected $args;
 
     static protected $rules = array(
@@ -15,13 +16,15 @@ class AjaxConfig extends StdObject
         'loading_img' => 'string',
         'button_text' => 'string',
         'show_default_results' => 'bool',
-        'results_template' => 'string'
+        'results_template' => 'string',
+        'url_hash' => 'string'
     );
 
     static protected $defaults = array(
         'enabled' => false,
         'button_text' => 'LOAD MORE RESULTS',
-        'show_default_results' => true
+        'show_default_results' => true,
+        'url_hash' => 'results'
     );
 
     function __construct($args = array())
@@ -51,44 +54,33 @@ class AjaxConfig extends StdObject
         return $args;
     }
 
-    /**
-     * @return mixed
-     */
     public function isEnabled()
     {
         return $this->enabled;
     }
 
-    /**
-     * @return mixed
-     */
     public function loadingImage()
     {
         return $this->loading_img;
     }
 
-    /**
-     * @return mixed
-     */
     public function buttonText()
     {
         return $this->button_text;
     }
 
-    /**
-     * @return mixed
-     */
     public function resultsTemplate()
     {
         return $this->results_template;
     }
 
-    /**
-     * @return mixed
-     */
     public function showDefaultResults()
     {
         return $this->show_default_results;
+    }
+
+    public function urlHash() {
+        return $this->url_hash;
     }
 
 }

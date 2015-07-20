@@ -7,7 +7,7 @@ var __WPAS = {
     PAGE_FIELD : "#wpas-paged",
     FORM_ID: "",
     KEY_PREFIX: "wpasInstance_",
-    HASH: "results",
+    HASH: "",
     STORAGE_KEY: function() {
         return this.KEY_PREFIX + this.FORM_ID;
     }
@@ -16,6 +16,7 @@ var __WPAS = {
 jQuery(document).ready(function($) {
 
     __WPAS.FORM_ID = $('#wpas-id').val();
+    __WPAS.HASH = $(__WPAS.FORM).data('ajax-url-hash');
     var CURRENT_PAGE = 1;
 
     /**
