@@ -5,8 +5,8 @@
  * @return string
  */
 function get_wpas_uri() {
-    if (defined('WPAS_PATH')) {
-        return rtrim(WPAS_PATH,'/');
+    if (defined('WPAS_URI')) {
+        return rtrim(WPAS_URI,'/');
     }
     return get_stylesheet_directory_uri() . '/' . basename(__DIR__);
 }
@@ -33,7 +33,7 @@ function wpas_build_ajax_response(array $post) {
     $template = $wpas->get_ajax()->resultsTemplate();
 
     $response = array();
-    $response["results"] = wpas_load_template_part($template,$q);
+    $response["results"] = wpas_load_template_part($template, $q);
     $response["current_page"] = $q->query_vars['paged'];
     $response["max_page"] = $q->max_num_pages;
 
@@ -59,8 +59,11 @@ function wpas_build_ajax_response(array $post) {
 function wpas_load_template_part($template, $query_object) {
     global $wp_query;
 
-    $template = dirname(__DIR__).'/'.ltrim($template,'/');
-    if (!file_exists($template)) return false;
+    $template = get_stylesheet_directory().'/'.ltrim($template,'/');
+    if (!file_exists($template)) {
+        $template = get_template_directory().'/'.ltrim($template,'/');
+        if (!file_exists($template)) return false;
+    }
     $temp = $wp_query;
     $wp_query = $query_object;
 
