@@ -59,9 +59,10 @@ function wpas_build_ajax_response(array $post) {
 function wpas_load_template_part($template, $query_object) {
     global $wp_query;
 
-    $template = get_stylesheet_directory().'/'.ltrim($template,'/');
+    $template_suffix = '/'.ltrim($template,'/');
+    $template = get_stylesheet_directory().$template_suffix;
     if (!file_exists($template)) {
-        $template = get_template_directory().'/'.ltrim($template,'/');
+        $template = get_template_directory().$template_suffix;
         if (!file_exists($template)) return false;
     }
     $temp = $wp_query;
