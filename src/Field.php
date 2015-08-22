@@ -51,6 +51,8 @@ class Field extends StdObject {
         'post_html' => 1,
         'label' => 1,
         'taxonomy' => 1,
+        'terms' => 1,
+        'authors' => 1,
         'relation' => 1,
         'data_type' => 1,
         'date_type' => 1,
