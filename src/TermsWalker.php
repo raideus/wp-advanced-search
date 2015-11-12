@@ -134,6 +134,7 @@ class TermsWalker extends StdObject {
     public function build_basic_terms_array() {
         $term_values = array();
         $term_identifier = $this->term_identifier;
+        $term_values[] = '';
 
         foreach ($this->elements as $term) {
             $term_values[$term->$term_identifier] = $term->name;
