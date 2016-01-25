@@ -190,11 +190,9 @@ class Factory extends StdObject
      * @return \WP_Query
      */
     public function buildQueryObject() {
-        //$query_args = $this->buildQuery();
         $query = new Query($this->fields, $this->wp_query_args, $this->request);
         $query = new \WP_Query($query->getArgs());
-        $query->query_vars['post_type'] = (empty($query_args['post_type'])) ? 'post' : $query_args['post_type'];
-
+        $query->query_vars['post_type'] = (empty($this->wp_query_args['post_type'])) ? 'post' : $this->wp_query_args['post_type'];
 
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
         $search_query = $this->request->get(RequestVar::search);

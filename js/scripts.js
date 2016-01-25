@@ -24,7 +24,7 @@ jQuery(document).ready(function($) {
      */
 
     $('form.wpas-autosubmit :input').change(function() {
-        $(this).submit();
+        $(this).parents('form').submit();
     });
 
     $('button.wpas-clear').click(function(e) {
