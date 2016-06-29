@@ -8,6 +8,7 @@ var __WPAS = {
     FORM_ID: "",
     KEY_PREFIX: "wpasInstance_",
     HASH: "",
+    NUMBER: "#wpas-no-of-results",
     STORAGE_KEY: function() {
         return this.KEY_PREFIX + this.FORM_ID;
     }
@@ -48,6 +49,7 @@ jQuery(document).ready(function($) {
             return false;
         });
     });
+
 
     /**
      *  AJAX Functionality
@@ -161,8 +163,10 @@ jQuery(document).ready(function($) {
             },
             success: function(data, textStatus, XMLHttpRequest) {
                 response = JSON.parse(data);
+                console.log(response);
                 setTimeout(function() {
                     appendHTML(__WPAS.INNER, response.results);
+                    updateHTML(__WPAS.NUMBER, response.count); //Update the element showing the total number of results.
                     ajaxLoader.hideImage();
                     updateHTML(__WPAS.DEBUG_CONTAINER,response.debug);
                     CURRENT_PAGE = response.current_page;
@@ -175,10 +179,11 @@ jQuery(document).ready(function($) {
                     } else {
                         ajaxLoader.showButton();
                     }
-
+                    
                     window.location.hash = __WPAS.HASH;
                     storeInstance();
                     unlockForm();
+
 
                 }, T);
 

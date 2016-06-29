@@ -69,6 +69,17 @@ class WP_Advanced_Search {
     }
 
     /**
+     * Print HTML in shortcodes
+     * @return string
+     */
+    public function the_form_shortcode() {
+        $form = $this->factory->getForm();
+        if ($this->debug) $form->addClass('wpas-debug-enabled');
+        return $form->toHTML();
+    }
+
+
+    /**
      * Create and return WP_Query object for the search instance
      *
      * @return WP_Query

@@ -33,6 +33,8 @@ function wpas_build_ajax_response(array $post) {
     $template = $wpas->get_ajax()->resultsTemplate();
 
     $response = array();
+
+    $response["count"] = $q->found_posts; //Access the query object on order to retrieve the total number of found posts.
     $response["results"] = wpas_load_template_part($template, $q);
     $response["current_page"] = $q->query_vars['paged'];
     $response["max_page"] = $q->max_num_pages;
@@ -40,7 +42,7 @@ function wpas_build_ajax_response(array $post) {
     if ($response["results"] === false) {
         $wpas->set_error("AJAX results template '".$template."' not found in theme root.");
     }
-
+    
     $response["debug"] = "";
     if ($wpas->debug_enabled()) $response["debug"] = "<pre>". $wpas->create_debug_output() . "</pre>";
 
@@ -58,7 +60,6 @@ function wpas_build_ajax_response(array $post) {
  */
 function wpas_load_template_part($template, $query_object) {
     global $wp_query;
-
     $template_suffix = '/'.ltrim($template,'/');
     $template = get_stylesheet_directory().$template_suffix;
     if (!file_exists($template)) {
