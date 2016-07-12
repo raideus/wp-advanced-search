@@ -9,6 +9,8 @@ var __WPAS = {
     KEY_PREFIX: "wpasInstance_",
     HASH: "",
     NUMBER: "#wpas-no-of-results",
+    INPUT_COUNT: '#wpas-input-count-',
+    FILTERS: '#wpas-input-filters',
     STORAGE_KEY: function() {
         return this.KEY_PREFIX + this.FORM_ID;
     }
@@ -49,6 +51,8 @@ jQuery(document).ready(function($) {
             return false;
         });
     });
+
+
 
 
     /**
@@ -162,11 +166,51 @@ jQuery(document).ready(function($) {
                 form_data: data
             },
             success: function(data, textStatus, XMLHttpRequest) {
+                console.log(data);
                 response = JSON.parse(data);
                 console.log(response);
                 setTimeout(function() {
                     appendHTML(__WPAS.INNER, response.results);
                     updateHTML(__WPAS.NUMBER, response.count); //Update the element showing the total number of results.
+                    $.each(response.values, function(id, inputs){
+                        $.each(inputs, function(name, value){    
+                            updateHTML(__WPAS.INPUT_COUNT+id+'-'+name, ' (' + value + ')');
+                            if(inputs.hide){
+                                if(value == 0){
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().hide();
+                                }
+                                else{
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().show();
+                                }
+                            }
+                            else{
+                                if(value == 0){
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().addClass('disabled');
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').prop('disabled', true);
+                                }
+                                else{
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().removeClass('disabled');
+                                    $('input[value="'+name+'"][name="'+id+'[]"]').prop('disabled', false);  
+                                }
+                            }
+                        });
+                    });
+                    
+                    updateHTML(__WPAS.FILTERS, '');
+                    $.each(response.selected, function(id, inputs){
+                        $.each(inputs.selected, function(number, value){
+                        appendHTML(__WPAS.FILTERS, '<div class="filters"><div style="display:inline;"  id="'+inputs.id+'_filter_'+number+'">'+inputs.label+': </div>'+$(__WPAS.FORM).data('ajax-close-img-html')+'</div>');
+                        $('#'+inputs.id+'_filter_'+number).siblings().addClass('filters-close').attr('data-value', value.slug ? value.slug : value).attr('data-id', inputs.id); //Add the necessary attributes to the custom filters close img.
+                            $('.filters-close').on('click', function(){
+                                $(this).parent().hide();
+                                $('input[value="'+$(this).attr('data-value')+'"][name="'+$(this).attr('data-id')+'[]"]').prop('checked', false); //Filter to prevent several checkboxes with same value to be unchecked.
+                                $('input[name="'+inputs.id+'"]').val('');
+                                $('form.wpas-autosubmit :input').parents('form').submit();
+                            });
+                            appendHTML('#'+inputs.id+'_filter_'+number, (value.name ? value.name : value) + ' ');
+
+                        });
+                    });
                     ajaxLoader.hideImage();
                     updateHTML(__WPAS.DEBUG_CONTAINER,response.debug);
                     CURRENT_PAGE = response.current_page;

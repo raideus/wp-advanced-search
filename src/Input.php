@@ -35,7 +35,10 @@ class Input extends StdObject {
                             'allow_null' => 'bool|string',
                             'default_all' => 'bool',
                             'pre_html' => 'string',
-                            'post_html' => 'string');
+                            'post_html' => 'string',
+                            'display_count' => 'bool',
+                            'hide_empty' => 'bool',
+                            );
 
     protected static $defaults = array(
                             'label' => '',
@@ -47,7 +50,10 @@ class Input extends StdObject {
                             'default_all' => false,
                             'disable_wrapper' => false,
                             'pre_html' => '',
-                            'post_html' => '' );
+                            'post_html' => '',
+                            'display_count' => false,
+                            'hide_empty' => false,
+                            );
 
     public function __construct($input_name, $args = array()) {
         $args = $this->parseArgs($args,self::$defaults);
@@ -188,6 +194,16 @@ class Input extends StdObject {
     public function getValues()
     {
         return $this->values;
+    }
+
+    public function getShow()
+    {
+        return $this->display_count;
+    }
+
+    public function hideEmpty()
+    {
+        return $this->hide_empty;
     }
 
     public function isNested()

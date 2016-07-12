@@ -353,6 +353,7 @@ class InputMarkup extends StdObject {
         $element = ($this->input->isNested()) ? 'li' : 'div';
         $id = $this->input->getId();
         $name = $this->input->getInputName();
+        $show = $this->input->getShow() ? '<span id="wpas-input-count-'.$id.'-'.$value.'"></span>' : '';
         $name .= ($type == 'checkbox') ? '[]' : '';
         $output = '<'.$element.' class="wpas-'.$id.'-'.$type.'-'.$ctr.'-container wpas-'.$id.'-'.$type.'-container wpas-'.$type.'-container">'
                    . '<input type="'.$type.'" id="wpas-'.$id.'-'.$type.'-'.$ctr.'" class="wpas-'.$id.'-'.$type.' wpas-'.$type.'" name="'.$name.'" value="'.$value.'"';
@@ -360,7 +361,7 @@ class InputMarkup extends StdObject {
             $output .= ' checked="checked"';
         }
         $output .= '>';
-        $output .= '<label for="wpas-'.$id.'-'.$type.'-'.$ctr.'"> '.$label.'</label></'.$element.'>';
+        $output .= '<label for="wpas-'.$id.'-'.$type.'-'.$ctr.'"> '.$label.'</label>'.$show.'</'.$element.'>';
         $this->ctr++;
         return $output;
     }

@@ -46,11 +46,10 @@ class MetaQuery {
      */
     private function metaQueryGroup($field, HttpRequest $request) {
         $group = array();
-        $meta_key = $field->getFieldId();
+        $meta_key = $field->getMetaKeys();
         $inputs = $field->getInputs();
         $data_type = $field->getDataType();
         $compare = $field->getCompare();
-
         $clauses = $this->clauseList($inputs, $meta_key, $compare, $data_type);
 
         foreach ($clauses as $clause) {
@@ -72,6 +71,7 @@ class MetaQuery {
      * @return array
      */
     private function clauseList($inputs, $meta_key, $compare, $data_type) {
+
         if ($compare == Compare::between) {
             return array($this->metaQueryClauseBetween($meta_key, $inputs, 2));
         }
@@ -81,6 +81,7 @@ class MetaQuery {
         // Disallow multiple input sources if not using BETWEEN comparison
         // This is a (potentially) temporary restriction
         $keys = array_keys($inputs);
+        
         $inputs = array($keys[0] => $inputs[$keys[0]]);
         //
         //
@@ -146,7 +147,6 @@ class MetaQuery {
             $count++;
             if ($limit && $count > $limit) break;
         }
-
         if (!empty($compare)) {
             $clause['compare'] = $compare;
         } else if (count($inputs) == 1) {
@@ -200,7 +200,9 @@ class MetaQuery {
      */
     private function metaQueryClauseArray($meta_key, $input_name, $input) {
         $request_var = RequestVar::nameToVar($input_name, 'meta_key');
+        
         $var = $this->request->get($request_var);
+
         if (empty($var)) return array();
 
         $clause = array();
@@ -221,12 +223,20 @@ class MetaQuery {
     }
 
     private function subClause($meta_key, $input, $value) {
-        return array(
-            'key' => $meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-        );
+       
+        $queries = array();
+        $queries['relation'] = $input['relation'];
+        foreach($meta_key as $key){
+            $queries[] = array(
+                'key' => $key,
+                'type' => DataType::isArrayType($input['data_type']),
+                'value' => $value,
+                'compare' => $input['compare']
+            );
+        }
+
+        return $queries;
+        
     }
 
     /**

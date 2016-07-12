@@ -23,6 +23,7 @@ class WP_Advanced_Search {
     private $ajax;
     private $query;
     public $debug_level;
+    public $inputs;
 
     function __construct($id = '', $request = null) {
         $this->errors = array();
@@ -34,6 +35,7 @@ class WP_Advanced_Search {
         $this->debug_level = $this->args['debug_level'];
         $this->factory = new WPAS\Factory($this->args, $request);
         $this->query = $this->factory->buildQueryObject();
+        $this->inputs = $this->factory->getInputs();
     }
 
     /**
@@ -69,7 +71,8 @@ class WP_Advanced_Search {
     }
 
     /**
-     * Print HTML in shortcodes
+     * Print HTML in shortcodes 
+     * (When using the_form function within a shortcode, it would cause issues because it returns HTML via echo. Changed for return to fix it).
      * @return string
      */
     public function the_form_shortcode() {
@@ -214,6 +217,10 @@ class WP_Advanced_Search {
      */
     public function ajax_enabled() {
         return $this->ajax->isEnabled();
+    }
+
+    public function get_args(){
+        return $this->args;
     }
 
     /**

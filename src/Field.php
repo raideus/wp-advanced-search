@@ -11,12 +11,13 @@ class Field extends StdObject {
     private $operator;
     private $compare;
     private $data_type;
+    private $meta_keys;
 
     protected static $rules = array(
         'type' => array('type' => 'FieldType', 'required' => true),
         'inputs' => 'array<array>',
         'taxonomy' => 'string',
-        'meta_key' => 'string',
+        'meta_key' => 'array', 
         'data_type' => 'DataType',
         'group_method' => array('type' => 'string', 'matches' => 'merge|distinct'),
         'relation' => array('type'=>'Relation','required' => true),
@@ -58,7 +59,9 @@ class Field extends StdObject {
         'date_type' => 1,
         'orderby_values' => 1,
         'id' => 1,
-        'term_args' => 1
+        'term_args' => 1,
+        'display_count' => 1,
+        'hide_empty' => 1,
     );
 
     public function __construct($args) {
@@ -74,6 +77,7 @@ class Field extends StdObject {
         $this->compare = $args['compare'];
         $this->data_type = $args['data_type'];
         $this->populateInputs($this->field_id, $args);
+        $this->meta_keys = $this->setMetaKeys($args);
     }
 
     private function populateInputs($field_id, $args) {
@@ -107,13 +111,6 @@ class Field extends StdObject {
 
     private function setFieldId($args) {
         switch($args['field_type']) {
-            case 'meta_key' :
-                if (empty($args['meta_key'])) {
-                    throw new \Exception('Field is missing '.
-                    'argument \'meta_key\'');
-                    return;
-                }
-                return $args['meta_key'];
             case 'taxonomy' :
                 if (empty($args['taxonomy'])) {
                     throw new \Exception('Field is missing '.
@@ -123,6 +120,20 @@ class Field extends StdObject {
                 return $args['taxonomy'];
             default:
                 return $args['field_type'];
+        }
+    }
+
+    private function setMetaKeys($args){
+        switch($args['field_type']) {
+            case 'meta_key' :
+                if (empty($args['meta_key'])) {
+                    throw new \Exception('Field is missing '.
+                    'argument \'meta_key\'');
+                    return false;
+                }
+                return $args['meta_key'];
+            default:
+                return false;
         }
     }
 
@@ -175,6 +186,13 @@ class Field extends StdObject {
     public function getFieldId()
     {
         return $this->field_id;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMetaKeys(){
+        return $this->meta_keys;
     }
 
     /**
