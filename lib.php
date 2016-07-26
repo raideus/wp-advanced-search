@@ -28,6 +28,7 @@ function wpas_build_ajax_response(array $post) {
     $request['paged'] = $page;
 
     $wpas_id = $request['wpas_id'];
+
     $wpas = new WP_Advanced_Search($wpas_id, $request);
     $q = $wpas->query();
     $template = $wpas->get_ajax()->resultsTemplate();
@@ -37,6 +38,7 @@ function wpas_build_ajax_response(array $post) {
     $response["count"] = $q->found_posts; //Access the query object on order to retrieve the total number of found posts.
     $response["results"] = wpas_load_template_part($template, $q);
     $response["current_page"] = $q->query_vars['paged'];
+
     $response["max_page"] = $q->max_num_pages;
     $response["values"] = wpas_get_tax_count($wpas->inputs, $q, $wpas->get_args());
     $response["selected"] = wpas_get_selected($wpas->inputs);
@@ -86,17 +88,22 @@ function wpas_get_tax_count($inputs, $q, $query_args){
     
     foreach($inputs as $id => $input){
         if(isset($input->taxonomy)){ 
-            $values[$input->taxonomy] = array('selected' => $input->getSelected(), 'format' => $input->term_format, 'operator' => $input->operator);
+            $values[$input->taxonomy] = array(
+                'selected' => $input->getSelected(), 
+                'format' => $input->term_format, 
+                'operator' => $input->operator, 
+            );
             $all_values[$input->getId()] = $input->getValues();
             $tax[] = array('tax' => $input->taxonomy, 'format' => $input->term_format);
+
+            $response[$input->getId()]['hide'] = $input->hideEmpty(); //Set hide_empty option so AJAX knows whether to hide it.
         }
     }
    
     $args = array();
-    //If a meta_query is set, set it to each subQuery.
-    $args['meta_query'] = $q->meta_query->queries;
+    
+    $args['meta_query'] = $q->meta_query->queries; //If a meta_query is set, set it to each subQuery.
     $i = 0;
-    $newterms = array();
     foreach($values as $taxonomy => $elements){
         $terms = array();
 
@@ -109,12 +116,8 @@ function wpas_get_tax_count($inputs, $q, $query_args){
             $terms[] = $selection;
         }
 
-        
-
         if(!empty($terms)){
             $args['tax_query'][$i]['terms'] = $terms;
-            $newterms[$i] = $terms;
-           
         }
         
         if(!isset($args['tax_query'][$i]['terms']))  unset($args['tax_query'][$i]);
@@ -168,15 +171,12 @@ function wpas_load_template_part($template, $query_object) {
         $template = get_template_directory().$template_suffix;
         if (!file_exists($template)) return false;
     }
-
     $temp = $wp_query;
     $wp_query = $query_object;
-
     ob_start();
     load_template($template);
     $var = ob_get_contents();
     ob_end_clean();
-
     $wp_query = $temp;
     return $var;
 }

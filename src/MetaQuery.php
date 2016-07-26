@@ -46,11 +46,10 @@ class MetaQuery {
      */
     private function metaQueryGroup($field, HttpRequest $request) {
         $group = array();
-        $meta_key = $field->getFieldId();
+        $meta_key = $field->getMetaKeys();
         $inputs = $field->getInputs();
         $data_type = $field->getDataType();
         $compare = $field->getCompare();
-        //exit($compare);
         $clauses = $this->clauseList($inputs, $meta_key, $compare, $data_type);
 
         foreach ($clauses as $clause) {
@@ -116,7 +115,7 @@ class MetaQuery {
         if (empty($val)) return array();
 
         $clause = array();
-        $clause['key'] = $meta_key;
+        $clause['key'] = $meta_key[0];
         $clause['compare'] = $input['compare'];
         $clause['value'] = $val;
         $clause['type'] = $input['data_type'];
@@ -224,106 +223,20 @@ class MetaQuery {
     }
 
     private function subClause($meta_key, $input, $value) {
-        /*
-        return array('key' => $meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
+       
+        $queries = array();
+        $queries['relation'] = $input['relation'];
+        foreach($meta_key as $key){
+            $queries[] = array(
+                'key' => $key,
+                'type' => DataType::isArrayType($input['data_type']),
+                'value' => $value,
+                'compare' => $input['compare']
             );
-        */
-        return array(
-            'relation' => 'OR',
-            array(
-            'key' => 'team_member_name',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'team_member_last_name',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'team_member_email',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'team_member_telephone',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'team_member_website_url',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'article_year',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'article_authors',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'article_journal',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'article_description',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'book_authors',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'scientific_highlight_journal',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'scientific_highlight_authors',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'thesis_authors',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'thesis_supervisors',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-            array(
-            'key' => 'thesis_publication_year',//$meta_key,
-            'type' => DataType::isArrayType($input['data_type']),
-            'value' => $value,
-            'compare' => $input['compare']
-            ),
-        );
+        }
+
+        return $queries;
+        
     }
 
     /**
