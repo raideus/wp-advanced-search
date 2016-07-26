@@ -86,22 +86,17 @@ function wpas_get_tax_count($inputs, $q, $query_args){
     
     foreach($inputs as $id => $input){
         if(isset($input->taxonomy)){ 
-            $values[$input->taxonomy] = array(
-                'selected' => $input->getSelected(), 
-                'format' => $input->term_format, 
-                'operator' => $input->operator, 
-            );
+            $values[$input->taxonomy] = array('selected' => $input->getSelected(), 'format' => $input->term_format, 'operator' => $input->operator);
             $all_values[$input->getId()] = $input->getValues();
             $tax[] = array('tax' => $input->taxonomy, 'format' => $input->term_format);
-
-            $response[$input->getId()]['hide'] = $input->hideEmpty(); //Set hide_empty option so AJAX knows whether to hide it.
         }
     }
    
     $args = array();
-    
-    $args['meta_query'] = $q->meta_query->queries; //If a meta_query is set, set it to each subQuery.
+    //If a meta_query is set, set it to each subQuery.
+    $args['meta_query'] = $q->meta_query->queries;
     $i = 0;
+    $newterms = array();
     foreach($values as $taxonomy => $elements){
         $terms = array();
 
@@ -114,8 +109,12 @@ function wpas_get_tax_count($inputs, $q, $query_args){
             $terms[] = $selection;
         }
 
+        
+
         if(!empty($terms)){
             $args['tax_query'][$i]['terms'] = $terms;
+            $newterms[$i] = $terms;
+           
         }
         
         if(!isset($args['tax_query'][$i]['terms']))  unset($args['tax_query'][$i]);

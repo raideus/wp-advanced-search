@@ -166,32 +166,20 @@ jQuery(document).ready(function($) {
                 form_data: data
             },
             success: function(data, textStatus, XMLHttpRequest) {
-                console.log(data);
                 response = JSON.parse(data);
-                console.log(response);
                 setTimeout(function() {
                     appendHTML(__WPAS.INNER, response.results);
                     updateHTML(__WPAS.NUMBER, response.count); //Update the element showing the total number of results.
                     $.each(response.values, function(id, inputs){
                         $.each(inputs, function(name, value){    
                             updateHTML(__WPAS.INPUT_COUNT+id+'-'+name, ' (' + value + ')');
-                            if(inputs.hide){
-                                if(value == 0){
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().hide();
-                                }
-                                else{
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().show();
-                                }
-                            }
+                            if(value == 0){
+                                $('input[value="'+name+'"]').parent().addClass('disabled');
+                                $('input[value="'+name+'"]').prop('disabled', true);
+                            } 
                             else{
-                                if(value == 0){
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().addClass('disabled');
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').prop('disabled', true);
-                                }
-                                else{
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').parent().removeClass('disabled');
-                                    $('input[value="'+name+'"][name="'+id+'[]"]').prop('disabled', false);  
-                                }
+                                $('input[value="'+name+'"]').prop('disabled', false);  
+                                $('input[value="'+name+'"]').parent().removeClass('disabled');
                             }
                         });
                     });
@@ -199,11 +187,10 @@ jQuery(document).ready(function($) {
                     updateHTML(__WPAS.FILTERS, '');
                     $.each(response.selected, function(id, inputs){
                         $.each(inputs.selected, function(number, value){
-                        appendHTML(__WPAS.FILTERS, '<div class="filters"><div style="display:inline;"  id="'+inputs.id+'_filter_'+number+'">'+inputs.label+': </div>'+$(__WPAS.FORM).data('ajax-close-img-html')+'</div>');
-                        $('#'+inputs.id+'_filter_'+number).siblings().addClass('filters-close').attr('data-value', value.slug ? value.slug : value).attr('data-id', inputs.id); //Add the necessary attributes to the custom filters close img.
+                        appendHTML(__WPAS.FILTERS, '<div class="filters"><div style="display:inline;"  id="'+inputs.id+'_filter_'+number+'">'+inputs.label+': </div> <svg style="display:inline; cursor:pointer;" class="filters-close"  width="12" height="12" viewBox="0 0 32 32"><path class="path1" d="M31.708 25.708c-0-0-0-0-0-0l-9.708-9.708 9.708-9.708c0-0 0-0 0-0 0.105-0.105 0.18-0.227 0.229-0.357 0.133-0.356 0.057-0.771-0.229-1.057l-4.586-4.586c-0.286-0.286-0.702-0.361-1.057-0.229-0.13 0.048-0.252 0.124-0.357 0.228 0 0-0 0-0 0l-9.708 9.708-9.708-9.708c-0-0-0-0-0-0-0.105-0.104-0.227-0.18-0.357-0.228-0.356-0.133-0.771-0.057-1.057 0.229l-4.586 4.586c-0.286 0.286-0.361 0.702-0.229 1.057 0.049 0.13 0.124 0.252 0.229 0.357 0 0 0 0 0 0l9.708 9.708-9.708 9.708c-0 0-0 0-0 0-0.104 0.105-0.18 0.227-0.229 0.357-0.133 0.355-0.057 0.771 0.229 1.057l4.586 4.586c0.286 0.286 0.702 0.361 1.057 0.229 0.13-0.049 0.252-0.124 0.357-0.229 0-0 0-0 0-0l9.708-9.708 9.708 9.708c0 0 0 0 0 0 0.105 0.105 0.227 0.18 0.357 0.229 0.356 0.133 0.771 0.057 1.057-0.229l4.586-4.586c0.286-0.286 0.362-0.702 0.229-1.057-0.049-0.13-0.124-0.252-0.229-0.357z"></path></svg></div>');
                             $('.filters-close').on('click', function(){
                                 $(this).parent().hide();
-                                $('input[value="'+$(this).attr('data-value')+'"][name="'+$(this).attr('data-id')+'[]"]').prop('checked', false); //Filter to prevent several checkboxes with same value to be unchecked.
+                                $('input[value="'+(value.slug ? value.slug : value)+'"]').prop('checked', false); 
                                 $('input[name="'+inputs.id+'"]').val('');
                                 $('form.wpas-autosubmit :input').parents('form').submit();
                             });

@@ -117,14 +117,11 @@ class Form extends StdObject {
         $output = "";
         if ($this->ajax->isEnabled() == false) return $output;
 
-        $output .= "data-ajax-close-img-html=\"".$this->ajax->closeImg()."\"";
         $output .= "data-ajax-button=\"".$this->ajax->buttonText()."\" ";
         $output .= "data-ajax-loading=\"".$this->ajax->loadingImage()."\" ";
         $show_default = ($this->ajax->showDefaultResults()) ? "1" : "0";
         $output .= "data-ajax-show-default=\"".$show_default."\" ";
         $output .= "data-ajax-url-hash=\"".$this->ajax->urlHash()."\" ";
-        //$output .= "data-ajax-close-img=\"".$this->ajax->closeImg()."\" ";
-        //
 
         return $output;
     }
