@@ -42,3 +42,35 @@ WP Advanced Search
 - wpas.php
 - js/scripts.js
 
+[0.0.5]
+
+##Add
+- Added filter display, working for taxonomies, search and meta_key fields. Also added functionality to delete each filter and run an updated AJAX request.
+
+##Edit
+- Edited display post results within each taxonomy input to include meta fields if exist.
+- Edited display post results within each taxonomy input to include additional tax_queries if defined on the search form.
+
+###Modified files
+- lib.php
+- wpas.php -> Added get_args() function so we could retrieve the args set on the form and include tax_queries if they exist
+- js/scripts.js
+
+
+[0.0.6]
+
+##Add
+- Added functionality to make meta queries on several meta keys.
+- Added option to include a custom img to close the filters boxes. If none is defined, a svg formatted cross will appear.
+- Added option to hide taxonomy elements if count is 0
+
+##Fix 
+- Fixed some checkboxes unchecking when closing filters. (If there were two or more checkboxes with the same value, they would all uncheck).
+
+###Modified files
+- js/scripts.js
+- src/Field.php
+- src/MetaQuery.php
+- src/Form.php
+- src/AjaxConfig.php
+- src/Input.php
