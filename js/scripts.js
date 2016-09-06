@@ -3,7 +3,8 @@ var __WPAS = {
     FORM : "#wp-advanced-search.wpas-ajax-enabled",
     CONTAINER : "#wpas-results",
     INNER : "#wpas-results-inner",
-    ITEMS : ".wpas-result-item .new",
+    ITEMS : ".wpas-result-item",
+    ITEMS_NEW : this.ITEMS + " .new",
     DEBUG_CONTAINER : "#wpas-debug",
     PAGE_FIELD : "#wpas-paged",
     FORM_ID: "",
@@ -47,7 +48,7 @@ jQuery(document).ready(function($) {
         $(this).parents('form.wpas-autosubmit').each(function() {
             $(this).submit(function() {
             	// Trigger event on reset, pass items
-            	$( document ).trigger( 'WPASReset', __WPAS.ITEMS );
+            	$( document ).trigger( 'WPASReset', __WPAS.ITEMS, __WPAS.ITEMS_NEW );
             });
             return false;
         });
@@ -190,7 +191,7 @@ jQuery(document).ready(function($) {
                     // storeInstance();
 
                     // Trigger success-event with items passed
-                    $( document ).trigger( 'WPASSuccess',__WPAS.ITEMS );
+                    $( document ).trigger( 'WPASSuccess',__WPAS.ITEMS,__WPAS.ITEMS_NEW );
 
                     unlockForm();
 
