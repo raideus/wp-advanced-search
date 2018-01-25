@@ -1,4 +1,3 @@
-
 :heavy_exclamation_mark: UPDATE (6/15/2017): _This repository is no longer maintained_. Feel free to fork and modify as you wish.
 
 # WP Advanced Search
