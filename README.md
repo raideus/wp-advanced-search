@@ -4,7 +4,7 @@
 # WP Advanced Search
 #### A PHP framework for building advanced search forms in WordPress
 
-[![Code Climate](https://codeclimate.com/github/bootsz/wp-advanced-search/badges/gpa.svg)](https://codeclimate.com/github/bootsz/wp-advanced-search)
+[![Code Climate](https://codeclimate.com/github/raideus/wp-advanced-search/badges/gpa.svg)](https://codeclimate.com/github/bootsz/wp-advanced-search)
 
 [View Documentation](http://wpadvancedsearch.com/docs/setup)
 
