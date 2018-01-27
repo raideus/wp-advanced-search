@@ -174,6 +174,20 @@ jQuery(document).ready(function($) {
                         ajaxLoader.hideButton();
                     } else {
                         ajaxLoader.showButton();
+                        
+ // start addition infinite scroll
+						$(window).scroll(function() {
+							if ($(window).scrollTop() >= (($(document).height() - $(window).height()) - $('button#wpas-load-btn').innerHeight())) {
+								if( $('button#wpas-load-btn').is(':hidden') ){
+								}
+								else {
+									setPage(parseInt(CURRENT_PAGE) + 1)
+									sendRequest(REQUEST_DATA,CURRENT_PAGE);
+								}
+							}
+						});
+// end addition infinite scroll
+						
                     }
 
                     window.location.hash = __WPAS.HASH;
@@ -296,6 +310,8 @@ jQuery(document).ready(function($) {
         lockForm();
         submitForm(this);
     });
+
+
 
     $(document).on('click', '#'+ajaxLoader.load_btn+'.active', function(e){
         setPage(parseInt(CURRENT_PAGE) + 1)
