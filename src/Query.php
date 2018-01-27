@@ -168,7 +168,15 @@ class Query extends StdObject {
 
         $s_query = $this->getSubQuery($classnames[$field_type], $fields, $field_group->getRelation(), $request );
 
-        if (!empty($s_query)) $query[RequestVar::wpQueryVar($field_type)] = $s_query;
+        if (!empty($s_query)){
+            //If a tax_query was set on the form and another taxonomy was selected, it would overwrite the one set before. This adds all subqueries to the main query.
+            if(isset($this->wp_query_args['tax_query']) && $field_type == 'taxonomy'){
+                $this->wp_query_args['tax_query'][] = $s_query;
+            }
+            else{
+                $query[RequestVar::wpQueryVar($field_type)] = $s_query;                
+            }
+        }
         return $query;
     }
 
