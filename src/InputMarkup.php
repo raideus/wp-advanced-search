@@ -144,11 +144,10 @@ class InputMarkup extends StdObject {
 
         if ($this->input->isNested()) {
             $output .= $this->buildOptionsList($this->input->getValues(), array($this, $option_func), 0, true);
-            return $output;
-        }
-
-        foreach ($this->input->getValues() as $value => $label) {
-            $output .= call_user_func(array($this,$option_func), $value, $label);
+        } else {
+            foreach ($this->input->getValues() as $value => $label) {
+                $output .= call_user_func(array($this,$option_func), $value, $label);
+            }
         }
 
         $output .= '</div>';
